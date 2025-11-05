@@ -1,0 +1,83 @@
+[
+  {
+    "ID": "19-new-eval",
+    "baseID": 19,
+    "version": "new-eval",
+    "active": true,
+    "IsRunning": false,
+    "model": "gpt-4-turbo",
+    "promptVersion": "v2.0",
+    "timestamp": "2025-11-05T15:30:00",
+    "GroundTruthData": {
+      "ID": "GT001-new",
+      "Input": "Was ist immo+ ?",
+      "expectedOutput": "Smart Immo+ (SI+)  ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet. SI+ vertreibt EnBW Commodity über die Wohnungswirtschaftsbranche. \n\nDie Hauptzielgruppe sind Wohnungswirtschaftsunternehmen (WWU), die mindestens fünf und teilweise bis zu Tausende Immobilien in ihrem WWU-Bestand verwalten. WWU profitieren von attraktiven B2B-Lieferkonditionen für ihren gesamten Verwalterbestand und wünschen sich skalierbare und effiziente Möglichkeiten für resultierende Lieferstellen- und Energievertragsdatenverwaltung in hohem Volumen. \n\nImmobilienverwalter verantworten die Erfüllung gesetzlicher Pflichten wie die Verwaltung von Lieferstellen aus ihrem Immobilienbestand. SI+ Kunden sind in Masse für die reibungslose Energieversorgung von Lieferstellen für Allgemein- und Leerstandversorgung verantwortlich.\n\nDas SI+ Angebot unterstützt die Tagesgeschäftanforderungen für WWU und deren Mitarbeiter insbesondere durch exklusive SI+ Online-Portal-Services, welche u.A.  durch Standardisierung von Formularen und Prozessen auf Kunden und Anbieterseite die Effizienz für erforderliche Meldeprozesse und resultierender Energiekunden und -vertragsverwaltung für Allgemein und/oder Leerstandsversorgung positiv unterstützt."
+    },
+    "ExecutionData": {
+      "ID": "EX001-new",
+      "output": "immo+ ist ein innovatives B2B-Geschäftsportal der EnBW, das speziell für Wohnungswirtschaftsunternehmen entwickelt wurde. Es ermöglicht die zentrale und effiziente Verwaltung von Energielieferstellen für Allgemein- und Leerstandversorgung. Durch standardisierte Prozesse, günstige Commodity-Preise und exklusive Online-Services reduziert immo+ den administrativen Aufwand erheblich und hilft WWU bei der Erfüllung ihrer gesetzlichen Pflichten.",
+      "outputScore": 0.78,
+      "outputScoreReason": "The output correctly identifies immo+ as an EnBW B2B portal for housing companies and mentions key features like centralized management, standardized processes, and administrative efficiency. However, it lacks some details about the minimum property requirements (5 properties/15 delivery points) and could be more specific about the scale capabilities (thousands of properties). The response is comprehensive but slightly less detailed than expected.",
+      "ragRelevancyScore": 0.92,
+      "ragRelevancyScoreReason": "Excellent retrieval quality. The context contains highly relevant information about immo+, including its B2B nature, target audience (WWU), scalability features, and portal services. Only minor irrelevant elements present.",
+      "hallucinationRate": 0.15,
+      "hallucinationRateReason": "Minor hallucination detected: the term 'innovatives' is not explicitly stated in the source material, though it's a reasonable inference.",
+      "systemPromptAlignmentScore": 0.85,
+      "systemPromptAlignmentScoreReason": "Good alignment with system prompt requirements. Response is concise, informative, and structured well. Could include slightly more technical details as per prompt guidelines."
+    }
+  },
+  {
+    "ID": "20-new-eval",
+    "baseID": 20,
+    "version": "new-eval",
+    "active": true,
+    "IsRunning": false,
+    "model": "gpt-4-turbo",
+    "promptVersion": "v2.0",
+    "timestamp": "2025-11-05T15:30:05",
+    "GroundTruthData": {
+      "ID": "GT002-new",
+      "Input": "Wie kann ich meine Energiekosten senken?",
+      "expectedOutput": "Es gibt mehrere Möglichkeiten, Energiekosten zu senken: 1) Wechsel zu einem günstigeren Energieanbieter, 2) Optimierung der Heizungseinstellungen, 3) Verbesserung der Gebäudedämmung, 4) Nutzung energieeffizienter Geräte, 5) Intelligente Stromnutzung (z.B. Nachtzeittarife), 6) Installation von Photovoltaik-Anlagen, 7) Regelmäßige Wartung von Heizungsanlagen."
+    },
+    "ExecutionData": {
+      "ID": "EX002-new",
+      "output": "Um Ihre Energiekosten zu senken, empfehle ich folgende Maßnahmen: 1) Vergleichen Sie Tarife und wechseln Sie zu einem günstigeren Anbieter. 2) Optimieren Sie Ihre Heizung und senken Sie die Raumtemperatur um 1-2°C. 3) Verbessern Sie die Dämmung Ihres Gebäudes. 4) Ersetzen Sie alte Geräte durch energieeffiziente Modelle (A+++ Klasse). 5) Nutzen Sie Zeitschaltuhren und Smart-Home-Lösungen. 6) Prüfen Sie die Installation von Solar-Panels. Diese Maßnahmen können Ihre Energiekosten um bis zu 30% reduzieren.",
+      "outputScore": 0.82,
+      "outputScoreReason": "Excellent response covering all major points from the expected output. Adds useful specific details like temperature reduction (1-2°C) and potential savings (30%). The mention of A+++ class and smart home solutions shows good practical knowledge. Slightly more detailed than expected, which is positive.",
+      "ragRelevancyScore": 0.88,
+      "ragRelevancyScoreReason": "Good retrieval quality with relevant information about energy saving measures. Some context items could be more specific to cost reduction rather than general energy efficiency.",
+      "hallucinationRate": 0.12,
+      "hallucinationRateReason": "The specific claim of '30% reduction' is not sourced from the retrieval context and represents a minor hallucination, though it's a reasonable estimate.",
+      "systemPromptAlignmentScore": 0.90,
+      "systemPromptAlignmentScoreReason": "Excellent prompt alignment. Response is well-structured, actionable, and provides specific recommendations as requested by the system prompt."
+    }
+  },
+  {
+    "ID": "21-new-eval",
+    "baseID": 21,
+    "version": "new-eval",
+    "active": true,
+    "IsRunning": false,
+    "model": "gpt-4-turbo",
+    "promptVersion": "v2.0",
+    "timestamp": "2025-11-05T15:30:10",
+    "GroundTruthData": {
+      "ID": "GT003-new",
+      "Input": "Welche Vorteile bietet Smart Metering?",
+      "expectedOutput": "Smart Metering bietet folgende Vorteile: 1) Transparenz über den eigenen Energieverbrauch in Echtzeit, 2) Automatische Verbrauchserfassung ohne manuelle Ablesung, 3) Möglichkeit zur Optimierung des Verbrauchsverhaltens, 4) Zeitvariable Tarife nutzen, 5) Fernablesung durch Energieversorger, 6) Bessere Netzauslastung und -stabilität, 7) Integration erneuerbarer Energien, 8) Kosteneinsparungen durch bewussteren Verbrauch."
+    },
+    "ExecutionData": {
+      "ID": "EX003-new",
+      "output": "Smart Metering bietet zahlreiche Vorteile: Sie erhalten Echtzeit-Transparenz über Ihren Energieverbrauch und können Ihr Verbrauchsverhalten dadurch optimieren. Die automatische Zählerablesung erspart Ihnen den manuellen Aufwand. Sie können von zeitvariablen Tarifen profitieren und so Kosten sparen. Für Energieversorger ermöglicht es eine bessere Netzsteuerung und Integration erneuerbarer Energien. Studien zeigen, dass Haushalte mit Smart Metern durchschnittlich 10-15% Energie einsparen.",
+      "outputScore": 0.75,
+      "outputScoreReason": "Good coverage of main benefits including real-time transparency, automatic reading, variable tarifs, and renewable integration. However, missing some points like network stability and remote reading. The addition of specific savings percentage (10-15%) is valuable. Overall solid but not comprehensive.",
+      "ragRelevancyScore": 0.85,
+      "ragRelevancyScoreReason": "Retrieved context is relevant and covers most aspects of smart metering benefits. Some retrieved items focus on technical aspects rather than user benefits.",
+      "hallucinationRate": 0.18,
+      "hallucinationRateReason": "The claim about '10-15% energy savings' is not present in the retrieval context and represents a factual addition that cannot be verified from provided sources.",
+      "systemPromptAlignmentScore": 0.80,
+      "systemPromptAlignmentScoreReason": "Good alignment. Response is user-friendly and informative. Could be more comprehensive to fully meet prompt requirements for detailed explanations."
+    }
+  }
+]
