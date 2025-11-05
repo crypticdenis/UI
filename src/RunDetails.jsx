@@ -9,11 +9,28 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
     outputScore: ''
   });
 
+  // Extract unique values for dropdowns
+  const uniqueBaseIDs = [...new Set(questions.map(q => q.baseID).filter(Boolean))].sort((a, b) => a - b);
+  const uniqueScoreRanges = [
+    { label: '0.9 - 1.0 (Excellent)', min: 0.9, max: 1.0 },
+    { label: '0.8 - 0.9 (Good)', min: 0.8, max: 0.9 },
+    { label: '0.7 - 0.8 (Fair)', min: 0.7, max: 0.8 },
+    { label: '0.6 - 0.7 (Average)', min: 0.6, max: 0.7 },
+    { label: '0.5 - 0.6 (Below Average)', min: 0.5, max: 0.6 },
+    { label: '< 0.5 (Poor)', min: 0, max: 0.5 }
+  ];
+
   // Filter questions
   const filteredQuestions = questions.filter(q => {
-    if (filters.baseID && !String(q.baseID).includes(filters.baseID)) return false;
+    if (filters.baseID && q.baseID !== parseInt(filters.baseID)) return false;
     if (filters.input && !(q.GroundTruthData?.Input || '').toLowerCase().includes(filters.input.toLowerCase())) return false;
-    if (filters.outputScore && !(q.ExecutionData?.outputScore || '').toString().includes(filters.outputScore)) return false;
+    if (filters.outputScore) {
+      const scoreRange = uniqueScoreRanges.find(r => r.label === filters.outputScore);
+      if (scoreRange) {
+        const score = q.ExecutionData?.outputScore || 0;
+        if (score < scoreRange.min || score >= scoreRange.max) return false;
+      }
+    }
     return true;
   });
 
@@ -164,27 +181,33 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
 
       <div className="details-controls">
         <div className="details-filters">
-          <input
-            type="text"
-            placeholder="Filter by Question ID..."
+          <select
             value={filters.baseID}
             onChange={(e) => setFilters({ ...filters, baseID: e.target.value })}
-            className="filter-input"
-          />
+            className="filter-select"
+          >
+            <option value="">All Question IDs</option>
+            {uniqueBaseIDs.map(id => (
+              <option key={id} value={id}>Question {id}</option>
+            ))}
+          </select>
           <input
             type="text"
-            placeholder="Filter by Input..."
+            placeholder="Filter by Input text..."
             value={filters.input}
             onChange={(e) => setFilters({ ...filters, input: e.target.value })}
             className="filter-input"
           />
-          <input
-            type="text"
-            placeholder="Filter by Score..."
+          <select
             value={filters.outputScore}
             onChange={(e) => setFilters({ ...filters, outputScore: e.target.value })}
-            className="filter-input"
-          />
+            className="filter-select"
+          >
+            <option value="">All Score Ranges</option>
+            {uniqueScoreRanges.map(range => (
+              <option key={range.label} value={range.label}>{range.label}</option>
+            ))}
+          </select>
         </div>
 
         <div className="details-sort">
