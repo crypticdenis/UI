@@ -1,66 +1,64 @@
 import React, { useState, useEffect } from 'react';
-import FilterBar from './FilterBar.jsx';
-import RunTable from './RunTable.jsx';
-import ColumnSettings from './ColumnSettings.jsx';
+import RunsOverview from './RunsOverview.jsx';
+import RunDetails from './RunDetails.jsx';
+import QuestionComparison from './QuestionComparison.jsx';
 import ContentViewer from './ContentViewer.jsx';
-import Comparison from './Comparison.jsx';
 import EvaluationTrigger from './EvaluationTrigger.jsx';
 import runsData from './runs.json';
 import './App.css';
 
 function App() {
   const [runs, setRuns] = useState([]);
-  const [filters, setFilters] = useState({
-    ID: '',
-    model: '',
-    promptVersion: '',
-    active: false,
-    IsRunning: false,
-    'GroundTruthData.ID': '',
-    'GroundTruthData.Input': '',
-    'GroundTruthData.expectedOutput': '',
-    'ExecutionData.output': '',
-    'ExecutionData.outputScore': '',
-    'ExecutionData.outputScoreReason': '',
-    'ExecutionData.ragRelevancyScore': '',
-    'ExecutionData.ragRelevancyScoreReason': '',
-    'ExecutionData.hallucinationRate': '',
-    'ExecutionData.hallucinationRateReason': '',
-    'ExecutionData.systemPromptAlignmentScore': '',
-    'ExecutionData.systemPromptAlignmentScoreReason': '',
-  });
-  const [selectedRuns, setSelectedRuns] = useState([]);
-  const [showFilters, setShowFilters] = useState(false);
-  const [showColumnSettings, setShowColumnSettings] = useState(false);
-  const [showComparison, setShowComparison] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
+  const [currentView, setCurrentView] = useState('overview'); // 'overview', 'details', 'comparison'
+  const [selectedRunVersion, setSelectedRunVersion] = useState(null);
+  const [selectedRunQuestions, setSelectedRunQuestions] = useState([]);
+  const [comparisonBaseID, setComparisonBaseID] = useState(null);
+  const [comparisonRunVersion, setComparisonRunVersion] = useState(null);
   const [viewerContent, setViewerContent] = useState(null);
-  const [visibleColumns, setVisibleColumns] = useState({
-    compare: true,
-    ID: true,
-    timestamp: true,
-    model: true,
-    promptVersion: true,
-    active: true,
-    isRunning: true,
-    gtID: true,
-    input: true,
-    expectedOutput: true,
-    output: true,
-    outputScore: true,
-    outputScoreReason: true,
-    ragRelevancyScore: true,
-    ragRelevancyScoreReason: true,
-    hallucinationRate: true,
-    hallucinationRateReason: true,
-    systemPromptScore: true,
-    systemPromptScoreReason: true,
-  });
-  const [sortConfig, setSortConfig] = useState({ key: 'ID', direction: 'ascending' });
+  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
     setRuns(runsData);
   }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // ESC key - go back or close modals
+      if (e.key === 'Escape') {
+        if (viewerContent) {
+          setViewerContent(null);
+        } else if (showHelp) {
+          setShowHelp(false);
+        } else if (currentView === 'comparison') {
+          handleCloseComparison();
+        } else if (currentView === 'details') {
+          handleBackToOverview();
+        }
+      }
+      
+      // Ctrl/Cmd + K - focus search (if on overview)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        if (currentView === 'overview') {
+          const searchInput = document.querySelector('.search-input');
+          if (searchInput) searchInput.focus();
+        }
+      }
+      
+      // ? key - show help
+      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const target = e.target;
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+          e.preventDefault();
+          setShowHelp(true);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentView, viewerContent, showHelp]);
 
   const handleEvaluationComplete = async (config) => {
     console.log('Loading evaluation results with config:', config);
@@ -89,121 +87,46 @@ function App() {
     }
   };
 
-  const filteredRuns = runs.filter((run) => {
-    return Object.keys(filters).every((key) => {
-      if (filters[key] === '' || filters[key] === false) {
-        return true;
-      }
-      if (key === 'active' || key === 'IsRunning') {
-        return run[key] === filters[key];
-      }
-      
-      // Handle nested GroundTruthData fields
-      if (key.startsWith('GroundTruthData.')) {
-        const field = key.split('.')[1];
-        const value = run.GroundTruthData?.[field];
-        return value && String(value).toLowerCase().includes(String(filters[key]).toLowerCase());
-      }
-      
-      // Handle nested ExecutionData fields
-      if (key.startsWith('ExecutionData.')) {
-        const field = key.split('.')[1];
-        const value = run.ExecutionData?.[field];
-        return value && String(value).toLowerCase().includes(String(filters[key]).toLowerCase());
-      }
-      
-      return String(run[key]).toLowerCase().includes(String(filters[key]).toLowerCase());
-    });
-  });
-
-  const sortedRuns = [...filteredRuns].sort((a, b) => {
-    let aValue, bValue;
-    
-    // Handle nested ExecutionData fields
-    if (sortConfig.key.startsWith('ExecutionData.')) {
-      const field = sortConfig.key.split('.')[1];
-      aValue = a.ExecutionData?.[field];
-      bValue = b.ExecutionData?.[field];
-    } else {
-      aValue = a[sortConfig.key];
-      bValue = b[sortConfig.key];
-    }
-    
-    // Handle timestamp sorting
-    if (sortConfig.key === 'timestamp') {
-      const aTime = aValue ? new Date(aValue).getTime() : 0;
-      const bTime = bValue ? new Date(bValue).getTime() : 0;
-      return sortConfig.direction === 'ascending' ? aTime - bTime : bTime - aTime;
-    }
-    
-    // Handle numeric sorting for score fields
-    const numericFields = ['ID', 'Last Score', 'Score', 'RAG Relevancy Score', 'outputScore', 'ragRelevancyScore', 'hallucinationRate', 'systemPromptAlignmentScore'];
-    const fieldName = sortConfig.key.includes('.') ? sortConfig.key.split('.')[1] : sortConfig.key;
-    
-    if (numericFields.includes(fieldName) || numericFields.includes(sortConfig.key)) {
-      const aNum = parseFloat(aValue) || 0;
-      const bNum = parseFloat(bValue) || 0;
-      return sortConfig.direction === 'ascending' ? aNum - bNum : bNum - aNum;
-    }
-    
-    // Handle string sorting
-    const aStr = String(aValue || '').toLowerCase();
-    const bStr = String(bValue || '').toLowerCase();
-    
-    if (aStr < bStr) {
-      return sortConfig.direction === 'ascending' ? -1 : 1;
-    }
-    if (aStr > bStr) {
-      return sortConfig.direction === 'ascending' ? 1 : -1;
-    }
-    return 0;
-  });
-
-  const toggleFilters = () => {
-    setShowFilters(!showFilters);
+  const handleViewRunDetails = (version, questions) => {
+    setSelectedRunVersion(version);
+    setSelectedRunQuestions(questions);
+    setCurrentView('details');
   };
 
-  const toggleColumnSettings = () => {
-    setShowColumnSettings(!showColumnSettings);
+  const handleBackToOverview = () => {
+    setCurrentView('overview');
+    setSelectedRunVersion(null);
+    setSelectedRunQuestions([]);
   };
 
-  const toggleComparison = () => {
-    setShowComparison(!showComparison);
+  const handleCompareQuestion = (baseID, runVersion) => {
+    setComparisonBaseID(baseID);
+    setComparisonRunVersion(runVersion);
+    setCurrentView('comparison');
   };
 
-  const selectedRunsData = runs.filter(run => selectedRuns.includes(run.ID));
-
-  // Calculate average scores
-  const calculateAverages = (runsToCalc) => {
-    if (runsToCalc.length === 0) return { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0 };
-    
-    const validRuns = runsToCalc.filter(run => run.ExecutionData);
-    if (validRuns.length === 0) return { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0 };
-    
-    const sum = validRuns.reduce((acc, run) => {
-      return {
-        outputScore: acc.outputScore + (run.ExecutionData?.outputScore || 0),
-        ragScore: acc.ragScore + (run.ExecutionData?.ragRelevancyScore || 0),
-        hallucinationRate: acc.hallucinationRate + (run.ExecutionData?.hallucinationRate || 0),
-        systemPromptScore: acc.systemPromptScore + (run.ExecutionData?.systemPromptAlignmentScore || 0)
-      };
-    }, { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0 });
-    
-    return {
-      outputScore: (sum.outputScore / validRuns.length).toFixed(2),
-      ragScore: (sum.ragScore / validRuns.length).toFixed(2),
-      hallucinationRate: (sum.hallucinationRate / validRuns.length).toFixed(2),
-      systemPromptScore: (sum.systemPromptScore / validRuns.length).toFixed(2)
-    };
+  const handleCloseComparison = () => {
+    setCurrentView('details');
+    setComparisonBaseID(null);
+    setComparisonRunVersion(null);
   };
 
-  const averages = calculateAverages(sortedRuns);
+  const handleExpandContent = (content, title, runId, gtId) => {
+    setViewerContent({ content, title, runId, gtId });
+  };
 
   return (
     <div className="App dark">
       <header className="dashboard-header">
         <h1>Butler Evaluation Dashboard</h1>
         <div className="header-stats">
+          <div className="keyboard-shortcuts-hint" title="Press ? for help">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="2" y="4" width="20" height="16" rx="2"/>
+              <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h8"/>
+            </svg>
+            <span className="shortcut-key">?</span>
+          </div>
           <button 
             onClick={() => setShowHelp(true)} 
             className="help-button"
@@ -216,89 +139,38 @@ function App() {
             </svg>
             Hilfe
           </button>
-          <span className="stat-badge">Total: {sortedRuns.length}</span>
-          <span className="stat-badge" title="Average Output Score">Ø Output: {averages.outputScore}</span>
-          <span className="stat-badge" title="Average RAG Relevancy Score">Ø RAG: {averages.ragScore}</span>
-          <span className="stat-badge" title="Average Hallucination Rate">Ø Hallucination: {averages.hallucinationRate}</span>
-          <span className="stat-badge" title="Average System Prompt Alignment Score">Ø Prompt: {averages.systemPromptScore}</span>
-          {selectedRuns.length > 0 && (
-            <span className="stat-badge stat-badge-highlight">
-              {selectedRuns.length} Selected
-            </span>
-          )}
+          <EvaluationTrigger onEvaluationComplete={handleEvaluationComplete} />
         </div>
       </header>
 
-      <div className="controls-section">
-        <div className="controls-group">
-          <label className="control-label">Actions</label>
-          <div className="controls">
-            <EvaluationTrigger onEvaluationComplete={handleEvaluationComplete} />
-          </div>
-        </div>
+      <div className="main-content">
+        {currentView === 'overview' && (
+          <RunsOverview 
+            runs={runs} 
+            onViewRunDetails={handleViewRunDetails}
+          />
+        )}
 
-        <div className="controls-group">
-          <label className="control-label">View Options</label>
-          <div className="controls">
-            <button onClick={toggleFilters} className="filter-toggle-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M3 6h18M7 12h10M11 18h2"/>
-              </svg>
-              {showFilters ? 'Hide Filters' : 'Show Filters'}
-            </button>
-            <button onClick={toggleColumnSettings} className="filter-toggle-btn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-              </svg>
-              {showColumnSettings ? 'Hide Columns' : 'Column Settings'}
-            </button>
-            {selectedRuns.length > 0 && (
-              <>
-                <button onClick={toggleComparison} className="filter-toggle-btn comparison-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                    <rect x="9" y="3" width="6" height="4" rx="1"/>
-                    <path d="M9 12h6M9 16h6"/>
-                  </svg>
-                  {showComparison ? 'Hide Comparison' : `Compare ${selectedRuns.length} Run${selectedRuns.length > 1 ? 's' : ''}`}
-                </button>
-                <button onClick={() => setSelectedRuns([])} className="filter-toggle-btn clear-selection-btn">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M18 6L6 18M6 6l12 12"/>
-                  </svg>
-                  Clear Selection
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-        
-        <div className="controls-group">
-          <label className="control-label">Sort By</label>
-          <div className="controls">
-            <select onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })} value={sortConfig.key}>
-              <option value="ID">ID</option>
-              <option value="timestamp">Timestamp</option>
-              <option value="model">Model</option>
-              <option value="promptVersion">Prompt Version</option>
-              <option value="ExecutionData.outputScore">Output Score</option>
-              <option value="ExecutionData.ragRelevancyScore">RAG Relevancy</option>
-              <option value="ExecutionData.hallucinationRate">Hallucination Rate</option>
-              <option value="ExecutionData.systemPromptAlignmentScore">System Prompt Score</option>
-            </select>
-            <select onChange={(e) => setSortConfig({ ...sortConfig, direction: e.target.value })} value={sortConfig.direction}>
-              <option value="ascending">↑ Ascending</option>
-              <option value="descending">↓ Descending</option>
-            </select>
-          </div>
-        </div>
+        {currentView === 'details' && (
+          <RunDetails
+            runVersion={selectedRunVersion}
+            questions={selectedRunQuestions}
+            onBack={handleBackToOverview}
+            onCompareQuestion={handleCompareQuestion}
+            onExpandContent={handleExpandContent}
+          />
+        )}
+
+        {currentView === 'comparison' && (
+          <QuestionComparison
+            baseID={comparisonBaseID}
+            currentRunVersion={comparisonRunVersion}
+            allRuns={runs}
+            onClose={handleCloseComparison}
+          />
+        )}
       </div>
 
-      {showFilters && <FilterBar filters={filters} setFilters={setFilters} />}
-      {showColumnSettings && <ColumnSettings visibleColumns={visibleColumns} setVisibleColumns={setVisibleColumns} />}
-      {showComparison && selectedRuns.length > 0 && (
-        <Comparison runs={selectedRunsData} />
-      )}
       {viewerContent && (
         <ContentViewer 
           title={viewerContent.title} 
@@ -308,6 +180,7 @@ function App() {
           onClose={() => setViewerContent(null)} 
         />
       )}
+
       {showHelp && (
         <div className="modal-overlay" onClick={() => setShowHelp(false)}>
           <div className="modal-content help-modal" onClick={(e) => e.stopPropagation()}>
@@ -318,80 +191,91 @@ function App() {
             <div className="modal-body help-content">
               <section>
                 <h4>🎯 Überblick</h4>
-                <p>Dieses Dashboard hilft Ihnen, KI-Modell-Testläufe zu evaluieren und zu vergleichen. Jede Zeile stellt einen Testfall mit Soll-Daten und Ausführungsergebnissen dar.</p>
-              </section>
-
-              <section>
-                <h4>📊 Datenverständnis</h4>
-                <ul>
-                  <li><strong>Ground Truth Data:</strong> Die erwarteten Eingaben und Ausgaben für jeden Test</li>
-                  <li><strong>Execution Data:</strong> Die tatsächlichen KI-Modell-Ausgaben und Leistungsmetriken</li>
-                  <li><strong>Bewertungen:</strong> Farbcodierte Leistungsindikatoren:
-                    <ul>
-                      <li>🟢 Grün (0.9-1.0): Hervorragend</li>
-                      <li>🟡 Gelb (0.6-0.8): Gut</li>
-                      <li>🟠 Orange (0.4-0.6): Ausreichend</li>
-                      <li>🔴 Rot (0.0-0.4): Mangelhaft</li>
-                    </ul>
-                  </li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>🔍 Hauptfunktionen</h4>
-                <ul>
-                  <li><strong>Filter:</strong> Klicken Sie auf "Show Filters", um Testläufe nach beliebigen Feldern zu suchen und zu filtern</li>
-                  <li><strong>Spalteneinstellungen:</strong> Wählen Sie aus, welche Spalten in der Tabelle sichtbar sein sollen</li>
-                  <li><strong>Sortierung:</strong> Klicken Sie auf Spaltenüberschriften oder verwenden Sie das Sortier-Dropdown zur Datenorganisation</li>
-                  <li><strong>Testläufe vergleichen:</strong> Wählen Sie mehrere Läufe aus (Checkbox) und klicken Sie auf "Compare" für eine Gegenüberstellung</li>
-                  <li><strong>Inhalt erweitern:</strong> Klicken Sie auf das Erweitern-Symbol (⤢), um den vollständigen Text eines Feldes anzuzeigen</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>📈 Bewertungsmetriken</h4>
-                <ul>
-                  <li><strong>Output Score:</strong> Gesamtqualität der KI-Antwort (0-1)</li>
-                  <li><strong>RAG Relevancy Score:</strong> Wie relevant der abgerufene Kontext war (0-1)</li>
-                  <li><strong>Hallucination Rate:</strong> Anteil an fehlerhaften/unbelegten Informationen (0-1)</li>
-                  <li><strong>System Prompt Alignment:</strong> Wie gut die Ausgabe den Anweisungen folgt (0-1)</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>💡 Tipps</h4>
-                <ul>
-                  <li>Beginnen Sie mit der Filterung, um bestimmte Testfälle zu finden</li>
-                  <li>Verwenden Sie den Vergleichsmodus, um Unterschiede zwischen Läufen zu analysieren</li>
-                  <li>Klicken Sie auf Bewertungsgründe, um Evaluierungsdetails zu verstehen</li>
-                  <li>Exportieren Sie Daten oder erstellen Sie Screenshots für Berichte</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>🔄 Mehrere Versionen desselben Tests vergleichen</h4>
-                <p>Um verschiedene Läufe desselben Tests zu vergleichen:</p>
-                <ul>
-                  <li>Strukturieren Sie IDs mit Versionen: <code>1-v1.0</code>, <code>1-v2.0</code>, <code>1-v3.0</code></li>
-                  <li>Oder mit Datum: <code>1-2025-11-01</code>, <code>1-2025-11-05</code></li>
-                  <li>Filtern Sie nach der Basis-ID (z.B. "1-") um alle Versionen zu finden</li>
-                  <li>Wählen Sie die Versionen aus und klicken Sie auf "Compare"</li>
-                </ul>
-                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '8px' }}>
-                  Siehe <code>COMPARING_RUNS.md</code> für detaillierte Anleitung
+                <p>
+                  Das Butler Evaluation Dashboard ermöglicht es Ihnen, verschiedene Test-Runs von KI-Modellen zu vergleichen
+                  und die Qualität der Antworten zu bewerten.
                 </p>
+              </section>
+
+              <section>
+                <h4>📊 Runs Übersicht</h4>
+                <p>
+                  Die Hauptansicht zeigt alle verfügbaren Test-Runs mit ihren wichtigsten Kennzahlen:
+                </p>
+                <ul>
+                  <li><strong>Model & Prompt Version:</strong> Welches KI-Modell und welche Prompt-Version verwendet wurde</li>
+                  <li><strong>Durchschnittswerte:</strong> Aggregierte Scores über alle Fragen eines Runs</li>
+                  <li><strong>Anzahl Fragen:</strong> Wie viele Test-Fragen in diesem Run ausgewertet wurden</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>🔍 Run Details</h4>
+                <p>
+                  Klicken Sie auf "View Details" um alle Fragen eines Runs zu sehen:
+                </p>
+                <ul>
+                  <li><strong>Fragen-Liste:</strong> Alle Testfragen mit individuellen Scores</li>
+                  <li><strong>Vergleichen:</strong> Klicken Sie auf das Vergleichs-Icon um dieselbe Frage über mehrere Runs zu vergleichen</li>
+                  <li><strong>Filter & Sortierung:</strong> Filtern Sie nach Frage-ID oder Score-Werten</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>⚖️ Fragen Vergleich</h4>
+                <p>
+                  Vergleichen Sie wie unterschiedliche Modelle oder Prompt-Versionen dieselbe Frage beantworten:
+                </p>
+                <ul>
+                  <li><strong>Run-Auswahl:</strong> Wählen Sie welche Runs Sie vergleichen möchten</li>
+                  <li><strong>Side-by-Side:</strong> Sehen Sie Eingabe, Ausgabe und Scores nebeneinander</li>
+                  <li><strong>Unterschiede:</strong> Erkennen Sie welches Modell/Prompt bessere Ergebnisse liefert</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>🚀 Neue Evaluation starten</h4>
+                <p>
+                  Mit dem "Run Evaluation" Button können Sie neue Test-Runs starten:
+                </p>
+                <ul>
+                  <li><strong>Model wählen:</strong> Wählen Sie das KI-Modell (GPT-4, Claude, etc.)</li>
+                  <li><strong>Prompt Version:</strong> Wählen Sie die Prompt-Version</li>
+                  <li><strong>Test-Set:</strong> Voll, Quick oder Sample Test</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>📈 Score-Interpretation</h4>
+                <ul>
+                  <li><strong>Grün (0.8-1.0):</strong> Sehr gute Qualität</li>
+                  <li><strong>Gelb (0.6-0.8):</strong> Moderate Qualität</li>
+                  <li><strong>Orange (0.4-0.6):</strong> Verbesserungsbedarf</li>
+                  <li><strong>Rot (&lt;0.4):</strong> Schlechte Qualität</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>⌨️ Keyboard Shortcuts</h4>
+                <div className="keyboard-shortcuts-list">
+                  <div className="shortcut-item">
+                    <kbd>ESC</kbd>
+                    <span>Go back / Close modals</span>
+                  </div>
+                  <div className="shortcut-item">
+                    <kbd>Ctrl</kbd> + <kbd>K</kbd>
+                    <span>Focus search</span>
+                  </div>
+                  <div className="shortcut-item">
+                    <kbd>?</kbd>
+                    <span>Show this help</span>
+                  </div>
+                </div>
               </section>
             </div>
           </div>
         </div>
       )}
-      <RunTable 
-        runs={sortedRuns} 
-        selectedRuns={selectedRuns} 
-        setSelectedRuns={setSelectedRuns} 
-        visibleColumns={visibleColumns}
-        onExpandContent={setViewerContent}
-      />
     </div>
   );
 }

@@ -13,7 +13,7 @@ const CollapsibleCell = ({ content, title = "Content", runId, gtId, onExpand }) 
       {isLong && (
         <button
           className="expand-icon"
-          onClick={() => onExpand({ title, content, runId, gtId })}
+          onClick={() => onExpand(content, title, runId, gtId)}
           title="View full content"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
