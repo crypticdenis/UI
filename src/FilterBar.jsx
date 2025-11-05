@@ -26,6 +26,20 @@ const FilterBar = ({ filters, setFilters }) => {
         value={filters.ID}
         onChange={handleInputChange}
       />
+      <input
+        type="text"
+        name="model"
+        placeholder="Filter by Model"
+        value={filters.model}
+        onChange={handleInputChange}
+      />
+      <input
+        type="text"
+        name="promptVersion"
+        placeholder="Filter by Prompt Version"
+        value={filters.promptVersion}
+        onChange={handleInputChange}
+      />
       <label>
         Active:
         <input

@@ -4,6 +4,7 @@ import RunTable from './RunTable.jsx';
 import ColumnSettings from './ColumnSettings.jsx';
 import ContentViewer from './ContentViewer.jsx';
 import Comparison from './Comparison.jsx';
+import EvaluationTrigger from './EvaluationTrigger.jsx';
 import runsData from './runs.json';
 import './App.css';
 
@@ -11,6 +12,8 @@ function App() {
   const [runs, setRuns] = useState([]);
   const [filters, setFilters] = useState({
     ID: '',
+    model: '',
+    promptVersion: '',
     active: false,
     IsRunning: false,
     'GroundTruthData.ID': '',
@@ -36,6 +39,8 @@ function App() {
     compare: true,
     ID: true,
     timestamp: true,
+    model: true,
+    promptVersion: true,
     active: true,
     isRunning: true,
     gtID: true,
@@ -56,6 +61,33 @@ function App() {
   useEffect(() => {
     setRuns(runsData);
   }, []);
+
+  const handleEvaluationComplete = async (config) => {
+    console.log('Loading evaluation results with config:', config);
+    
+    try {
+      // Load dummy results from public folder
+      const response = await fetch('/UI/dummy-evaluation-results.json');
+      const newResults = await response.json();
+      
+      // Update the config in the results
+      const updatedResults = newResults.map(result => ({
+        ...result,
+        model: config.model,
+        promptVersion: config.promptVersion,
+        timestamp: new Date().toISOString()
+      }));
+      
+      // Merge with existing runs
+      setRuns(prevRuns => [...prevRuns, ...updatedResults]);
+      
+      console.log('Successfully loaded', updatedResults.length, 'new evaluation results');
+      alert(`✓ Evaluation complete! ${updatedResults.length} new results loaded.`);
+    } catch (error) {
+      console.error('Failed to load evaluation results:', error);
+      alert('❌ Failed to load evaluation results. Check console for details.');
+    }
+  };
 
   const filteredRuns = runs.filter((run) => {
     return Object.keys(filters).every((key) => {
@@ -199,6 +231,13 @@ function App() {
 
       <div className="controls-section">
         <div className="controls-group">
+          <label className="control-label">Actions</label>
+          <div className="controls">
+            <EvaluationTrigger onEvaluationComplete={handleEvaluationComplete} />
+          </div>
+        </div>
+
+        <div className="controls-group">
           <label className="control-label">View Options</label>
           <div className="controls">
             <button onClick={toggleFilters} className="filter-toggle-btn">
@@ -240,6 +279,8 @@ function App() {
             <select onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })} value={sortConfig.key}>
               <option value="ID">ID</option>
               <option value="timestamp">Timestamp</option>
+              <option value="model">Model</option>
+              <option value="promptVersion">Prompt Version</option>
               <option value="ExecutionData.outputScore">Output Score</option>
               <option value="ExecutionData.ragRelevancyScore">RAG Relevancy</option>
               <option value="ExecutionData.hallucinationRate">Hallucination Rate</option>

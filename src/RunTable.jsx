@@ -40,6 +40,8 @@ const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpan
             {visibleColumns.compare && <th>Compare</th>}
             {visibleColumns.ID && <th>ID</th>}
             {visibleColumns.timestamp && <th>Timestamp</th>}
+            {visibleColumns.model && <th>Model</th>}
+            {visibleColumns.promptVersion && <th>Prompt Version</th>}
             {visibleColumns.active && <th>Active</th>}
             {visibleColumns.isRunning && <th>Is Running</th>}
             {visibleColumns.gtID && <th>GT ID</th>}
@@ -78,6 +80,24 @@ const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpan
                     hour: '2-digit',
                     minute: '2-digit'
                   }) : '-'}
+                </td>
+              )}
+              {visibleColumns.model && (
+                <td style={{ 
+                  fontSize: '13px', 
+                  fontWeight: '500',
+                  color: '#60a5fa'
+                }}>
+                  {run.model || '-'}
+                </td>
+              )}
+              {visibleColumns.promptVersion && (
+                <td style={{ 
+                  fontSize: '13px', 
+                  fontWeight: '500',
+                  color: '#fe8f0f'
+                }}>
+                  {run.promptVersion || '-'}
                 </td>
               )}
               {visibleColumns.active && <td>{run.active ? 'Yes' : 'No'}</td>}

@@ -22,7 +22,9 @@
       "systemPromptAlignmentScore": 0.73,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-01T10:00:00"
+    "timestamp": "2025-11-01T10:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "2-run2",
@@ -47,7 +49,9 @@
       "systemPromptAlignmentScore": 0.5,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T12:00:00"
+    "timestamp": "2025-11-02T12:00:00",
+    "model": "gpt-4-turbo",
+    "promptVersion": "v1.1"
   },
   {
     "ID": "3-run3",
@@ -72,7 +76,9 @@
       "systemPromptAlignmentScore": 0.33,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-03T14:00:00"
+    "timestamp": "2025-11-03T14:00:00",
+    "model": "claude-3-opus",
+    "promptVersion": "v2.0"
   },
   {
     "ID": "4-run4",
@@ -97,7 +103,9 @@
       "systemPromptAlignmentScore": 0.89,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-04T16:00:00"
+    "timestamp": "2025-11-04T16:00:00",
+    "model": "claude-3-sonnet",
+    "promptVersion": "v2.1"
   },
   {
     "ID": "5-run5",
@@ -122,7 +130,9 @@
       "systemPromptAlignmentScore": 0.69,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-05T18:00:00"
+    "timestamp": "2025-11-05T18:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "6-run6",
@@ -147,7 +157,9 @@
       "systemPromptAlignmentScore": 0.84,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-05T20:00:00"
+    "timestamp": "2025-11-05T20:00:00",
+    "model": "gpt-4-turbo",
+    "promptVersion": "v1.1"
   },
   {
     "ID": "7-run7",
@@ -172,7 +184,9 @@
       "systemPromptAlignmentScore": 0.61,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-05T22:00:00"
+    "timestamp": "2025-11-05T22:00:00",
+    "model": "claude-3-opus",
+    "promptVersion": "v2.0"
   },
   {
     "ID": "8-run8",
@@ -197,7 +211,9 @@
       "systemPromptAlignmentScore": 0.68,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-06T00:00:00"
+    "timestamp": "2025-11-06T00:00:00",
+    "model": "claude-3-sonnet",
+    "promptVersion": "v2.1"
   },
   {
     "ID": "9-run9",
@@ -222,7 +238,9 @@
       "systemPromptAlignmentScore": 0.65,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-06T02:00:00"
+    "timestamp": "2025-11-06T02:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "10-run10",
@@ -247,7 +265,9 @@
       "systemPromptAlignmentScore": 0.44,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T04:00:00"
+    "timestamp": "2025-11-02T04:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "11-run11",
@@ -272,7 +292,9 @@
       "systemPromptAlignmentScore": 0.72,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T06:00:00"
+    "timestamp": "2025-11-02T06:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "12-run12",
@@ -297,7 +319,9 @@
       "systemPromptAlignmentScore": 0.72,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T08:00:00"
+    "timestamp": "2025-11-02T08:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "13-run13",
@@ -322,7 +346,9 @@
       "systemPromptAlignmentScore": 0.64,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T10:00:00"
+    "timestamp": "2025-11-02T10:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "14-run14",
@@ -347,7 +373,9 @@
       "systemPromptAlignmentScore": 0.51,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T12:00:00"
+    "timestamp": "2025-11-02T12:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "15-run15",
@@ -372,7 +400,9 @@
       "systemPromptAlignmentScore": 0.58,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T14:00:00"
+    "timestamp": "2025-11-02T14:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "16-run16",
@@ -397,7 +427,9 @@
       "systemPromptAlignmentScore": 0.54,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T16:00:00"
+    "timestamp": "2025-11-02T16:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "17-run17",
@@ -422,7 +454,9 @@
       "systemPromptAlignmentScore": 0.78,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T18:00:00"
+    "timestamp": "2025-11-02T18:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   },
   {
     "ID": "18-run18",
@@ -447,6 +481,8 @@
       "systemPromptAlignmentScore": 0.83,
       "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
     },
-    "timestamp": "2025-11-02T20:00:00"
+    "timestamp": "2025-11-02T20:00:00",
+    "model": "gpt-4",
+    "promptVersion": "v1.0"
   }
 ]

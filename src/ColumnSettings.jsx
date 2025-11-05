@@ -12,6 +12,8 @@ const ColumnSettings = ({ visibleColumns, setVisibleColumns }) => {
     { key: 'compare', label: 'Compare Checkbox' },
     { key: 'ID', label: 'ID' },
     { key: 'timestamp', label: 'Timestamp' },
+    { key: 'model', label: 'Model' },
+    { key: 'promptVersion', label: 'Prompt Version' },
     { key: 'active', label: 'Active' },
     { key: 'isRunning', label: 'Is Running' },
     { key: 'gtID', label: 'Ground Truth ID' },
