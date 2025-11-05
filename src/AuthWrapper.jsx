@@ -16,7 +16,7 @@ const AuthWrapper = ({ children }) => {
   const handleLogin = (e) => {
     e.preventDefault();
     // Change this password to whatever you want
-    const correctPassword = import.meta.env.VITE_APP_PASSWORD || 'your-secure-password';
+    const correctPassword = import.meta.env.VITE_APP_PASSWORD || 'terces_drowssap';
     
     if (password === correctPassword) {
       setIsAuthenticated(true);
