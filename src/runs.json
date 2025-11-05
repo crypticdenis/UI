@@ -1,398 +1,452 @@
 [
   {
-    "ID": 1,
+    "ID": "1-run1",
+    "baseID": 1,
+    "version": "run1",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT001",
+      "ID": "GT001-run1",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Smart Immo+ (SI+)  ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet. SI+ vertreibt EnBW Commodity über die Wohnungswirtschaftsbranche. \n\nDie Hauptzielgruppe sind Wohnungswirtschaftsunternehmen (WWU), die mindestens fünf und teilweise bis zu Tausende Immobilien in ihrem WWU-Bestand verwalten. WWU profitieren von attraktiven B2B-Lieferkonditionen für ihren gesamten Verwalterbestand und wünschen sich skalierbare und effiziente Möglichkeiten für resultierende Lieferstellen- und Energievertragsdatenverwaltung in hohem Volumen. \n\nImmobilienverwalter verantworten die Erfüllung gesetzlicher Pflichten wie die Verwaltung von Lieferstellen aus ihrem Immobilienbestand. SI+ Kunden sind in Masse für die reibungslose Energieversorgung von Lieferstellen für Allgemein- und Leerstandversorgung verantwortlich.\n\nDas SI+ Angebot unterstützt die Tagesgeschäftanforderungen für WWU und deren Mitarbeiter insbesondere durch exklusive SI+ Online-Portal-Services, welche u.A.  durch Standardisierung von Formularen und Prozessen auf Kunden und Anbieterseite die Effizienz für erforderliche Meldeprozesse und resultierender Energiekunden und -vertragsverwaltung für Allgemein und/oder Leerstandsversorgung positiv unterstützt."
     },
     "ExecutionData": {
-      "ID": "EX001",
+      "ID": "EX001-run1",
       "output": "immo+ ist ein von EnBW angebotenes Geschäftsportal für Wohnungswirtschaftsunternehmen (WWU), das die zentrale Verwaltung von Energielieferstellen für Allgemein- und Leerstandversorgung ermöglicht. Durch standardisierte Meldeprozesse, ein zentrales Kundenportal und günstige Commodity-Preise reduziert es den administrativen Aufwand für WWU mit mindestens 5 Immobilien (15 Lieferstellen) im Bestand.",
       "outputScore": 0.61,
       "outputScoreReason": "The Actual Output correctly identifies immo+ as an EnBW portal for WWU, mentions centralized management of energy delivery points, and highlights reduced administrative effort for companies with at least 5 properties. However, it omits several key details from the Expected Output: it does not mention the B2B nature of the service, the scalability for thousands of properties, the fulfillment of legal obligations, or the exclusive SI+ online portal services. The Actual Output is clear and mostly accurate but lacks the depth and completeness of the Expected Output.",
       "ragRelevancyScore": 0.854,
       "ragRelevancyScoreReason": "The score is 0.85 because, despite several irrelevant elements like section headings and placeholders, the retrieval context contains many detailed and directly relevant statements explaining what immo+ is, such as 'Das Smart immo+ Angebot der EnBW verfolgt das Ziel, Commodity-Vertrieb für Allgemein- und Leerstandversorgung über den B2B-Vertriebsweg Wohnungswirtschaftsbranche zu betreiben.'",
       "hallucinationRate": 0.39,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.73,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-01T10:00:00"
   },
   {
-    "ID": 2,
+    "ID": "2-run2",
+    "baseID": 2,
+    "version": "run2",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT002",
+      "ID": "GT002-run2",
       "Input": "Wofür steht WWU?",
       "expectedOutput": "WWU steht für Wohnungswirtschaftsunternehmen – ein Unternehmen, das in der Wohnungswirtschaft tätig ist, wie z. B. eine Baugenossenschaft oder eine Hausverwaltung - Hauptsache Immobilienverwalter. \n\nDiese Firmen übernehmen Verwalterpflichten für oder als Immobilieneigentümer und sind genau deswegen Hauptzielgruppe des B2B-Geschäftsbereichs Smart Immo+. WWU erfüllt für jede Lieferstelle aus dem Verwalterbestand (Allgemein- und Leerstandversorgung) in nachgewiesener Verwalterrolle die gesetzlichen Pflichten der eigentlichen Immobilien-/Wohnraumeigentümer.\n\nWWU fungiert für den beim Energieversorger nachgewiesenen Lieferstellenbestand - rechtlich anerkannte Vertretung des belieferten Energiekunden (Immobilieneigentümer). WWU erfüllen alle klassischen Lieferkunden-Aufgaben von Energieversorgerwahl, Abschlagzahlung, Zählerstände, Rechnungen und Kundendatenpflege. WWU verwalten Energielieferkunden und -verträge aus ihrem Bestand vom jeweiligen Lieferstart bis zum Lieferende."
     },
     "ExecutionData": {
-      "ID": "EX002",
+      "ID": "EX002-run2",
       "output": "WWU steht für **Wohnungswirtschaftsunternehmen**. Das sind Unternehmen wie Baugenossenschaften oder Hausverwaltungen, die im Rahmen der Immobilienverwaltung als Eigen- oder Fremdleistung tätig sind und gesetzlich vorgeschriebene Versorgungspflichten für Allgemein- und Leerstandversorgung übernehmen.",
       "outputScore": 0.432,
       "outputScoreReason": "The Actual Output correctly defines WWU as Wohnungswirtschaftsunternehmen and mentions examples like Baugenossenschaften and Hausverwaltungen, aligning with the Expected Output. However, it omits several key details: the specific role of WWU as the main B2B target for Smart Immo+, their legal representation of energy customers, and their responsibilities regarding energy supply management (e.g., supplier selection, billing, meter readings). The Actual Output is clear but lacks the depth and completeness found in the Expected Output.",
       "ragRelevancyScore": 0.564,
       "ragRelevancyScoreReason": "The score is 0.56 because, while the relevant statements clearly define 'WWU' as 'Wohnungswirtschaftsunternehmen' and provide detailed context, the majority of the retrieval context is not directly answering what 'WWU' stands for, as noted in the irrelevancy reasons such as 'does not explain what WWU stands for' and 'describes the responsibilities of a WWU, not what the abbreviation stands for.'",
       "hallucinationRate": 0.57,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.5,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T12:00:00"
   },
   {
-    "ID": 3,
+    "ID": "3-run3",
+    "baseID": 3,
+    "version": "run3",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT003",
+      "ID": "GT003-run3",
       "Input": "Was ist Leerstandversorgung?",
       "expectedOutput": "Leerstandversorgung bezieht sich auf die Energieversorgung von Immobilien oder Einheiten, die derzeit nicht bewohnt sind. Während bewohnter Zeiträume greift im Ersatz die Privatversorgung. \nIm Rahmen des SI+ Angebots der EnBW wird auf Meldedateneingang durch WWU ein Energieliefervertrag nach Leerstandskonditionen im Namen des Eigentümers abgeschlossen, beliefert und über die Abmeldung des Leerstandsversorgungsbedarfs durch WWU gekündigt und Endabgerechnet. \n\nWohnungswirtschaftsunternehmen (WWU) können An- und Abmeldung von Leerstandsversorgungsbedarf  z.B. über das Kundenportal auch exklusive Meldeprozesse für standardtisierte Leerstandsmeldungen und -handling nutzen."
     },
     "ExecutionData": {
-      "ID": "EX003",
+      "ID": "EX003-run3",
       "output": "Leerstandversorgung bezeichnet die gesetzliche Verwaltung der Energieversorgung für unbewohnte Wohnflächen. In Deutschland ist der Eigentümer der leerstehenden Wohnfläche verpflichtet, mindestens die Stromversorgung tagesscharf zu gewährleisten.",
       "outputScore": 0.356,
       "outputScoreReason": "The Actual Output correctly defines Leerstandversorgung as energy supply for unoccupied properties, aligning with the Expected Output's core definition. However, it omits key details such as the involvement of EnBW's SI+ offering, the role of Wohnungswirtschaftsunternehmen (WWU) in the notification and contract process, and the specifics of contract handling and termination. The Actual Output is clear and structured, but lacks the depth and completeness of the Expected Output, particularly regarding process and stakeholder details.",
       "ragRelevancyScore": 0.308,
       "ragRelevancyScoreReason": "The score is 0.31 because, although there are several statements directly explaining 'Leerstandversorgung' (e.g., 'Leerstandversorgung sichert die nahtlose Energieversorgung unbewohnter Wohnflächen.'), the majority of the retrieval context is irrelevant, as noted in the reasons for irrelevancy such as 'Die Aussage beschreibt allgemeine Aufgaben der WWU, aber nicht spezifisch, was Leerstandversorgung ist.' and 'Die Aussage beschreibt die technische Bereitstellung der Portale, aber nicht, was Leerstandversorgung ist.' This imbalance leads to a low relevancy score.",
       "hallucinationRate": 0.64,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.33,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-03T14:00:00"
   },
   {
-    "ID": 4,
+    "ID": "4-run4",
+    "baseID": 4,
+    "version": "run4",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT004",
+      "ID": "GT004-run4",
       "Input": "Was sind Meldeprozesse und welche gibt es?",
       "expectedOutput": "Meldeprozesse sind Verfahren, die es Wohnungswirtschaftsunternehmen (WWU) ermöglichen, ihre Verwalterrolle und ihren Lieferbedarf für Immobilien aus ihrem Bestand an den Energieversorger zu übermitteln. Diese Prozesse sind notwendig für rechtlich erforderliche Prüfungen und die Aktualisierung des Verwalterbestands. Es gibt verschiedene Arten von Meldeprozessen: \n\nStandard Meldeprozesse: Dazu gehören An- und Abmeldungen von Objekten, Lieferstellen und als exklusiver Zusatzservice Leerstandsversorgung. Kunden erfassen und senden Meldedaten über das Kundenportal ab, wobei auch Dokumenten-Uploads erforderlich sein können, wie z.B. Eigentümer- oder Verwalternachweise für Immobilien \n\nTeilautomatisierte Meldeprozesse: Diese Prozesse werden durch Scale Events ausgelöst und beinhalten die Prüfung und Validierung von Energiedaten, die dann importiert werden (Document 10). Die Meldeprozesse sind zentral für die Registrierung und Verwalterbestandspflege und werden durch Online Services wie das SI+ Kundenportal unterstützt\n\nSammelableseliste Meldeprozess: Ein exklusiver Zusatzservice zur jährlichen Sammelabgabe von Zählerständen über das Kundenportal. Kunden können eine Vertragsliste für die gesammelte Erfassung und Abgabe von Zählerständen bereitstellen"
     },
     "ExecutionData": {
-      "ID": "EX004",
+      "ID": "EX004-run4",
       "output": "In SI+ gibt es drei Hauptmeldeprozesse für Immobilien- und Lieferstellenverwaltung:\n\n1. **Standard-Meldeprozesse**: An- und Abmeldungen von Objekten, Lieferstellen und Leerstandsversorgung über das Kundenportal. Meldedaten werden von WWU per UI oder Datei-Upload gesendet, bearbeitet von Admin-Dateien und nach 90 Tagen automatisch gelöscht.\n\n2. **Teilautomatisierte-Meldeprozesse**: Meldedaten werden über Scale-Events gesendet. SI+ prüft automatisch auf Übereinstimmungen mit Energiedaten (Enwicore). Bei 100% Übereinstimmung werden die Daten direkt freigegeben, bei geringeren Scores erfolgt eine manuelle Prüfung durch Ops.\n\n3. **Sammelableseliste-Meldeprozess**: Exklusiver Service zur gebündelten Abgabe von Zählerständen über das Kundenportal. Erzeugt eine übersichtliche Excel-Datei für die Abrechnung, die von SI+ gefiltert und harmonisiert wird.\n\n*Hinweis:* Der Leerstandsmeldungsprozess (ab 06.06.2025) ist noch in Planung und wird derzeit nicht im System verarbeitet.",
       "outputScore": 0.796,
       "outputScoreReason": "The Actual Output accurately describes the three main reporting processes (Standard, Teilautomatisierte, Sammelableseliste) and aligns well with the Expected Output in terms of factual content and structure. It clearly distinguishes between the processes, mentions the use of the customer portal, and includes details about data handling and validation. However, it omits some specifics from the Expected Output, such as the legal necessity of the processes, the requirement for document uploads (e.g., ownership or administrator proof), and the centrality of these processes for administrator inventory maintenance. The Actual Output adds a note about the upcoming vacancy reporting process, which is not in the Expected Output but does not detract from the main requirements. Overall, the response is clear, organized, and mostly complete, but lacks a few details for full alignment.",
       "ragRelevancyScore": 0.978,
       "ragRelevancyScoreReason": "The score is 0.98 because, despite the statement 'Siehe Portal Features / Core Capabilities / Meldedaten' not providing direct content, the retrieval context contains extensive, detailed, and highly relevant information about different types of Meldeprozesse, their workflows, and system interactions, directly addressing the input question.",
       "hallucinationRate": 0.2,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.89,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-04T16:00:00"
   },
   {
-    "ID": 5,
+    "ID": "5-run5",
+    "baseID": 5,
+    "version": "run5",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT005",
+      "ID": "GT005-run5",
       "Input": "Welche Vorteile bietet das Online-Kundenportal?",
       "expectedOutput": "Das Online-Kundenportal bietet immo+ Kunden mehrere Vorteile: \n\nZentrale Verwaltung: Es ermöglicht die zentrale Verwaltung aller durch das WWU verwalteten Energielieferkunden und -verträge. \n\nStandardisierte Meldeprozesse: Das Portal bietet standardisierte Meldeprozesse für die Vorlage und Registrierung von Eigentümer- und Verwalternachweisen oder Lieferstellen. \n\nEffizienzsteigerung bei Massendatenverarbeitung: Ein zentrales Anliegen von immo+ ist die Optimierung und Effizienzsteigerung bei der Massendatenverarbeitung, was für WWU im Daily Business der Lieferstellenverwaltung eine besondere Herausforderung darstellt. \n\nZusatzservices: \nDas Portal bietet Zusatzservices wie die Sammelableseliste, die es WWU-Benutzern ermöglicht, Zählerstände gesammelt zu erfassen und an den Energieversorger zu übermitteln und Leerstandshandlung & -registrierung*: WWU-Benutzer können Formulare für die An- und Abmeldung von Leerstandsversorgungsbedarf einreichen. \n\nPortalefunktionen und Services tragen dazu bei, die Verwaltung und Pflege von großen Immobilienbeständen und dazugehörigen Energielieferdaten effizienter und nutzerfreundlicher zu gestalten."
     },
     "ExecutionData": {
-      "ID": "EX005",
+      "ID": "EX005-run5",
       "output": "Das Online-Kundenportal bietet folgende Vorteile:  \n\n- **Zentrale Datenzugriff**: Ermöglicht schnellen Zugriff auf Geschäftskundeninformationen, Energielieferverträge und Kunden Daten.  \n- **Standardisierte Prozesse**: Durch Meldeformulare und Massendatenimporte wird der administrative Aufwand für WWU reduziert.  \n- **Exklusive Sammelableseliste**: Effiziente und termingerechte Abgabe von Zählerständen für den gesamten Verwalterbestand.  \n- **Admin-Zugriff**: Mitarbeitende erhalten Zugriff auf Berichte und Verwalterbestand, um Konten und Verträge zu optimieren.  \n\nDiese Funktionen sorgen für eine effiziente, zentrale und rechtskonforme Verwaltung der Energieversorgung und Lieferstellen.",
       "outputScore": 0.678,
       "outputScoreReason": "The Actual Output covers most of the main advantages of the portal, such as centralized data access, standardized processes, and the Sammelableseliste. It also mentions admin access and efficiency in management. However, it omits specific details present in the Expected Output, such as the explicit mention of immo+ customers, the handling of owner and administrator proofs, and the Leerstandshandlung & -registrierung (vacancy management and registration). The depth and clarity are generally good, but the completeness is lacking due to missing key features.",
       "ragRelevancyScore": 0.697,
       "ragRelevancyScoreReason": "The score is 0.70 because, while many statements in the retrieval context directly describe the advantages of the Online-Kundenportal—such as 'Effizienzsteigerung und geringerer administrativer Aufwand durch standardisierte Meldeformulare und Prozesse' and 'Zentraler Zugriff auf B2B WWU-Kundeninformationen'—there are also several statements that focus on technical details and system architecture, which are not relevant to the user's question about benefits. This mix of relevant and irrelevant information justifies a score of 0.70.",
       "hallucinationRate": 0.32,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.69,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-05T18:00:00"
   },
   {
-    "ID": 6,
+    "ID": "6-run6",
+    "baseID": 6,
+    "version": "run6",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT006",
+      "ID": "GT006-run6",
       "Input": "Warum sind WWU Zielgruppe für Energieversorger?",
       "expectedOutput": "Wohnungswirtschaftsunternehmen (WWU) sind eine attraktive Zielgruppe für Energieversorger, weil sie in der Regel eine hohe Anzahl an Immobilien verwalten und die gesetzlich vorgeschriebenen Eigentümerpflichten im Zusammenhang mit Allgemein- und Leerstandversorgung erfüllen. \n\nSie sind an zentralen und günstigen Lieferbedingungen interessiert, um zu vermeiden, dass national verteilte Immobilienbestände über verschiedene Energieversorger beliefert werden müssen. Dies macht sie zu potenziell attraktiven Geschäftskunden für Energieversorger wie EnBW, die über immo+ zentrale und effiziente Lösungen für die Massenverwaltung von Energielieferverträgen anbieten."
     },
     "ExecutionData": {
-      "ID": "EX006",
+      "ID": "EX006-run6",
       "output": "WWU (Wohnungswirtschaftsunternehmen) sind die Zielgruppe für Energieversorger, da sie gesetzlich verpflichtet sind, die Energieversorgung für Leerstand und Allgemeinversorgung zu verwalten. Sie verwalten in der Regel mindestens 15 Lieferstellen pro Immobilie (z.B. Strom, Wasser, Heizung) und benötigen eine zentrale Lösung zur effizienten Abwicklung von Energielieferverträgen, Compliance-Pflichten und administrativen Aufgaben. Durch die Koordination von zahlreichen Immobilien über einen gemeinsamen Energieversorger (z.B. EnBW) können WWU Kosten senken, rechtliche Vorschriften effektiv umsetzen und von günstigen Tarifen profitieren, ohne mehrere Versorger für unterschiedliche Standorte zu nutzen. Dies macht WWU ideale Partner für B2B-Energieversorgungslösungen wie das SI+ System.",
       "outputScore": 0.895,
       "outputScoreReason": "The Actual Output is factually accurate and covers all key aspects from the Expected Output, such as WWU's role as a target group for energy suppliers, their management of multiple properties, legal obligations, and the need for centralized solutions. It also mentions cost savings, compliance, and the benefit of using a single supplier like EnBW, aligning with the Expected Output's focus on centralized and efficient contract management. The explanation is clear and well-organized, with sufficient depth. The only minor shortcoming is the use of 'SI+ System' instead of 'immo+', but this does not significantly detract from the overall alignment.",
       "ragRelevancyScore": 0.786,
       "ragRelevancyScoreReason": "The score is 0.79 because, while many statements in the retrieval context are not directly relevant (e.g., about admin access, technical platforms, or internal data maintenance), there is a substantial set of highly relevant statements that explain why WWU are a target group for energy suppliers, such as 'WWU sind i.d.R. kommerzielle Immobilienverwalter und sind für die Energieversorgung an Immobilienstandorten verantwortlich' and 'Diese Firmen übernehmen Verwalterpflichten für Eigentümer oder agieren selbst als Immobilieneigentümer und sind damit die Hauptzielgruppe des immo+ B2B-Geschäftsbereichs.' The presence of both relevant and irrelevant content justifies a score below 1 but still quite high.",
       "hallucinationRate": 0.1,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.84,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-05T20:00:00"
   },
   {
-    "ID": 7,
+    "ID": "7-run7",
+    "baseID": 7,
+    "version": "run7",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT007",
+      "ID": "GT007-run7",
       "Input": "Gibt es mehrere Portale?",
       "expectedOutput": "Ja, das Portale-System SI+ besteht aus zwei separaten Portalen: dem Kundenportal und dem Ops Portal. Das Ops Portal übernimmt die führende Rolle und greift auf die Kontodaten des Kundenportals verwaltend zu."
     },
     "ExecutionData": {
-      "ID": "EX007",
+      "ID": "EX007-run7",
       "output": "Ja, das SI+ System besteht aus zwei separaten Portalen: dem **Kundenportal** und dem **Ops Portal**. Beide Portale sind für die zentrale Verwaltung und Pflege der WWU-Kontodaten bestimmt, wobei das Ops Portal die führende Rolle im Kontodatenbestand übernimmt.",
       "outputScore": 0.812,
       "outputScoreReason": "The Actual Output is factually accurate and clearly states that SI+ consists of two separate portals: Kundenportal and Ops Portal, matching the Expected Output. It also correctly identifies the Ops Portal as having the leading role in account data management. However, it adds that both portals are for central management and maintenance of WWU account data, which is not specified in the Expected Output, and omits the detail that the Ops Portal manages by accessing the Kundenportal's data. The depth and clarity are strong, but the completeness is slightly lacking due to this missing nuance.",
       "ragRelevancyScore": 0.406,
       "ragRelevancyScoreReason": "The score is 0.41 because, although there are several highly relevant statements such as 'Das Portale-System SI+ besteht aus zwei separaten Portalen (UI): Kundenportal und Ops Portal.' and 'Es gibt zwei Portale, in denen Daten aus verschiedenen Systemen angezeigt und verwaltet werden.', the majority of the retrieval context discusses roles, data synchronization, and technical details that do not directly answer the question about the number of portals.",
       "hallucinationRate": 0.19,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.61,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-05T22:00:00"
   },
   {
-    "ID": 8,
+    "ID": "8-run8",
+    "baseID": 8,
+    "version": "run8",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT008",
+      "ID": "GT008-run8",
       "Input": "Gibt es Abhängigkeiten zu externen Systemen?",
       "expectedOutput": "Es bestehen Abhängigkeiten von externen Systemen. Das SI+-System importiert für Kundenkonten WWU und Energiedaten aus unterschiedlichen externen Systemen. Eine hohe Komplexität systemspezifische Anforderungen an Bezug, Datensynchronisation, heterogenisierung und -verarbeitung: \n\nScale-System: Es liefert Vertrags- und Kundeninformationen für immo+-Kunden (WWU) und informiert das SI+-System z.B. über Änderungen an Scale-Kundenkonten (immo+) durch Ereignisse, sodass SI+ seine Daten mit Scale synchronisieren kann \n\nEnwicore- und Powerpack: Diese Systeme stellen unabhängig voneinander Energieversorgungsverträge und Kundeninformationen bereit. SI+ nutzt diese als Energiedaten in WWU-Verwaltung.  \n\nWWU-ID: Zentrales Kriterium für die systemübergreifende Identifizierung und Energiedaten-Verwalter-Validierung im Smart Imm+ Business Kontext. \n\nPowerpack speichert die WWU-ID als Vertragsmerkmal, Enwicore speichert die WWU-ID als Kundenmerkmal, Scale speichert (führend) die WWU-ID als Kundenmerkmal, SI+ speichert die WWU-ID als Kundenkonto-ID."
     },
     "ExecutionData": {
-      "ID": "EX008",
+      "ID": "EX008-run8",
       "output": "Ja, das SI+-System hängt von drei externen Systemen ab, die als führende Quellsysteme für Daten und Meldeprozesse genutzt werden:  \n\n1. **Scale** (B2B Non-Commodity CRM): Bereitstellt WWU-Kundendaten für die Verwaltung über Portale.  \n2. **Enwicore** (B2C Commodity CRM): Enthält Energielieferverträge und Kundeninformationen für die Leerstand- und Allgemeinversorgung.  \n3. **Powerpack** (B2C Commodity CRM): Führt ähnliche Funktionen wie Enwicore für Energielieferverträge.  \n\nDie Synchronisation erfolgt **eventbasiert** (z. B. für Scale und Enwicore) oder **durch tägliche Pull-Synchronisation über REST-APIs** (für Powerpack). Diese Abhängigkeiten sind entscheidend für die Datenintegrität und die effiziente Verwaltung von Verwalterbeständen durch WWU.",
       "outputScore": 0.701,
       "outputScoreReason": "The Actual Output correctly identifies the three external systems (Scale, Enwicore, Powerpack) and their general roles, as well as the synchronization mechanisms, aligning with the Expected Output. However, it omits specific details about the WWU-ID's role in cross-system identification and validation, and does not mention the heterogenization and processing complexity. The Actual Output is clear and mostly complete, but lacks some depth and specificity present in the Expected Output.",
       "ragRelevancyScore": 0.658,
       "ragRelevancyScoreReason": "The score is 0.66 because, while many statements in the retrieval context are not directly about dependencies to external systems (e.g., 'Die Information ... bezieht sich auf Nutzerrechte und nicht auf Abhängigkeiten zu externen Systemen.'), there are several highly relevant statements such as 'Das Scale System stellt als Non-Commodity und B2B CRM führend Vertrag und Kundeninformationen für immo+ Kunden (WWU) bereit.' and 'Die externen Systeme fungieren hier ausschließlich als führende Datenquelle.' This mix of relevant and irrelevant content justifies a moderate score.",
       "hallucinationRate": 0.3,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.68,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-06T00:00:00"
   },
   {
-    "ID": 9,
+    "ID": "9-run9",
+    "baseID": 9,
+    "version": "run9",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT009",
+      "ID": "GT009-run9",
       "Input": "Was ist ein Verwalterbestand?",
       "expectedOutput": "Ein Verwalterbestand bezieht sich auf die Immobilien und Lieferstellen, die von einem Wohnungswirtschaftsunternehmen (WWU) verwaltet werden. Diese Bestände müssen über Meldeprozesse an den Energieversorger übermittelt werden, um die erforderlichen rechtlichen Prüfungen und Aktualisierungen des Verwalterbestandes sicherzustellen. \n\nDer im Kundenportalkonto dargestellte, also validierte Verwalterbestand berechtigt zur Ergänzung von Energiedaten aus Enwicore und Powerpack, sofern diese dort als von dem WWU verwaltet und in Allgemein- oder Leerstandversorgung beliefert werden. Im Kundenportal können WWUs ihren Verwalterbestand an validierten Immobilien und Lieferstellen, verknüpft mit den zugehörigen Energiedaten, einsehen, was eine zentrale und effiziente Verwaltung von Massendaten ermöglicht."
     },
     "ExecutionData": {
-      "ID": "EX009",
+      "ID": "EX009-run9",
       "output": "Ein Verwalterbestand ist der nach erfolgreichen Meldeprozessen validierte Bestand an Immobilien und Lieferstellen eines Wohnungswirtschaftsunternehmens (WWU), der im Kundenportal über das Ops-Portal abgebildet wird. Er ermöglicht die zentrale Verwaltung von Energielieferverträgen und -kunden für Allgemein- und Leerstandversorgung, sodass die Energiedaten aus Systemen wie Enwicore und Powerpack gespeichert und verknüpft werden können.",
       "outputScore": 0.703,
       "outputScoreReason": "The Actual Output is factually accurate and covers the main concepts of the Expected Output, such as the definition of Verwalterbestand, its validation through Meldeprozesse, and its representation in the Kundenportal. However, it omits some details, such as the legal checks and updates required after Meldeprozesse, and the explicit mention that only validated Verwalterbestände allow for the addition of Energiedaten from Enwicore and Powerpack. The Actual Output is clear and well-articulated but lacks some of the depth and specific procedural details present in the Expected Output.",
       "ragRelevancyScore": 0.59,
       "ragRelevancyScoreReason": "The score is 0.59 because, although many statements in the retrieval context directly define and describe what a 'Verwalterbestand' is (e.g., 'Im Kundenportal können WWUs ihren Verwalterbestand an validierten Immobilien und Lieferstellen, verknüpft mit den zugehörigen Energiedaten, einsehen...'), there are also numerous irrelevant technical process descriptions (e.g., 'Scale Event: Eventbasierte Synch Prozesse über jeweils abonnierte Events & angebundene REST API') that do not address the definition or explanation of 'Verwalterbestand'. This mix of relevant and irrelevant information justifies a moderate score.",
       "hallucinationRate": 0.3,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.65,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-06T02:00:00"
   },
   {
-    "ID": 10,
+    "ID": "10-run10",
+    "baseID": 10,
+    "version": "run10",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT010",
+      "ID": "GT010-run10",
       "Input": "Was ist ein Drittbestandsverwalter?",
       "expectedOutput": "Ein Drittbestandsverwalter ist ein Wohnungswirtschaftsunternehmen (WWU), das kein Eigentümer einer Immobilie ist, sondern vom Eigentümer beauftragt und bevollmächtigt wurde, die Immobilie zu verwalten.\n\nIn solchen Fällen sind zusätzlich rechtsgültige Verwalternachweise erforderlich, damit der Energieversorger prüfen kann, ob das WWU zur Verwaltung der zur Immobilie gehörenden Lieferstellen autorisiert ist. Dies gilt insbesondere im Hinblick auf den Datenzugriff sowie die Vertretungsberechtigung in Bezug auf Energielieferkunden und Vertragsdaten."
     },
     "ExecutionData": {
-      "ID": "EX010",
+      "ID": "EX010-run10",
       "output": "Ein Drittbestandsverwalter ist ein Wohnungswirtschaftsunternehmen (WWU), das Immobilien und Lieferstellen für Eigentümer dritter Parteien verwalten. Dabei beauftragt der Eigentümer das WWU, um gesetzliche Pflichten wie die Energieversorgung für Leerstand und Allgemeinversorgung zu erfüllen. Ein klassischer Beispiel hierfür ist eine Hausverwaltung, die von Immobilieneigentümern angestellt wird, um ihre Versorgungspflichten zu erledigen.",
       "outputScore": 0.605,
       "outputScoreReason": "The Actual Output correctly defines a Drittbestandsverwalter as a Wohnungswirtschaftsunternehmen (WWU) managing properties for third-party owners and gives a relevant example, aligning with the Expected Output's core definition. However, it omits key details from the Expected Output, such as the requirement for legal proof of authorization (Verwalternachweise) and the importance of authorization for data access and representation regarding energy supply contracts. The Actual Output is clear and coherent but lacks the depth and completeness found in the Expected Output.",
       "ragRelevancyScore": 0.273,
       "ragRelevancyScoreReason": "The score is 0.27 because, although most of the retrieval context does not define or explain a 'Drittbestandsverwalter' (as shown by statements like 'The statement describes a service for collecting meter readings and providing contract lists, but does not explain or define what a 'Drittbestandsverwalter' is.'), there are some relevant statements such as 'Bei Drittbestandsverwaltungsobjekten, wenn das WWU nicht selbst Eigentümer ist, sondern beauftragt und bevollmächtigt durch Eigentümer - sind zusätzlich rechtsgültige Verwalternachweise erforderlich...' which touch on the concept of third-party property management. However, the majority of the context is not directly relevant, resulting in a low score.",
       "hallucinationRate": 0.4,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.44,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T04:00:00"
   },
   {
-    "ID": 11,
+    "ID": "11-run11",
+    "baseID": 11,
+    "version": "run11",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT011",
+      "ID": "GT011-run11",
       "Input": "Erkläre den Prozess Sammelableseliste",
       "expectedOutput": "Der Prozess der Sammelableseliste ist ein exklusiver Zusatzservice zur jährlichen Sammelabgabe von Zählerständen über das Kundenportal. Einige Wochen vor dem gewählten Wunschabrechnungsdatum wird eine Sammelableseliste bereitgestellt, die es WWU-Benutzern ermöglicht, Zählerstände für den Verwalterbestand bequem in einer Vertragsliste zu erfassen und gesammelt an den Energieversorger zu übermitteln. \n\nDer Prozess umfasst folgende Schritte: \n1. Der Kunde lädt - sobald verfügbar - seine Zählerstands-Vorlage über das Kundenportal herunter. \n2. Das Kundenportal ruft Service-Daten für Enwicore- und Powerpack-Verträge ab. \n3. Eine Datei mit gefilterten veröffentlichten Energiedaten wird generiert und dem Kunden bereitgestellt. Dazugehörige Admindateien werden nach Erstellung im Adminbereich abgelegt. \n4. Der Kunde füllt die Zählerstände aus und lädt die Datei über das Kundenportal hoch. \n5. Das Kundenportal aktualisiert je Upload die abgegebenen Zählerstände in den entsprechenden Admin-Dateien. \n6. Der Admin wird über jeden Upload von Zählerständen benachrichtigt.\n7. Der Admin lädt die Admin-Dateien über den Adminbereich herunter. Alle Folgeprozesse wie Validierung und Speicherung abgegebener Zählerstände in den Energielieferverträgen erfolgt außerhalb vom Portalesystem."
     },
     "ExecutionData": {
-      "ID": "EX011",
+      "ID": "EX011-run11",
       "output": "Der Prozess der **Sammelableseliste** ist ein exklusiver Service für Wohnungswirtschaftsunternehmen (WWU), der es ermöglicht, Zählerstände für den gesamten Verwalterbestand jährlich gebündelt und rechtzeitig zu melden. \n\n**Schritte im Prozess:**  \n1. **Vorabgenerierung der Vertragsliste**: Vor ein paar Wochen vor dem gewählten Wunschabrechnungsdatum erstellt SI+ eine Excel-Datei (WWU Excel) aus den Energie-CRM-Systemen **Enwicore** und **Powerpack**.  \n2. **Filterung & Validierung**: Die Daten werden durch Business-Regeln (z. B. aktive Verträge, keine Leerstände, Wasserverträge) gefiltert.  \n3. **Eingabe & Upload**: Das WWU füllt die Excel-Datei mit den Zählerständen aus und lädt sie über das Kundenportal hoch.  \n\n**Vorteile**:  \n- Effiziente Erfassung von Zählerständen ohne manuelle Prozesse.  \n- Gebündelte Übermittlung für große Verwalterbestände.  \n- Rechtzeitige Abgabe der Zählerstände direkt zum Wunschabrechnungstermin.  \n\nDer Service wird ausschließlich für WWU genutzt und dient der automatisierten Abwicklung von Energielieferverträgen im Kontext der Wohnungswirtschaftsunternehmen.",
       "outputScore": 0.605,
       "outputScoreReason": "The Actual Output accurately describes the Sammelableseliste process, its exclusivity for WWU, and the general workflow, aligning with the Expected Output in terms of purpose and main steps. However, it omits several specific process steps present in the Expected Output, such as the admin notification, admin file download, and the explicit separation of portal and post-portal processes. The Actual Output also merges or simplifies some steps (e.g., file generation and filtering), and does not mention the handling of admin files or the update/notification mechanisms. Clarity and depth are good, but the Actual Output lacks the full detail and step-by-step breakdown found in the Expected Output.",
       "ragRelevancyScore": 0.833,
       "ragRelevancyScoreReason": "The score is 0.83 because, while several statements in the retrieval context are irrelevant (e.g., references to videos, external resources, and work status), there is a substantial set of statements that directly explain the Sammelableseliste process, such as 'Sammelableseliste Meldeprozess ist ein exklusiver Zusatzservice zur jährlichen Sammelabgabe von Zählerständen über das Kundenportal.' and detailed process steps. The presence of both relevant and irrelevant content justifies a high but not perfect score.",
       "hallucinationRate": 0.4,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.72,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T06:00:00"
   },
   {
-    "ID": 12,
+    "ID": "12-run12",
+    "baseID": 12,
+    "version": "run12",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT012",
+      "ID": "GT012-run12",
       "Input": "Welche Daten sind in einem Kundenkonto und woher",
       "expectedOutput": "Ein Kundenkonto im SI+ System besteht aus drei zentral und verbindlich verknüpften Datenbereichen, die systemübergreifend synchronisiert werden müssen: \n1. Kundendaten (WWU): Die führende, externe Quelle ist das CRM-System Scale. \n2. Verwalterbestand (Immobilien & Lieferstellen): Die führende Quelle ist das SI+ System. \n3. Energiedaten: Die führenden Quellen sind die Enwicore und Powerpack Systeme, die jeweils unabhängig voneinander Energielieferverträge und Kundeninformationen bereitstellen. \n\nDie drei SI+ Datenbereiche werden in einem Kundenportalkonto zentral verknüpft und für die Bestandsverwaltung und Massenvertragsverwaltung durch WWU bereitgestellt."
     },
     "ExecutionData": {
-      "ID": "EX012",
+      "ID": "EX012-run12",
       "output": "In einem SI+ Kundenkonto für Wohnungswirtschaftsunternehmen (WWU) sind folgende Daten gespeichert und **woher** sie stammen:\n\n1. **Kundendaten (WWU)**  \n   → *Quelle*: Scale CRM (B2B-System)  \n   → Enthalten sind die Verträge und Kundeninformationen des WWU.\n\n2. **Verwalterbestand (Immobilien & Lieferstellen)**  \n   → *Quelle*: Ops Portal (nach erfolgreicher Validierung durch Meldeprozesse)  \n   → Rechtlich erforderliche Prozesse sorgen für die korrekte Zuordnung der Immobilien- und Lieferstellen.\n\n3. **Energievertragsbestand**  \n   → *Quellen*: Enwicore und Powerpack (B2C-Systeme)  \n   → Verknüpft mit den Immobilien, um die Energieversorgung für Leerstand und Allgemein zu verwalten.\n\n**WWU-ID** dient als zentrales Identifikationsmerkmal, das alle Datenquellen verbindet und sicherstellt, dass Energieverträge und Kunden durch den WWU gültig sind.  \n*Hinweis*: Powerpack-Verträge müssen manuell hinterlegt werden, während Immobilien- und Lieferstellenbestände automatisch über Meldeprozesse validiert werden.",
       "outputScore": 0.696,
       "outputScoreReason": "The Actual Output is factually accurate and covers the three main data areas (Kundendaten, Verwalterbestand, Energiedaten) as in the Expected Output. It provides additional detail about data sources, validation processes, and the role of the WWU-ID, which adds depth. However, it incorrectly lists the source of Verwalterbestand as the Ops Portal instead of SI+ and does not explicitly mention the need for system-wide synchronization or the purpose of the central linkage for mass contract management, which are present in the Expected Output. The information is clear and well-structured, but minor discrepancies in source attribution and omission of some functional context reduce completeness.",
       "ragRelevancyScore": 0.75,
       "ragRelevancyScoreReason": "The score is 0.75 because, while many statements in the retrieval context directly address which data is in a Kundenkonto and their sources (e.g., 'Die Kontodatenbestände eines WWU Kontos setzen sich aus drei Datenbereichen zusammen, die im Kundenportalkonto zentral und verbindlich verknüpft sowie systemübergreifend synchronisiert werden müssen: Kundendaten (WWU), Verwalterbestand (Immobilien & Lieferstellen), Energievertragsbestand (Energie)' and 'In jedem Datenbereich behalten externe Quellen ihre führende Rolle gegenüber den Portalen.'), there are also several statements that are not relevant to the input, such as those describing system architecture or processes without specifying data types or origins.",
       "hallucinationRate": 0.3,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.72,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T08:00:00"
   },
   {
-    "ID": 13,
+    "ID": "13-run13",
+    "baseID": 13,
+    "version": "run13",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT013",
+      "ID": "GT013-run13",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Folgende Punkt sollen im Fokus betrachtet werden: Business, Markt, Zielgruppe, Angebot, Vorteile für Kunden, Online-Services und Portalfunktionen"
     },
     "ExecutionData": {
-      "ID": "EX013",
+      "ID": "EX013-run13",
       "output": "immo+ ist ein Online-Service von EnBW, der Wohnungswirtschaftsunternehmen (WWU) ermöglicht, ihre Lieferstellen für Allgemein- und Leerstandversorgung zentral und kosteneffizient zu versorgen. Durch das SI+ Kundenportal werden administrative Aufwände reduziert, indem standardisierte Meldeprozesse und zentrale Zugriffe auf Energielieferdaten bereitgestellt werden. WWU mit mindestens 5 Immobilien (15 Lieferstellen) können damit ihre Energieversorgung effizient verwalten und Compliance-Anforderungen automatisiert erfüllen.",
       "outputScore": 0.327,
       "outputScoreReason": "The Actual Output provides a factual and clear description of immo+ as an online service for WWU, mentioning some benefits and portal functions. However, it does not fully address all aspects listed in the Expected Output, such as a detailed breakdown of business context, market, target group, offer, and comprehensive advantages for customers. The depth and completeness are limited, as only a subset of the requested focus points are covered.",
       "ragRelevancyScore": 0.949,
       "ragRelevancyScoreReason": "The score is 0.95 because, while some statements like 'Website: https://enbw-eg.de/immoplus' and references to processes outside of immo+ are not directly relevant, the majority of the retrieval context provides detailed and specific information about what immo+ is, its target audience, features, and processes, making the context highly relevant to the input question.",
       "hallucinationRate": 0.67,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.64,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T10:00:00"
   },
   {
-    "ID": 14,
+    "ID": "14-run14",
+    "baseID": 14,
+    "version": "run14",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT014",
+      "ID": "GT014-run14",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Einsteiger Flightlevel von High zu Medium über die Bereiche und ihre Unterseiten: Business, Produkt und System"
     },
     "ExecutionData": {
-      "ID": "EX014",
+      "ID": "EX014-run14",
       "output": "immo+ ist ein von EnBW entwickeltes Online-System für Wohnungswirtschaftsunternehmen (WWU), das die zentrale Verwaltung von Energieversorgung für Leerstand- und Allgemeinversorgung ermöglicht. Durch das immo+ Kundenportal können WWU ihre Lieferstellen, Verträge und Kundeninformationen effizient verwalten, was den administrativen Aufwand reduziert und Compliance-Anforderungen erfüllt. Die Zielgruppe sind WWU mit mindestens 5 Immobilien (15 Lieferstellen) im Bestand, die ihre Energieversorgung zentral über EnBW beziehen möchten.",
       "outputScore": 0.097,
       "outputScoreReason": "The Actual Output describes immo+ and its features, while the Expected Output requests a summary of the 'Einsteiger Flightlevel' transition from High to Medium across the areas Business, Produkt, and System and their subpages. There is no factual or topical alignment, and none of the expected aspects are addressed. The response is clear but entirely off-topic and lacks the required depth and detail.",
       "ragRelevancyScore": 0.923,
       "ragRelevancyScoreReason": "The score is 0.92 because, despite some irrelevant placeholders and links, the retrieval context provides a comprehensive and detailed explanation of what immo+ is, its target audience, and its main features, as shown in statements like 'Das Smart immo+ Angebot der EnBW verfolgt das Ziel, Commodity-Vertrieb für Allgemein- und Leerstandversorgung über den B2B-Vertriebsweg Wohnungswirtschaftsbranche zu betreiben.' and 'immo+ bietet Kunden ein exklusives Business-Online-Portal für die zentrale Verwaltung aller durch das WWU verwalteten Energielieferkunden und -verträge.'",
       "hallucinationRate": 0.9,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.51,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T12:00:00"
   },
   {
-    "ID": 15,
+    "ID": "15-run15",
+    "baseID": 15,
+    "version": "run15",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT015",
+      "ID": "GT015-run15",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Einsteiger Intro über die Bereiche und ihre Unterseiten: Business, Produkt und System inkl. anschaulicher Beispiele auf Grundlage der Quelldaten"
     },
     "ExecutionData": {
-      "ID": "EX015",
+      "ID": "EX015-run15",
       "output": "immo+ ist ein Smart-Service von EnBW, der Wohnungswirtschaftsunternehmen (WWU) ermöglicht, ihre Energielieferverträge für Allgemein- und Leerstandversorgung zentral zu verwalten. Ziel ist die effiziente und günstige Lieferstellenverwaltung über den B2B-Vertriebsweg der Wohnungswirtschaft, mit Funktionen wie standardisierte Meldeprozesse, jährliche Verbrauchsabrechnungen und ein Online-Kundenportal für die Verwaltung von Energielieferdaten. Die Lösung reduziert den administrativen Aufwand durch zentrale Prozessoptimierung und Compliance-Unterstützung.",
       "outputScore": 0.206,
       "outputScoreReason": "The Actual Output provides a factual and clear description of immo+ and its features, but it does not address the Expected Output's requirements for an introductory overview of the areas (Business, Produkt, System) and their subpages, nor does it include illustrative examples based on source data. The response lacks coverage of all requested sections and does not provide the structural or example-based detail outlined in the Expected Output.",
       "ragRelevancyScore": 0.949,
       "ragRelevancyScoreReason": "The score is 0.95 because, despite some minor irrelevant context like the website link and references to processes outside immo+, the retrieval context provides extensive and detailed information directly explaining what immo+ is, its purpose, features, and target audience, as shown in statements such as 'Das Smart immo+ Angebot der EnBW verfolgt das Ziel, Commodity-Vertrieb für Allgemein- und Leerstandversorgung über den B2B-Vertriebsweg Wohnungswirtschaftsbranche zu betreiben.'",
       "hallucinationRate": 0.79,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.58,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T14:00:00"
   },
   {
-    "ID": 16,
+    "ID": "16-run16",
+    "baseID": 16,
+    "version": "run16",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT016",
+      "ID": "GT016-run16",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Gesamtbetrachtung von High zu Low Flighlevel über die Bereiche und ihre Unterseiten: Business, Produkt und System"
     },
     "ExecutionData": {
-      "ID": "EX016",
+      "ID": "EX016-run16",
       "output": "immo+ ist ein spezielles Online-Portal von EnBW, das Wohnungswirtschaftsunternehmen (WWU) dabei unterstützt, ihre Energieversorgung für Leerstand- und Allgemeinversorgung zentral zu verwalten. Es ermöglicht die Registrierung von Lieferstellen, die Verwaltung von Energielieferverträgen, die Abrechnung und Compliance-Pflichten effizient zu erfüllen. WWU mit mindestens 5 Immobilien (15 Lieferstellen) können über das Portal ihre Kundeninformationen zentralisieren, Zählerstände erfassen und Rechnungen automatisiert abrufen. Ziel ist es, den administrativen Aufwand zu reduzieren und kostengünstige, zentrale Versorgungslösungen für die Wohnungswirtschaft anzubieten.",
       "outputScore": 0.122,
       "outputScoreReason": "The Actual Output provides a description of immo+ and its features, but does not address the Expected Output's requirement for a high-to-low level overview across the areas and subpages: Business, Product, and System. There is no structured breakdown or mention of these specific areas, resulting in a significant mismatch in both content and structure.",
       "ragRelevancyScore": 0.949,
       "ragRelevancyScoreReason": "The score is 0.95 because, despite some irrelevant statements like just providing a website link and mentioning EnBW's business interests, the retrieval context contains many detailed and directly relevant explanations of what immo+ is, such as 'Das Smart immo+ Angebot der EnBW verfolgt das Ziel, Commodity-Vertrieb für Allgemein- und Leerstandversorgung über den B2B-Vertriebsweg Wohnungswirtschaftsbranche zu betreiben.' and descriptions of its features and target customers.",
       "hallucinationRate": 0.88,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.54,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T16:00:00"
   },
   {
-    "ID": 17,
+    "ID": "17-run17",
+    "baseID": 17,
+    "version": "run17",
     "active": false,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT017",
+      "ID": "GT017-run17",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Smart Immo+ (SI+) ist ein Geschäftsbereich der EnBW.\nSI+ bietet B2B-Dienstleistungen für Unternehmen an.\nSI+ vertreibt EnBW Commodity-Produkte über die Wohnungswirtschaftsbranche.\nHauptzielgruppe: Wohnungswirtschaftsunternehmen (WWU).\nWWU verwalten mindestens fünf bis mehrere tausend Lieferstellen (Energielieferverträge).\nWWU profitieren von attraktiven B2B-Lieferkonditionen für ihren gesamten Verwalterbestand (Immobilien und Lieferstellen).\nWWU benötigen skalierbare, effiziente Lösungen für die Verwaltung von Lieferstellen- und Energievertragsdaten in großem Umfang.\nImmobilienverwalter sind verantwortlich für die Erfüllung gesetzlicher Pflichten, insbesondere die Verwaltung von Lieferstellen aus ihrem Immobilienbestand.\nVerantwortungsbereich Lieferstellenverwaltung\nSI+ Kunden (WWU) sind für die reibungslose Energieversorgung von Lieferstellen (Allgemein- und Leerstandversorgung) verantwortlich.\nSI+ Angebot unterstützt die Tagesgeschäftsanforderungen von WWU und deren Mitarbeitern.\nExklusive SI+ Online-Portal-Services verfügbar. (Bsp. Standardisierung von Formularen und Prozessen auf Kunden- und Anbieterseite, Effizienzsteigerung bei Meldeprozessen und der Verwaltung von Energiekunden und -verträgen (Allgemein- und Leerstandsversorgung)."
     },
     "ExecutionData": {
-      "ID": "EX017",
+      "ID": "EX017-run17",
       "output": "immo+ ist ein von EnBW entwickeltes Online-System für Wohnungswirtschaftsunternehmen (WWU), das die zentrale und kosteneffiziente Versorgung von Leerstand- und Allgemeinversorgungslieferstellen ermöglicht. Es unterstützt WWU dabei, ihre Energielieferverträge, Zählerstände und Rechnungen effizient zu verwalten, indem es ein standardisiertes Kundenportal mit Meldeprozessen und zentralen Zugriff auf die verwalteten Lieferstellen-Daten bietet. Die Lösung zielt darauf ab, den administrativen Aufwand bei der Registrierung und Pflege von Versorgungsverträgen zu reduzieren und WWU bei der Compliance mit gesetzlichen Nachweispflichten zu unterstützen.",
       "outputScore": 0.613,
       "outputScoreReason": "The Actual Output accurately describes immo+ as an EnBW-developed online system for WWU, focusing on centralized and efficient management of supply points, contract administration, and compliance support. It covers key aspects such as the target group (WWU), administrative efficiency, and portal features. However, it omits several important details from the Expected Output: it does not mention that Smart Immo+ is a business unit (Geschäftsbereich) of EnBW, the B2B nature of the services, the distribution of EnBW commodity products, the scale of WWU operations (from five to thousands of supply points), the benefit of attractive B2B conditions, and the exclusive nature of the portal services. The Actual Output is clear and coherent but lacks the full depth and breadth of information present in the Expected Output.",
       "ragRelevancyScore": 0.949,
       "ragRelevancyScoreReason": "The score is 0.95 because, despite some minor irrelevant details like a website link and references to processes outside immo+, the retrieval context provides extensive and detailed information about what immo+ is, its target audience, features, and business processes, directly addressing the input question.",
       "hallucinationRate": 0.39,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.78,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T18:00:00"
   },
   {
-    "ID": 18,
+    "ID": "18-run18",
+    "baseID": 18,
+    "version": "run18",
     "active": true,
     "IsRunning": true,
     "GroundTruthData": {
-      "ID": "GT018",
+      "ID": "GT018-run18",
       "Input": "Was ist immo+ ?",
       "expectedOutput": "Inhaltliche Zusammenfassung:\nDer Text beschreibt ein von EnBW entwickeltes Online-System namens immo+, das Wohnungswirtschaftsunternehmen die Verwaltung von Energielieferverträgen und Leerstandsversorgung erleichtert. Er erklärt den Zweck, die Funktionen und den administrativen Nutzen der Lösung.\n\nStichworte, die vorkommen müssen:\n- WWU\n- Wohungswirtschaftsunternehmen\n- Verbraucherabrechnungen"
     },
     "ExecutionData": {
-      "ID": "EX018",
+      "ID": "EX018-run18",
       "output": "immo+ ist ein Online-Service von EnBW, der Wohnungswirtschaftsunternehmen (WWU) ermöglicht, ihre Lieferstellen für Allgemein- und Leerstandversorgung zentral zu verwalten. Durch das SI+ Kundenportal können WWU ihre Energielieferverträge, Zählerstände und Rechnungen effizient abwickeln, wobei der Fokus auf der Reduzierung von administrativen Aufwänden durch standardisierte Prozesse und Meldeformulare liegt. Die Zielgruppe umfasst WWU mit mindestens 5 Immobilien (15 Lieferstellen) im Bestand.",
       "outputScore": 0.788,
       "outputScoreReason": "The Actual Output accurately describes immo+ as an EnBW online service for Wohnungswirtschaftsunternehmen (WWU), covering its purpose, functions, and administrative benefits, aligning well with the Expected Output. It mentions key details such as the SI+ Kundenportal, contract management, meter readings, and reduction of administrative effort. However, while 'WWU' and 'Wohnungswirtschaftsunternehmen' are explicitly mentioned, the term 'Verbraucherabrechnungen' is missing, which is a required keyword. The output is clear, coherent, and detailed, but the omission of this specific term prevents full completeness.",
       "ragRelevancyScore": 0.881,
       "ragRelevancyScoreReason": "The score is 0.88 because, while some context statements like 'Das Smart immo+ Angebot der EnBW verfolgt das Ziel, Commodity-Vertrieb für Allgemein- und Leerstandversorgung über den B2B-Vertriebsweg Wohnungswirtschaftsbranche zu betreiben.' directly explain what immo+ is, several other parts of the context are irrelevant (e.g., 'Website: https://enbw-eg.de/immoplus' and placeholder feature descriptions), which slightly reduces the overall relevancy.",
       "hallucinationRate": 0.21,
-      "hallucinationRateReason": "Estimated from output quality score",
+      "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
       "systemPromptAlignmentScore": 0.83,
-      "systemPromptAlignmentScoreReason": "Estimated based on relevancy and output score"
-    }
+      "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+    },
+    "timestamp": "2025-11-02T20:00:00"
   }
 ]

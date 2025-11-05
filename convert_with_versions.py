@@ -31,6 +31,20 @@ def convert_csv_with_versions(csv_file='Butler-Eval - GEval.csv', output_file='s
             base_id = row['ID'].strip()
             version = row.get('RunVersion', 'v1.0').strip() if row.get('RunVersion') else f"run{i}"
             
+            # Timestamp verarbeiten
+            timestamp = row.get('Timestamp', '').strip()
+            if not timestamp:
+                # Wenn kein Timestamp vorhanden, aktuellen Zeitstempel verwenden
+                timestamp = datetime.now().isoformat()
+            else:
+                # Timestamp validieren und ggf. formatieren
+                try:
+                    # Versuche verschiedene Formate zu parsen
+                    dt = parse_timestamp(timestamp)
+                    timestamp = dt.isoformat()
+                except:
+                    timestamp = datetime.now().isoformat()
+            
             # Kombinierte eindeutige ID erstellen
             unique_id = f"{base_id}-{version}"
             
@@ -38,6 +52,7 @@ def convert_csv_with_versions(csv_file='Butler-Eval - GEval.csv', output_file='s
                 'ID': unique_id,
                 'baseID': int(base_id) if base_id.isdigit() else base_id,
                 'version': version,
+                'timestamp': timestamp,
                 'active': row.get('active', '') == 'X',
                 'IsRunning': row.get('IsRunning', '') == '✅',
                 'GroundTruthData': {
@@ -106,6 +121,28 @@ def parse_float(value):
         return float(value.replace(',', '.'))
     except (ValueError, AttributeError):
         return 0.0
+
+def parse_timestamp(timestamp_str):
+    """Parst verschiedene Timestamp-Formate"""
+    formats = [
+        '%Y-%m-%d %H:%M:%S',
+        '%Y-%m-%dT%H:%M:%S',
+        '%Y-%m-%d %H:%M:%S.%f',
+        '%Y-%m-%dT%H:%M:%S.%f',
+        '%d.%m.%Y %H:%M:%S',
+        '%d/%m/%Y %H:%M:%S',
+        '%Y-%m-%d',
+        '%d.%m.%Y',
+    ]
+    
+    for fmt in formats:
+        try:
+            return datetime.strptime(timestamp_str, fmt)
+        except ValueError:
+            continue
+    
+    # Wenn kein Format passt, aktuellen Zeitstempel zurückgeben
+    return datetime.now()
 
 if __name__ == '__main__':
     # Beispiel-Aufruf

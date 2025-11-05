@@ -39,6 +39,7 @@ const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpan
           <tr>
             {visibleColumns.compare && <th>Compare</th>}
             {visibleColumns.ID && <th>ID</th>}
+            {visibleColumns.timestamp && <th>Timestamp</th>}
             {visibleColumns.active && <th>Active</th>}
             {visibleColumns.isRunning && <th>Is Running</th>}
             {visibleColumns.gtID && <th>GT ID</th>}
@@ -68,6 +69,17 @@ const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpan
                 </td>
               )}
               {visibleColumns.ID && <td>{run.ID}</td>}
+              {visibleColumns.timestamp && (
+                <td style={{ fontSize: '12px', color: '#94a3b8' }}>
+                  {run.timestamp ? new Date(run.timestamp).toLocaleString('de-DE', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  }) : '-'}
+                </td>
+              )}
               {visibleColumns.active && <td>{run.active ? 'Yes' : 'No'}</td>}
               {visibleColumns.isRunning && <td>{run.IsRunning ? 'Yes' : 'No'}</td>}
               {visibleColumns.gtID && <td>{run.GroundTruthData?.ID || '-'}</td>}

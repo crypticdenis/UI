@@ -38,6 +38,24 @@ const Comparison = ({ runs = [] }) => {
       {runs && runs.length > 0 ? runs.map((run) => (
         <div key={run.ID} className="comparison-card">
           <h3>Run {run.ID}</h3>
+          {run.timestamp && (
+            <p style={{ 
+              fontSize: '13px', 
+              color: '#94a3b8', 
+              margin: '0 0 12px 0',
+              paddingBottom: '8px',
+              borderBottom: '1px solid rgba(96, 165, 250, 0.2)'
+            }}>
+              <strong>⏰ Zeitstempel:</strong> {new Date(run.timestamp).toLocaleString('de-DE', {
+                year: 'numeric',
+                month: 'long',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              })}
+            </p>
+          )}
           
           <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#60a5fa' }}>Ground Truth Data</h4>
           <p>

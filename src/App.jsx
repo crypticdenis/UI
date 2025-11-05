@@ -35,6 +35,7 @@ function App() {
   const [visibleColumns, setVisibleColumns] = useState({
     compare: true,
     ID: true,
+    timestamp: true,
     active: true,
     isRunning: true,
     gtID: true,
@@ -96,6 +97,13 @@ function App() {
       bValue = b[sortConfig.key];
     }
     
+    // Handle timestamp sorting
+    if (sortConfig.key === 'timestamp') {
+      const aTime = aValue ? new Date(aValue).getTime() : 0;
+      const bTime = bValue ? new Date(bValue).getTime() : 0;
+      return sortConfig.direction === 'ascending' ? aTime - bTime : bTime - aTime;
+    }
+    
     // Handle numeric sorting for score fields
     const numericFields = ['ID', 'Last Score', 'Score', 'RAG Relevancy Score', 'outputScore', 'ragRelevancyScore', 'hallucinationRate', 'systemPromptAlignmentScore'];
     const fieldName = sortConfig.key.includes('.') ? sortConfig.key.split('.')[1] : sortConfig.key;
@@ -133,6 +141,32 @@ function App() {
 
   const selectedRunsData = runs.filter(run => selectedRuns.includes(run.ID));
 
+  // Calculate average scores
+  const calculateAverages = (runsToCalc) => {
+    if (runsToCalc.length === 0) return { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0 };
+    
+    const validRuns = runsToCalc.filter(run => run.ExecutionData);
+    if (validRuns.length === 0) return { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0 };
+    
+    const sum = validRuns.reduce((acc, run) => {
+      return {
+        outputScore: acc.outputScore + (run.ExecutionData?.outputScore || 0),
+        ragScore: acc.ragScore + (run.ExecutionData?.ragRelevancyScore || 0),
+        hallucinationRate: acc.hallucinationRate + (run.ExecutionData?.hallucinationRate || 0),
+        systemPromptScore: acc.systemPromptScore + (run.ExecutionData?.systemPromptAlignmentScore || 0)
+      };
+    }, { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0 });
+    
+    return {
+      outputScore: (sum.outputScore / validRuns.length).toFixed(2),
+      ragScore: (sum.ragScore / validRuns.length).toFixed(2),
+      hallucinationRate: (sum.hallucinationRate / validRuns.length).toFixed(2),
+      systemPromptScore: (sum.systemPromptScore / validRuns.length).toFixed(2)
+    };
+  };
+
+  const averages = calculateAverages(sortedRuns);
+
   return (
     <div className="App dark">
       <header className="dashboard-header">
@@ -150,7 +184,11 @@ function App() {
             </svg>
             Hilfe
           </button>
-          <span className="stat-badge">Total Runs: {sortedRuns.length}</span>
+          <span className="stat-badge">Total: {sortedRuns.length}</span>
+          <span className="stat-badge" title="Average Output Score">Ø Output: {averages.outputScore}</span>
+          <span className="stat-badge" title="Average RAG Relevancy Score">Ø RAG: {averages.ragScore}</span>
+          <span className="stat-badge" title="Average Hallucination Rate">Ø Hallucination: {averages.hallucinationRate}</span>
+          <span className="stat-badge" title="Average System Prompt Alignment Score">Ø Prompt: {averages.systemPromptScore}</span>
           {selectedRuns.length > 0 && (
             <span className="stat-badge stat-badge-highlight">
               {selectedRuns.length} Selected
@@ -201,6 +239,7 @@ function App() {
           <div className="controls">
             <select onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })} value={sortConfig.key}>
               <option value="ID">ID</option>
+              <option value="timestamp">Timestamp</option>
               <option value="ExecutionData.outputScore">Output Score</option>
               <option value="ExecutionData.ragRelevancyScore">RAG Relevancy</option>
               <option value="ExecutionData.hallucinationRate">Hallucination Rate</option>
