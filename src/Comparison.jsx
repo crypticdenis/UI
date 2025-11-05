@@ -48,7 +48,7 @@ const Comparison = ({ runs = [] }) => {
           }}>
             {run.timestamp && (
               <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-                <strong>⏰ Zeitstempel:</strong> {new Date(run.timestamp).toLocaleString('de-DE', {
+                <strong>Zeitstempel:</strong> {new Date(run.timestamp).toLocaleString('de-DE', {
                   year: 'numeric',
                   month: 'long',
                   day: '2-digit',
@@ -60,12 +60,12 @@ const Comparison = ({ runs = [] }) => {
             )}
             {run.model && (
               <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '600' }}>
-                <strong>🤖 Model:</strong> {run.model}
+                <strong>Model:</strong> {run.model}
               </span>
             )}
             {run.promptVersion && (
               <span style={{ fontSize: '13px', color: '#fe8f0f', fontWeight: '600' }}>
-                <strong>📝 Prompt:</strong> {run.promptVersion}
+                <strong>Prompt:</strong> {run.promptVersion}
               </span>
             )}
           </div>

@@ -147,7 +147,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
     <div className="comparison-modal-overlay" onClick={onClose}>
       <div className="comparison-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="comparison-modal-header">
-          <h2>🔍 Compare Question {baseID} Across Runs</h2>
+          <h2>Compare Question {baseID} Across Runs</h2>
           <div className="modal-header-actions">
             <div className="export-buttons">
               <button 
@@ -239,12 +239,12 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                     )}
                     {question.model && (
                       <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '600' }}>
-                        <strong>🤖 Model:</strong> {question.model}
+                        <strong>Model:</strong> {question.model}
                       </span>
                     )}
                     {question.promptVersion && (
                       <span style={{ fontSize: '13px', color: '#fe8f0f', fontWeight: '600' }}>
-                        <strong>📝 Prompt:</strong> {question.promptVersion}
+                        <strong>Prompt:</strong> {question.promptVersion}
                       </span>
                     )}
                   </div>

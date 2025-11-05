@@ -89,13 +89,13 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
           Back to Runs
         </button>
         <div className="run-details-title">
-          <h2>📋 Run: {runVersion}</h2>
+          <h2>Run: {runVersion}</h2>
           <div className="run-meta-inline">
             <span style={{ color: '#60a5fa', fontWeight: '600' }}>
-              🤖 {firstQuestion.model}
+              {firstQuestion.model}
             </span>
             <span style={{ color: '#fe8f0f', fontWeight: '600' }}>
-              📝 {firstQuestion.promptVersion}
+              {firstQuestion.promptVersion}
             </span>
             {firstQuestion.timestamp && (
               <span style={{ color: '#94a3b8', fontSize: '13px' }}>

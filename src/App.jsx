@@ -190,7 +190,7 @@ function App() {
             </div>
             <div className="modal-body help-content">
               <section>
-                <h4>🎯 Überblick</h4>
+                <h4>Überblick</h4>
                 <p>
                   Das Butler Evaluation Dashboard ermöglicht es Ihnen, verschiedene Test-Runs von KI-Modellen zu vergleichen
                   und die Qualität der Antworten zu bewerten.
@@ -198,7 +198,7 @@ function App() {
               </section>
 
               <section>
-                <h4>📊 Runs Übersicht</h4>
+                <h4>Runs Übersicht</h4>
                 <p>
                   Die Hauptansicht zeigt alle verfügbaren Test-Runs mit ihren wichtigsten Kennzahlen:
                 </p>
@@ -210,7 +210,7 @@ function App() {
               </section>
 
               <section>
-                <h4>🔍 Run Details</h4>
+                <h4>Run Details</h4>
                 <p>
                   Klicken Sie auf "View Details" um alle Fragen eines Runs zu sehen:
                 </p>
@@ -222,7 +222,7 @@ function App() {
               </section>
 
               <section>
-                <h4>⚖️ Fragen Vergleich</h4>
+                <h4>Fragen Vergleich</h4>
                 <p>
                   Vergleichen Sie wie unterschiedliche Modelle oder Prompt-Versionen dieselbe Frage beantworten:
                 </p>
@@ -234,7 +234,7 @@ function App() {
               </section>
 
               <section>
-                <h4>🚀 Neue Evaluation starten</h4>
+                <h4>Neue Evaluation starten</h4>
                 <p>
                   Mit dem "Run Evaluation" Button können Sie neue Test-Runs starten:
                 </p>
@@ -246,7 +246,7 @@ function App() {
               </section>
 
               <section>
-                <h4>📈 Score-Interpretation</h4>
+                <h4>Score-Interpretation</h4>
                 <ul>
                   <li><strong>Grün (0.8-1.0):</strong> Sehr gute Qualität</li>
                   <li><strong>Gelb (0.6-0.8):</strong> Moderate Qualität</li>
@@ -256,7 +256,7 @@ function App() {
               </section>
 
               <section>
-                <h4>⌨️ Keyboard Shortcuts</h4>
+                <h4>Keyboard Shortcuts</h4>
                 <div className="keyboard-shortcuts-list">
                   <div className="shortcut-item">
                     <kbd>ESC</kbd>

@@ -178,7 +178,7 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
           </svg>
           <input
             type="text"
-            placeholder="🔍 Quick search across all runs (version, model, prompt)..."
+            placeholder="Quick search across all runs (version, model, prompt)..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
@@ -325,16 +325,16 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
 
               <div className="run-card-meta">
                 <div className="meta-item">
-                  <span className="meta-label">🤖 Model:</span>
+                  <span className="meta-label">Model:</span>
                   <span className="meta-value model-badge">{run.model}</span>
                 </div>
                 <div className="meta-item">
-                  <span className="meta-label">📝 Prompt:</span>
+                  <span className="meta-label">Prompt:</span>
                   <span className="meta-value prompt-badge">{run.promptVersion}</span>
                 </div>
                 {run.timestamp && (
                   <div className="meta-item">
-                    <span className="meta-label">⏰ Time:</span>
+                    <span className="meta-label">Time:</span>
                     <span className="meta-value timestamp">
                       {new Date(run.timestamp).toLocaleString('de-DE', {
                         year: 'numeric',
