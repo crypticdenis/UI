@@ -36,6 +36,32 @@
   align-items: center;
 }
 
+.help-button {
+  padding: 8px 16px;
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 20px;
+  background: rgba(96, 165, 250, 0.1);
+  color: #60a5fa;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.help-button:hover {
+  background: rgba(96, 165, 250, 0.2);
+  border-color: #60a5fa;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(96, 165, 250, 0.3);
+}
+
+.help-button svg {
+  flex-shrink: 0;
+}
+
 .stat-badge {
   padding: 8px 16px;
   background: rgba(255, 255, 255, 0.05);
@@ -848,4 +874,68 @@
 
 .comparison-modal-body::-webkit-scrollbar-thumb:hover {
   background: rgba(96, 165, 250, 0.6);
+}
+
+/* Help Modal Styles */
+.help-modal {
+  max-width: 700px;
+}
+
+.help-content {
+  max-height: 70vh;
+}
+
+.help-content section {
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.help-content section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.help-content h4 {
+  color: #60a5fa;
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.help-content p {
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin: 0 0 12px 0;
+}
+
+.help-content ul {
+  margin: 8px 0;
+  padding-left: 24px;
+  color: #cbd5e1;
+}
+
+.help-content li {
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.help-content li strong {
+  color: #e2e8f0;
+  font-weight: 600;
+}
+
+.help-content ul ul {
+  margin-top: 6px;
+  margin-bottom: 6px;
+  padding-left: 20px;
+}
+
+.help-content ul ul li {
+  margin-bottom: 4px;
+  font-size: 13px;
 }

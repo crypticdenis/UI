@@ -30,6 +30,7 @@ function App() {
   const [showFilters, setShowFilters] = useState(false);
   const [showColumnSettings, setShowColumnSettings] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [viewerContent, setViewerContent] = useState(null);
   const [visibleColumns, setVisibleColumns] = useState({
     compare: true,
@@ -137,6 +138,18 @@ function App() {
       <header className="dashboard-header">
         <h1>Butler Evaluation Dashboard</h1>
         <div className="header-stats">
+          <button 
+            onClick={() => setShowHelp(true)} 
+            className="help-button"
+            title="Anleitung zur Nutzung des Dashboards"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Hilfe
+          </button>
           <span className="stat-badge">Total Runs: {sortedRuns.length}</span>
           {selectedRuns.length > 0 && (
             <span className="stat-badge stat-badge-highlight">
@@ -214,6 +227,83 @@ function App() {
           gtId={viewerContent.gtId}
           onClose={() => setViewerContent(null)} 
         />
+      )}
+      {showHelp && (
+        <div className="modal-overlay" onClick={() => setShowHelp(false)}>
+          <div className="modal-content help-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>📘 Anleitung zur Nutzung</h3>
+              <button className="modal-close" onClick={() => setShowHelp(false)}>✕</button>
+            </div>
+            <div className="modal-body help-content">
+              <section>
+                <h4>🎯 Überblick</h4>
+                <p>Dieses Dashboard hilft Ihnen, KI-Modell-Testläufe zu evaluieren und zu vergleichen. Jede Zeile stellt einen Testfall mit Soll-Daten und Ausführungsergebnissen dar.</p>
+              </section>
+
+              <section>
+                <h4>📊 Datenverständnis</h4>
+                <ul>
+                  <li><strong>Ground Truth Data:</strong> Die erwarteten Eingaben und Ausgaben für jeden Test</li>
+                  <li><strong>Execution Data:</strong> Die tatsächlichen KI-Modell-Ausgaben und Leistungsmetriken</li>
+                  <li><strong>Bewertungen:</strong> Farbcodierte Leistungsindikatoren:
+                    <ul>
+                      <li>🟢 Grün (0.9-1.0): Hervorragend</li>
+                      <li>🟡 Gelb (0.6-0.8): Gut</li>
+                      <li>🟠 Orange (0.4-0.6): Ausreichend</li>
+                      <li>🔴 Rot (0.0-0.4): Mangelhaft</li>
+                    </ul>
+                  </li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>🔍 Hauptfunktionen</h4>
+                <ul>
+                  <li><strong>Filter:</strong> Klicken Sie auf "Show Filters", um Testläufe nach beliebigen Feldern zu suchen und zu filtern</li>
+                  <li><strong>Spalteneinstellungen:</strong> Wählen Sie aus, welche Spalten in der Tabelle sichtbar sein sollen</li>
+                  <li><strong>Sortierung:</strong> Klicken Sie auf Spaltenüberschriften oder verwenden Sie das Sortier-Dropdown zur Datenorganisation</li>
+                  <li><strong>Testläufe vergleichen:</strong> Wählen Sie mehrere Läufe aus (Checkbox) und klicken Sie auf "Compare" für eine Gegenüberstellung</li>
+                  <li><strong>Inhalt erweitern:</strong> Klicken Sie auf das Erweitern-Symbol (⤢), um den vollständigen Text eines Feldes anzuzeigen</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>📈 Bewertungsmetriken</h4>
+                <ul>
+                  <li><strong>Output Score:</strong> Gesamtqualität der KI-Antwort (0-1)</li>
+                  <li><strong>RAG Relevancy Score:</strong> Wie relevant der abgerufene Kontext war (0-1)</li>
+                  <li><strong>Hallucination Rate:</strong> Anteil an fehlerhaften/unbelegten Informationen (0-1)</li>
+                  <li><strong>System Prompt Alignment:</strong> Wie gut die Ausgabe den Anweisungen folgt (0-1)</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>💡 Tipps</h4>
+                <ul>
+                  <li>Beginnen Sie mit der Filterung, um bestimmte Testfälle zu finden</li>
+                  <li>Verwenden Sie den Vergleichsmodus, um Unterschiede zwischen Läufen zu analysieren</li>
+                  <li>Klicken Sie auf Bewertungsgründe, um Evaluierungsdetails zu verstehen</li>
+                  <li>Exportieren Sie Daten oder erstellen Sie Screenshots für Berichte</li>
+                </ul>
+              </section>
+
+              <section>
+                <h4>🔄 Mehrere Versionen desselben Tests vergleichen</h4>
+                <p>Um verschiedene Läufe desselben Tests zu vergleichen:</p>
+                <ul>
+                  <li>Strukturieren Sie IDs mit Versionen: <code>1-v1.0</code>, <code>1-v2.0</code>, <code>1-v3.0</code></li>
+                  <li>Oder mit Datum: <code>1-2025-11-01</code>, <code>1-2025-11-05</code></li>
+                  <li>Filtern Sie nach der Basis-ID (z.B. "1-") um alle Versionen zu finden</li>
+                  <li>Wählen Sie die Versionen aus und klicken Sie auf "Compare"</li>
+                </ul>
+                <p style={{ fontSize: '12px', color: '#94a3b8', marginTop: '8px' }}>
+                  Siehe <code>COMPARING_RUNS.md</code> für detaillierte Anleitung
+                </p>
+              </section>
+            </div>
+          </div>
+        </div>
       )}
       <RunTable 
         runs={sortedRuns} 
