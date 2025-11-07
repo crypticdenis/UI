@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const RunsOverview = ({ runs, onViewRunDetails }) => {
+const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });
   const [filters, setFilters] = useState({
     model: '',
@@ -137,6 +137,27 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
     <div className="runs-overview">
       <div className="overview-header">
         <div>
+          {breadcrumbs && breadcrumbs.length > 0 && (
+            <div className="breadcrumb-nav">
+              {breadcrumbs.map((crumb, index) => (
+                <React.Fragment key={index}>
+                  {index > 0 && <span className="breadcrumb-separator">/</span>}
+                  {index < breadcrumbs.length - 1 ? (
+                    <button onClick={() => crumb.onClick()} className="breadcrumb-link">
+                      {index === 0 && (
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M15 18l-6-6 6-6"/>
+                        </svg>
+                      )}
+                      {crumb.label}
+                    </button>
+                  ) : (
+                    <span className="breadcrumb-current">{crumb.label}</span>
+                  )}
+                </React.Fragment>
+              ))}
+            </div>
+          )}
           <h2>Evaluation Runs Overview</h2>
           <p className="overview-subtitle">
             <span className="stat-item">
@@ -178,10 +199,11 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
           </svg>
           <input
             type="text"
-            placeholder="Quick search across all runs (version, model, prompt)..."
+            placeholder="Quick search across all runs (version, model, prompt)... Press Ctrl+K"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="search-input"
+            title="Use Ctrl+K or Cmd+K to focus"
           />
           {searchQuery && (
             <button 
@@ -198,19 +220,6 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
           )}
         </div>
       </div>
-
-      {sortedRuns.length > 1 && (
-        <div className="comparison-feature-info">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M12 16v-4M12 8h.01"/>
-          </svg>
-          <span>
-            You have <strong>{sortedRuns.length} runs</strong> available. 
-            Click into any run and use the <strong>Compare</strong> button to analyze how different models/prompts perform on the same questions.
-          </span>
-        </div>
-      )}
 
       <div className="overview-filters">
         <label>
@@ -302,11 +311,41 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
           const avgScore = ((parseFloat(run.avgOutputScore) || 0) + 
                            (parseFloat(run.avgRagScore) || 0) + 
                            (parseFloat(run.avgSystemPromptScore) || 0)) / 3;
-          const overallGrade = avgScore >= 0.8 ? 'A' : avgScore >= 0.7 ? 'B' : avgScore >= 0.6 ? 'C' : avgScore >= 0.5 ? 'D' : 'F';
-          const gradeColor = avgScore >= 0.8 ? '#10b981' : avgScore >= 0.7 ? '#34d399' : avgScore >= 0.6 ? '#fbbf24' : avgScore >= 0.5 ? '#f59e0b' : '#ef4444';
+          
+          // Descriptive grading system
+          let overallGrade, gradeColor, gradeBgColor;
+          if (avgScore >= 0.9) {
+            overallGrade = 'Excellent';
+            gradeColor = '#ffffff';
+            gradeBgColor = '#059669';
+          } else if (avgScore >= 0.8) {
+            overallGrade = 'Very Good';
+            gradeColor = '#ffffff';
+            gradeBgColor = '#10b981';
+          } else if (avgScore >= 0.7) {
+            overallGrade = 'Good';
+            gradeColor = '#ffffff';
+            gradeBgColor = '#34d399';
+          } else if (avgScore >= 0.6) {
+            overallGrade = 'Fair';
+            gradeColor = '#0f172a';
+            gradeBgColor = '#fbbf24';
+          } else if (avgScore >= 0.5) {
+            overallGrade = 'Below Avg';
+            gradeColor = '#ffffff';
+            gradeBgColor = '#f59e0b';
+          } else if (avgScore >= 0.4) {
+            overallGrade = 'Poor';
+            gradeColor = '#ffffff';
+            gradeBgColor = '#f97316';
+          } else {
+            overallGrade = 'Very Poor';
+            gradeColor = '#ffffff';
+            gradeBgColor = '#dc2626';
+          }
           
           return (
-            <div key={run.version} className="run-card" onClick={() => onViewRunDetails(run.version, run.runs)}>
+            <div key={run.version} className="run-card clickable" onClick={() => onViewRunDetails(run.version, run.runs)}>
               <div className="run-card-header">
                 <div className="run-card-title">
                   <h3>{run.version}</h3>
@@ -318,7 +357,11 @@ const RunsOverview = ({ runs, onViewRunDetails }) => {
                     {run.questionCount}
                   </span>
                 </div>
-                <div className="overall-grade" style={{ color: gradeColor, borderColor: gradeColor }}>
+                <div className="overall-grade" style={{ 
+                  color: gradeColor, 
+                  backgroundColor: gradeBgColor,
+                  borderColor: gradeBgColor
+                }}>
                   {overallGrade}
                 </div>
               </div>

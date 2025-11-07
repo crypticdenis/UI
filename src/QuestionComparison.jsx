@@ -189,20 +189,102 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
         <div className="comparison-modal-body">
           <div className="comparison-selector">
             <h3>Select Runs to Compare:</h3>
-            <div className="version-checkboxes">
-              {availableVersions.map(version => (
-                <label key={version} className="version-checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={selectedVersions.includes(version)}
-                    onChange={() => toggleVersion(version)}
-                  />
-                  <span className="version-name">{version}</span>
-                  <span className="version-meta">
-                    {runsByVersion[version].model} | {runsByVersion[version].promptVersion}
-                  </span>
-                </label>
-              ))}
+            <div className="version-selection-grid">
+              {availableVersions.map(version => {
+                const run = runsByVersion[version];
+                const isSelected = selectedVersions.includes(version);
+                const avgScore = run.ExecutionData ? (
+                  (run.ExecutionData.outputScore || 0) +
+                  (run.ExecutionData.ragRelevancyScore || 0) +
+                  (run.ExecutionData.systemPromptAlignmentScore || 0)
+                ) / 3 : 0;
+                
+                return (
+                  <div
+                    key={version}
+                    className={`version-selection-card ${isSelected ? 'selected' : ''}`}
+                    onClick={() => toggleVersion(version)}
+                  >
+                    <div className="version-card-header">
+                      <div className="version-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => {}}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                      <div className="version-card-title">
+                        <h4>{version}</h4>
+                        <div className="version-score-badge" style={{ backgroundColor: getScoreColorGranular(avgScore) }}>
+                          {avgScore.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="version-card-meta">
+                      <div className="meta-row">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span className="meta-label">Model:</span>
+                        <span className="meta-value">{run.model}</span>
+                      </div>
+                      <div className="meta-row">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                          <polyline points="14 2 14 8 20 8"/>
+                        </svg>
+                        <span className="meta-label">Prompt:</span>
+                        <span className="meta-value">{run.promptVersion}</span>
+                      </div>
+                      {run.timestamp && (
+                        <div className="meta-row">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <circle cx="12" cy="12" r="10"/>
+                            <polyline points="12 6 12 12 16 14"/>
+                          </svg>
+                          <span className="meta-label">Date:</span>
+                          <span className="meta-value">
+                            {new Date(run.timestamp).toLocaleDateString('de-DE', {
+                              month: 'short',
+                              day: '2-digit',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="version-card-scores">
+                      <div className="mini-score">
+                        <span className="mini-score-label">Output</span>
+                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.outputScore) }}>
+                          {run.ExecutionData?.outputScore?.toFixed(2) || '-'}
+                        </span>
+                      </div>
+                      <div className="mini-score">
+                        <span className="mini-score-label">RAG</span>
+                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.ragRelevancyScore) }}>
+                          {run.ExecutionData?.ragRelevancyScore?.toFixed(2) || '-'}
+                        </span>
+                      </div>
+                      <div className="mini-score">
+                        <span className="mini-score-label">Halluc.</span>
+                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.hallucinationRate) }}>
+                          {run.ExecutionData?.hallucinationRate?.toFixed(2) || '-'}
+                        </span>
+                      </div>
+                      <div className="mini-score">
+                        <span className="mini-score-label">Prompt</span>
+                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.systemPromptAlignmentScore) }}>
+                          {run.ExecutionData?.systemPromptAlignmentScore?.toFixed(2) || '-'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

@@ -1,24 +1,32 @@
 import React, { useState, useEffect } from 'react';
+import ProjectsLandingPage from './ProjectsLandingPage.jsx';
+import WorkflowsOverview from './WorkflowsOverview.jsx';
+import SubWorkflowsView from './SubWorkflowsView.jsx';
 import RunsOverview from './RunsOverview.jsx';
 import RunDetails from './RunDetails.jsx';
 import QuestionComparison from './QuestionComparison.jsx';
 import ContentViewer from './ContentViewer.jsx';
 import EvaluationTrigger from './EvaluationTrigger.jsx';
-import runsData from './runs.json';
+import projectsData from './projectsData.json';
 import './App.css';
 
 function App() {
-  const [runs, setRuns] = useState([]);
-  const [currentView, setCurrentView] = useState('overview'); // 'overview', 'details', 'comparison'
+  const [projects, setProjects] = useState([]);
+  const [currentView, setCurrentView] = useState('projects'); // 'projects', 'workflows', 'workflow-runs', 'subworkflows', 'runs', 'details', 'workflow-details', 'comparison'
+  
+  // Navigation state
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
+  const [selectedSubworkflow, setSelectedSubworkflow] = useState(null);
   const [selectedRunVersion, setSelectedRunVersion] = useState(null);
   const [selectedRunQuestions, setSelectedRunQuestions] = useState([]);
+  
   const [comparisonBaseID, setComparisonBaseID] = useState(null);
   const [comparisonRunVersion, setComparisonRunVersion] = useState(null);
   const [viewerContent, setViewerContent] = useState(null);
-  const [showHelp, setShowHelp] = useState(false);
 
   useEffect(() => {
-    setRuns(runsData);
+    setProjects(projectsData);
   }, []);
 
   // Keyboard shortcuts
@@ -28,37 +36,35 @@ function App() {
       if (e.key === 'Escape') {
         if (viewerContent) {
           setViewerContent(null);
-        } else if (showHelp) {
-          setShowHelp(false);
         } else if (currentView === 'comparison') {
           handleCloseComparison();
         } else if (currentView === 'details') {
-          handleBackToOverview();
+          handleBackToRuns();
+        } else if (currentView === 'workflow-details') {
+          handleBackToWorkflowRuns();
+        } else if (currentView === 'runs') {
+          handleBackToSubworkflows();
+        } else if (currentView === 'workflow-runs') {
+          handleBackToWorkflows();
+        } else if (currentView === 'subworkflows') {
+          handleBackToWorkflows();
+        } else if (currentView === 'workflows') {
+          handleBackToProjects();
         }
       }
       
-      // Ctrl/Cmd + K - focus search (if on overview)
+      // Ctrl/Cmd + K - focus search
       if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
         e.preventDefault();
-        if (currentView === 'overview') {
-          const searchInput = document.querySelector('.search-input');
-          if (searchInput) searchInput.focus();
-        }
-      }
-      
-      // ? key - show help
-      if (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        const target = e.target;
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          setShowHelp(true);
-        }
+        const searchInput = document.querySelector('.search-input');
+        if (searchInput) searchInput.focus();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentView, viewerContent, showHelp]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentView, viewerContent]);
 
   const handleEvaluationComplete = async (config) => {
     console.log('Loading evaluation results with config:', config);
@@ -76,8 +82,36 @@ function App() {
         timestamp: new Date().toISOString()
       }));
       
-      // Merge with existing runs
-      setRuns(prevRuns => [...prevRuns, ...updatedResults]);
+      // Add to current subworkflow's runs
+      if (selectedSubworkflow && selectedProject && selectedWorkflow) {
+        const updatedProjects = projects.map(project => {
+          if (project.id === selectedProject.id) {
+            return {
+              ...project,
+              workflows: project.workflows.map(workflow => {
+                if (workflow.id === selectedWorkflow.id) {
+                  return {
+                    ...workflow,
+                    subworkflows: workflow.subworkflows.map(subworkflow => {
+                      if (subworkflow.id === selectedSubworkflow.id) {
+                        return {
+                          ...subworkflow,
+                          runs: [...(subworkflow.runs || []), ...updatedResults],
+                          runCount: (subworkflow.runCount || 0) + updatedResults.length
+                        };
+                      }
+                      return subworkflow;
+                    })
+                  };
+                }
+                return workflow;
+              })
+            };
+          }
+          return project;
+        });
+        setProjects(updatedProjects);
+      }
       
       console.log('Successfully loaded', updatedResults.length, 'new evaluation results');
       alert(`✓ Evaluation complete! ${updatedResults.length} new results loaded.`);
@@ -87,16 +121,95 @@ function App() {
     }
   };
 
+  // Navigation handlers
+  const handleSelectProject = (project) => {
+    setSelectedProject(project);
+    setCurrentView('workflows');
+  };
+
+  const handleCreateProject = (projectData) => {
+    const newProject = {
+      id: `proj-${Date.now()}`,
+      name: projectData.name,
+      description: projectData.description,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      workflowCount: 0,
+      workflows: []
+    };
+    setProjects([...projects, newProject]);
+    alert(`✓ Project "${projectData.name}" created successfully!`);
+  };
+
+  const handleSelectWorkflow = (workflow, viewType) => {
+    setSelectedWorkflow(workflow);
+    if (viewType === 'runs') {
+      setCurrentView('workflow-runs');
+    } else if (viewType === 'subworkflows') {
+      setCurrentView('subworkflows');
+    }
+  };
+
+  const handleSelectSubworkflow = (subworkflow) => {
+    setSelectedSubworkflow(subworkflow);
+    setCurrentView('runs');
+  };
+
   const handleViewRunDetails = (version, questions) => {
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
-    setCurrentView('details');
+    // Determine which view we're coming from
+    if (currentView === 'workflow-runs') {
+      setCurrentView('workflow-details');
+    } else {
+      setCurrentView('details');
+    }
   };
 
-  const handleBackToOverview = () => {
-    setCurrentView('overview');
+  const handleBackToProjects = () => {
+    setCurrentView('projects');
+    setSelectedProject(null);
+    setSelectedWorkflow(null);
+    setSelectedSubworkflow(null);
+  };
+
+  const handleBackToWorkflows = () => {
+    setCurrentView('workflows');
+    setSelectedWorkflow(null);
+    setSelectedSubworkflow(null);
     setSelectedRunVersion(null);
     setSelectedRunQuestions([]);
+  };
+
+  const handleBackToSubworkflows = () => {
+    setCurrentView('subworkflows');
+    setSelectedSubworkflow(null);
+    setSelectedRunVersion(null);
+    setSelectedRunQuestions([]);
+  };
+
+  const handleBackToWorkflowRuns = () => {
+    setCurrentView('workflow-runs');
+    setSelectedRunVersion(null);
+    setSelectedRunQuestions([]);
+  };
+
+  const handleBackToRuns = () => {
+    setCurrentView('runs');
+    setSelectedRunVersion(null);
+    setSelectedRunQuestions([]);
+  };
+
+  const handleNavigateBack = (destination) => {
+    if (destination === 'projects') {
+      handleBackToProjects();
+    } else if (destination === 'workflows') {
+      handleBackToWorkflows();
+    } else if (destination === 'subworkflows') {
+      handleBackToSubworkflows();
+    } else if (destination === 'workflow-runs') {
+      handleBackToWorkflowRuns();
+    }
   };
 
   const handleCompareQuestion = (baseID, runVersion) => {
@@ -106,7 +219,14 @@ function App() {
   };
 
   const handleCloseComparison = () => {
-    setCurrentView('details');
+    // Determine which view to return to based on what we came from
+    if (selectedSubworkflow) {
+      setCurrentView('details');
+    } else if (selectedWorkflow && currentView === 'comparison') {
+      setCurrentView('workflow-details');
+    } else {
+      setCurrentView('details');
+    }
     setComparisonBaseID(null);
     setComparisonRunVersion(null);
   };
@@ -117,37 +237,56 @@ function App() {
 
   return (
     <div className="App dark">
-      <header className="dashboard-header">
-        <h1>Butler Evaluation Dashboard</h1>
-        <div className="header-stats">
-          <div className="keyboard-shortcuts-hint" title="Press ? for help">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="2" y="4" width="20" height="16" rx="2"/>
-              <path d="M6 8h.01M10 8h.01M14 8h.01M18 8h.01M8 12h.01M12 12h.01M16 12h.01M8 16h8"/>
-            </svg>
-            <span className="shortcut-key">?</span>
-          </div>
-          <button 
-            onClick={() => setShowHelp(true)} 
-            className="help-button"
-            title="Anleitung zur Nutzung des Dashboards"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-              <line x1="12" y1="17" x2="12.01" y2="17"/>
-            </svg>
-            Hilfe
-          </button>
-          <EvaluationTrigger onEvaluationComplete={handleEvaluationComplete} />
-        </div>
-      </header>
-
       <div className="main-content">
-        {currentView === 'overview' && (
+        {currentView === 'projects' && (
+          <ProjectsLandingPage 
+            projects={projects}
+            onSelectProject={handleSelectProject}
+            onCreateProject={handleCreateProject}
+          />
+        )}
+
+        {currentView === 'workflows' && selectedProject && (
+          <WorkflowsOverview 
+            workflows={selectedProject.workflows || []}
+            projectName={selectedProject.name}
+            onSelectWorkflow={handleSelectWorkflow}
+            onBack={handleBackToProjects}
+          />
+        )}
+
+        {currentView === 'workflow-runs' && selectedWorkflow && (
           <RunsOverview 
-            runs={runs} 
+            runs={selectedWorkflow.runs || []}
             onViewRunDetails={handleViewRunDetails}
+            breadcrumbs={[
+              { label: 'Projects', onClick: () => handleBackToProjects() },
+              { label: selectedProject?.name, onClick: () => handleBackToWorkflows() },
+              { label: `${selectedWorkflow.name} - Runs` }
+            ]}
+          />
+        )}
+
+        {currentView === 'subworkflows' && selectedWorkflow && (
+          <SubWorkflowsView 
+            subworkflows={selectedWorkflow.subworkflows || []}
+            workflowName={selectedWorkflow.name}
+            projectName={selectedProject?.name}
+            onViewSubworkflowRuns={handleSelectSubworkflow}
+            onBack={handleNavigateBack}
+          />
+        )}
+
+        {currentView === 'runs' && selectedSubworkflow && (
+          <RunsOverview 
+            runs={selectedSubworkflow.runs || []}
+            onViewRunDetails={handleViewRunDetails}
+            breadcrumbs={[
+              { label: 'Projects', onClick: () => handleBackToProjects() },
+              { label: selectedProject?.name, onClick: () => handleBackToWorkflows() },
+              { label: selectedWorkflow?.name, onClick: () => handleBackToSubworkflows() },
+              { label: `${selectedSubworkflow.name} - Runs` }
+            ]}
           />
         )}
 
@@ -155,7 +294,17 @@ function App() {
           <RunDetails
             runVersion={selectedRunVersion}
             questions={selectedRunQuestions}
-            onBack={handleBackToOverview}
+            onBack={handleBackToRuns}
+            onCompareQuestion={handleCompareQuestion}
+            onExpandContent={handleExpandContent}
+          />
+        )}
+
+        {currentView === 'workflow-details' && (
+          <RunDetails
+            runVersion={selectedRunVersion}
+            questions={selectedRunQuestions}
+            onBack={handleBackToWorkflowRuns}
             onCompareQuestion={handleCompareQuestion}
             onExpandContent={handleExpandContent}
           />
@@ -165,7 +314,7 @@ function App() {
           <QuestionComparison
             baseID={comparisonBaseID}
             currentRunVersion={comparisonRunVersion}
-            allRuns={runs}
+            allRuns={selectedSubworkflow?.runs || selectedWorkflow?.runs || []}
             onClose={handleCloseComparison}
           />
         )}
@@ -179,102 +328,6 @@ function App() {
           gtId={viewerContent.gtId}
           onClose={() => setViewerContent(null)} 
         />
-      )}
-
-      {showHelp && (
-        <div className="modal-overlay" onClick={() => setShowHelp(false)}>
-          <div className="modal-content help-modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>📘 Anleitung zur Nutzung</h3>
-              <button className="modal-close" onClick={() => setShowHelp(false)}>✕</button>
-            </div>
-            <div className="modal-body help-content">
-              <section>
-                <h4>Überblick</h4>
-                <p>
-                  Das Butler Evaluation Dashboard ermöglicht es Ihnen, verschiedene Test-Runs von KI-Modellen zu vergleichen
-                  und die Qualität der Antworten zu bewerten.
-                </p>
-              </section>
-
-              <section>
-                <h4>Runs Übersicht</h4>
-                <p>
-                  Die Hauptansicht zeigt alle verfügbaren Test-Runs mit ihren wichtigsten Kennzahlen:
-                </p>
-                <ul>
-                  <li><strong>Model & Prompt Version:</strong> Welches KI-Modell und welche Prompt-Version verwendet wurde</li>
-                  <li><strong>Durchschnittswerte:</strong> Aggregierte Scores über alle Fragen eines Runs</li>
-                  <li><strong>Anzahl Fragen:</strong> Wie viele Test-Fragen in diesem Run ausgewertet wurden</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>Run Details</h4>
-                <p>
-                  Klicken Sie auf "View Details" um alle Fragen eines Runs zu sehen:
-                </p>
-                <ul>
-                  <li><strong>Fragen-Liste:</strong> Alle Testfragen mit individuellen Scores</li>
-                  <li><strong>Vergleichen:</strong> Klicken Sie auf das Vergleichs-Icon um dieselbe Frage über mehrere Runs zu vergleichen</li>
-                  <li><strong>Filter & Sortierung:</strong> Filtern Sie nach Frage-ID oder Score-Werten</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>Fragen Vergleich</h4>
-                <p>
-                  Vergleichen Sie wie unterschiedliche Modelle oder Prompt-Versionen dieselbe Frage beantworten:
-                </p>
-                <ul>
-                  <li><strong>Run-Auswahl:</strong> Wählen Sie welche Runs Sie vergleichen möchten</li>
-                  <li><strong>Side-by-Side:</strong> Sehen Sie Eingabe, Ausgabe und Scores nebeneinander</li>
-                  <li><strong>Unterschiede:</strong> Erkennen Sie welches Modell/Prompt bessere Ergebnisse liefert</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>Neue Evaluation starten</h4>
-                <p>
-                  Mit dem "Run Evaluation" Button können Sie neue Test-Runs starten:
-                </p>
-                <ul>
-                  <li><strong>Model wählen:</strong> Wählen Sie das KI-Modell (GPT-4, Claude, etc.)</li>
-                  <li><strong>Prompt Version:</strong> Wählen Sie die Prompt-Version</li>
-                  <li><strong>Test-Set:</strong> Voll, Quick oder Sample Test</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>Score-Interpretation</h4>
-                <ul>
-                  <li><strong>Grün (0.8-1.0):</strong> Sehr gute Qualität</li>
-                  <li><strong>Gelb (0.6-0.8):</strong> Moderate Qualität</li>
-                  <li><strong>Orange (0.4-0.6):</strong> Verbesserungsbedarf</li>
-                  <li><strong>Rot (&lt;0.4):</strong> Schlechte Qualität</li>
-                </ul>
-              </section>
-
-              <section>
-                <h4>Keyboard Shortcuts</h4>
-                <div className="keyboard-shortcuts-list">
-                  <div className="shortcut-item">
-                    <kbd>ESC</kbd>
-                    <span>Go back / Close modals</span>
-                  </div>
-                  <div className="shortcut-item">
-                    <kbd>Ctrl</kbd> + <kbd>K</kbd>
-                    <span>Focus search</span>
-                  </div>
-                  <div className="shortcut-item">
-                    <kbd>?</kbd>
-                    <span>Show this help</span>
-                  </div>
-                </div>
-              </section>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );

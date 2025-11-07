@@ -160,31 +160,13 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
         </div>
       </div>
 
-      <div className="comparison-info-banner">
-        <div className="banner-icon">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="3" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1"/>
-          </svg>
-        </div>
-        <div className="banner-content">
-          <strong>💡 Compare Across Runs</strong>
-          <p>Click the compare icon <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ display: 'inline', verticalAlign: 'middle', color: '#60a5fa' }}>
-            <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-            <rect x="9" y="3" width="6" height="4" rx="1"/>
-            <path d="M9 12h6M9 16h6"/>
-          </svg> on any question to see how different models performed on the same question</p>
-        </div>
-      </div>
-
       <div className="details-controls">
         <div className="details-filters">
           <select
             value={filters.baseID}
             onChange={(e) => setFilters({ ...filters, baseID: e.target.value })}
             className="filter-select"
+            title="Filter by question ID"
           >
             <option value="">All Question IDs</option>
             {uniqueBaseIDs.map(id => (
@@ -193,7 +175,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
           </select>
           <input
             type="text"
-            placeholder="Filter by Input text..."
+            placeholder="Filter by Input text... (Ctrl+K to focus)"
             value={filters.input}
             onChange={(e) => setFilters({ ...filters, input: e.target.value })}
             className="filter-input"
@@ -202,12 +184,26 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
             value={filters.outputScore}
             onChange={(e) => setFilters({ ...filters, outputScore: e.target.value })}
             className="filter-select"
+            title="Filter by score range"
           >
             <option value="">All Score Ranges</option>
             {uniqueScoreRanges.map(range => (
               <option key={range.label} value={range.label}>{range.label}</option>
             ))}
           </select>
+          {(filters.baseID || filters.input || filters.outputScore) && (
+            <button 
+              onClick={() => setFilters({ baseID: '', input: '', outputScore: '' })}
+              className="clear-filters-btn"
+              title="Clear all filters"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Clear
+            </button>
+          )}
         </div>
 
         <div className="details-sort">
@@ -250,7 +246,12 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
           </thead>
           <tbody>
             {sortedQuestions.map((question) => (
-              <tr key={question.ID}>
+              <tr 
+                key={question.ID}
+                onClick={() => onCompareQuestion(question.baseID, runVersion)}
+                style={{ cursor: 'pointer' }}
+                title="Click to compare this question across runs"
+              >
                 <td className="question-id">{question.baseID}</td>
                 <td className="question-cell">
                   <CollapsibleCell 
@@ -301,7 +302,10 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
                 <td>
                   <button 
                     className="compare-question-btn"
-                    onClick={() => onCompareQuestion(question.baseID, runVersion)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onCompareQuestion(question.baseID, runVersion);
+                    }}
                     title="Compare this question across all runs"
                   >
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

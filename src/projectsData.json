@@ -1,0 +1,450 @@
+[
+  {
+    "id": "proj-1",
+    "name": "Butler Evaluation Project",
+    "description": "Main evaluation project for Butler AI assistant with n8n workflows",
+    "createdAt": "2025-10-15T10:00:00",
+    "updatedAt": "2025-11-06T14:30:00",
+    "workflowCount": 1,
+    "workflows": [
+      {
+        "id": "wf-1",
+        "name": "Main Butler Workflow",
+        "description": "Primary workflow for Butler evaluation with its own runs and subworkflows",
+        "createdAt": "2025-10-15T10:30:00",
+        "updatedAt": "2025-11-06T14:30:00",
+        "runCount": 6,
+        "subworkflowCount": 2,
+        "runs": [
+          {
+            "ID": "1-main_workflow_v1",
+            "baseID": 1,
+            "version": "main_workflow_v1",
+            "active": false,
+            "IsRunning": false,
+            "GroundTruthData": {
+              "ID": "GT001-main_v1",
+              "Input": "Teste den kompletten Butler Workflow",
+              "expectedOutput": "Der Butler Workflow sollte alle Anfragen korrekt verarbeiten und relevante Informationen aus der Wissensdatenbank abrufen."
+            },
+            "timestamp": "2025-11-01T09:00:00",
+            "model": "gpt-4",
+            "promptVersion": "v1.0",
+            "ExecutionData": {
+              "ID": "EX001-main_v1",
+              "output": "Butler Workflow läuft erfolgreich und verarbeitet Anfragen mit hoher Genauigkeit.",
+              "outputScore": 0.85,
+              "outputScoreReason": "Good overall performance",
+              "ragRelevancyScore": 0.92,
+              "ragRelevancyScoreReason": "Excellent context retrieval",
+              "hallucinationRate": 0.15,
+              "hallucinationRateReason": "Low hallucination rate",
+              "systemPromptAlignmentScore": 0.88,
+              "systemPromptAlignmentScoreReason": "Strong alignment with instructions"
+            }
+          },
+          {
+            "ID": "2-main_workflow_v1",
+            "baseID": 2,
+            "version": "main_workflow_v1",
+            "active": false,
+            "IsRunning": false,
+            "GroundTruthData": {
+              "ID": "GT002-main_v1",
+              "Input": "Wie funktioniert die Energieabrechnung?",
+              "expectedOutput": "Die Energieabrechnung erfolgt monatlich basierend auf den erfassten Zählerständen."
+            },
+            "timestamp": "2025-11-01T09:00:00",
+            "model": "gpt-4",
+            "promptVersion": "v1.0",
+            "ExecutionData": {
+              "ID": "EX002-main_v1",
+              "output": "Die Abrechnung wird monatlich durchgeführt und basiert auf den gemeldeten Verbrauchswerten.",
+              "outputScore": 0.78,
+              "outputScoreReason": "Acceptable answer quality",
+              "ragRelevancyScore": 0.82,
+              "ragRelevancyScoreReason": "Good context usage",
+              "hallucinationRate": 0.22,
+              "hallucinationRateReason": "Some minor inaccuracies",
+              "systemPromptAlignmentScore": 0.75,
+              "systemPromptAlignmentScoreReason": "Moderate alignment"
+            }
+          },
+          {
+            "ID": "3-main_workflow_v1",
+            "baseID": 3,
+            "version": "main_workflow_v1",
+            "active": false,
+            "IsRunning": false,
+            "GroundTruthData": {
+              "ID": "GT003-main_v1",
+              "Input": "Was sind die Vorteile von Smart Immo+?",
+              "expectedOutput": "Smart Immo+ bietet Wohnungswirtschaftsunternehmen attraktive B2B-Konditionen, standardisierte Prozesse und effiziente Verwaltung von Energielieferstellen."
+            },
+            "timestamp": "2025-11-01T09:00:00",
+            "model": "gpt-4",
+            "promptVersion": "v1.0",
+            "ExecutionData": {
+              "ID": "EX003-main_v1",
+              "output": "Die Vorteile sind günstige Energiepreise, zentrale Verwaltung und vereinfachte Prozesse für WWU.",
+              "outputScore": 0.72,
+              "outputScoreReason": "Covers main points but lacks detail",
+              "ragRelevancyScore": 0.79,
+              "ragRelevancyScoreReason": "Relevant but could be more specific",
+              "hallucinationRate": 0.28,
+              "hallucinationRateReason": "Some generalizations",
+              "systemPromptAlignmentScore": 0.71,
+              "systemPromptAlignmentScoreReason": "Adequate alignment"
+            }
+          },
+          {
+            "ID": "4-main_workflow_v2",
+            "baseID": 1,
+            "version": "main_workflow_v2",
+            "active": false,
+            "IsRunning": false,
+            "GroundTruthData": {
+              "ID": "GT001-main_v2",
+              "Input": "Teste den kompletten Butler Workflow",
+              "expectedOutput": "Der Butler Workflow sollte alle Anfragen korrekt verarbeiten und relevante Informationen aus der Wissensdatenbank abrufen."
+            },
+            "timestamp": "2025-11-05T14:00:00",
+            "model": "gpt-4-turbo",
+            "promptVersion": "v2.0",
+            "ExecutionData": {
+              "ID": "EX001-main_v2",
+              "output": "Der Butler Workflow verarbeitet Anfragen effizient und liefert präzise Antworten basierend auf der Wissensdatenbank.",
+              "outputScore": 0.91,
+              "outputScoreReason": "Excellent performance with v2",
+              "ragRelevancyScore": 0.95,
+              "ragRelevancyScoreReason": "Outstanding retrieval quality",
+              "hallucinationRate": 0.09,
+              "hallucinationRateReason": "Very low hallucination",
+              "systemPromptAlignmentScore": 0.93,
+              "systemPromptAlignmentScoreReason": "Excellent alignment"
+            }
+          },
+          {
+            "ID": "5-main_workflow_v2",
+            "baseID": 2,
+            "version": "main_workflow_v2",
+            "active": false,
+            "IsRunning": false,
+            "GroundTruthData": {
+              "ID": "GT002-main_v2",
+              "Input": "Wie funktioniert die Energieabrechnung?",
+              "expectedOutput": "Die Energieabrechnung erfolgt monatlich basierend auf den erfassten Zählerständen."
+            },
+            "timestamp": "2025-11-05T14:00:00",
+            "model": "gpt-4-turbo",
+            "promptVersion": "v2.0",
+            "ExecutionData": {
+              "ID": "EX002-main_v2",
+              "output": "Die Energieabrechnung wird monatlich durchgeführt und basiert auf den aktuellen Zählerständen der Lieferstellen.",
+              "outputScore": 0.89,
+              "outputScoreReason": "Very good answer with improved accuracy",
+              "ragRelevancyScore": 0.91,
+              "ragRelevancyScoreReason": "Excellent context retrieval",
+              "hallucinationRate": 0.11,
+              "hallucinationRateReason": "Minimal hallucination",
+              "systemPromptAlignmentScore": 0.87,
+              "systemPromptAlignmentScoreReason": "Strong alignment"
+            }
+          },
+          {
+            "ID": "6-main_workflow_v2",
+            "baseID": 3,
+            "version": "main_workflow_v2",
+            "active": false,
+            "IsRunning": false,
+            "GroundTruthData": {
+              "ID": "GT003-main_v2",
+              "Input": "Was sind die Vorteile von Smart Immo+?",
+              "expectedOutput": "Smart Immo+ bietet Wohnungswirtschaftsunternehmen attraktive B2B-Konditionen, standardisierte Prozesse und effiziente Verwaltung von Energielieferstellen."
+            },
+            "timestamp": "2025-11-05T14:00:00",
+            "model": "gpt-4-turbo",
+            "promptVersion": "v2.0",
+            "ExecutionData": {
+              "ID": "EX003-main_v2",
+              "output": "Smart Immo+ bietet Wohnungswirtschaftsunternehmen attraktive B2B-Lieferkonditionen, standardisierte und effiziente Prozesse für die Verwaltung von Energielieferstellen sowie exklusive Online-Portal-Services.",
+              "outputScore": 0.94,
+              "outputScoreReason": "Excellent comprehensive answer",
+              "ragRelevancyScore": 0.96,
+              "ragRelevancyScoreReason": "Highly relevant with specific details",
+              "hallucinationRate": 0.06,
+              "hallucinationRateReason": "Almost no hallucination",
+              "systemPromptAlignmentScore": 0.95,
+              "systemPromptAlignmentScoreReason": "Outstanding alignment"
+            }
+          }
+        ],
+        "subworkflows": [
+          {
+            "id": "subwf-1",
+            "name": "Question Answering Subworkflow",
+            "description": "Evaluates Butler's question answering capabilities",
+            "createdAt": "2025-10-15T11:00:00",
+            "updatedAt": "2025-11-06T14:30:00",
+            "runCount": 5,
+            "runs": [
+              {
+                "ID": "1-run_gpt4_v1",
+                "baseID": 1,
+                "version": "run_gpt4_v1",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT001-run_gpt4_v1",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet. SI+ vertreibt EnBW Commodity über die Wohnungswirtschaftsbranche. \n\nDie Hauptzielgruppe sind Wohnungswirtschaftsunternehmen (WWU), die mindestens fünf und teilweise bis zu Tausende Immobilien in ihrem WWU-Bestand verwalten. WWU profitieren von attraktiven B2B-Lieferkonditionen für ihren gesamten Verwalterbestand und wünschen sich skalierbare und effiziente Möglichkeiten für resultierende Lieferstellen- und Energievertragsdatenverwaltung in hohem Volumen. \n\nImmobilienverwalter verantworten die Erfüllung gesetzlicher Pflichten wie die Verwaltung von Lieferstellen aus ihrem Immobilienbestand. SI+ Kunden sind in Masse für die reibungslose Energieversorgung von Lieferstellen für Allgemein- und Leerstandversorgung verantwortlich.\n\nDas SI+ Angebot unterstützt die Tagesgeschäftanforderungen für WWU und deren Mitarbeiter insbesondere durch exklusive SI+ Online-Portal-Services, welche u.A. durch Standardisierung von Formularen und Prozessen auf Kunden und Anbieterseite die Effizienz für erforderliche Meldeprozesse und resultierender Energiekunden und -vertragsverwaltung für Allgemein und/oder Leerstandsversorgung positiv unterstützt."
+                },
+                "timestamp": "2025-11-01T10:00:00",
+                "model": "gpt-4",
+                "promptVersion": "v1.0",
+                "ExecutionData": {
+                  "ID": "EX001-run_gpt4_v1",
+                  "output": "immo+ ist ein von EnBW angebotenes Geschäftsportal für Wohnungswirtschaftsunternehmen (WWU), das die zentrale Verwaltung von Energielieferstellen für Allgemein- und Leerstandversorgung ermöglicht. Durch standardisierte Meldeprozesse, ein zentrales Kundenportal und günstige Commodity-Preise reduziert es den administrativen Aufwand für WWU mit mindestens 5 Immobilien (15 Lieferstellen) im Bestand.",
+                  "outputScore": 0.61,
+                  "outputScoreReason": "The Actual Output correctly identifies immo+ as an EnBW portal for WWU, mentions centralized management of energy delivery points, and highlights reduced administrative effort for companies with at least 5 properties. However, it omits several key details from the Expected Output: it does not mention the B2B nature of the service, the scalability for thousands of properties, the fulfillment of legal obligations, or the exclusive SI+ online portal services. The Actual Output is clear and mostly accurate but lacks the depth and completeness of the Expected Output.",
+                  "ragRelevancyScore": 0.854,
+                  "ragRelevancyScoreReason": "The score is 0.85 because, despite several irrelevant elements like section headings and placeholders, the retrieval context contains many detailed and directly relevant statements explaining what immo+ is, such as 'Das Smart immo+ Angebot der EnBW verfolgt das Ziel, Commodity-Vertrieb für Allgemein- und Leerstandversorgung über den B2B-Vertriebsweg Wohnungswirtschaftsbranche zu betreiben.'",
+                  "hallucinationRate": 0.39,
+                  "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
+                  "systemPromptAlignmentScore": 0.73,
+                  "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+                }
+              },
+              {
+                "ID": "2-run_gpt4_v1",
+                "baseID": 2,
+                "version": "run_gpt4_v1",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT002-run_gpt4_v1",
+                  "Input": "Wofür steht WWU?",
+                  "expectedOutput": "WWU steht für Wohnungswirtschaftsunternehmen – ein Unternehmen, das in der Wohnungswirtschaft tätig ist, wie z. B. eine Baugenossenschaft oder eine Hausverwaltung - Hauptsache Immobilienverwalter. \n\nDiese Firmen übernehmen Verwalterpflichten für oder als Immobilieneigentümer und sind genau deswegen Hauptzielgruppe des B2B-Geschäftsbereichs Smart Immo+. WWU erfüllt für jede Lieferstelle aus dem Verwalterbestand (Allgemein- und Leerstandversorgung) in nachgewiesener Verwalterrolle die gesetzlichen Pflichten der eigentlichen Immobilien-/Wohnraumeigentümer.\n\nWWU fungiert für den beim Energieversorger nachgewiesenen Lieferstellenbestand - rechtlich anerkannte Vertretung des belieferten Energiekunden (Immobilieneigentümer). WWU erfüllen alle klassischen Lieferkunden-Aufgaben von Energieversorgerwahl, Abschlagzahlung, Zählerstände, Rechnungen und Kundendatenpflege. WWU verwalten Energielieferkunden und -verträge aus ihrem Bestand vom jeweiligen Lieferstart bis zum Lieferende."
+                },
+                "timestamp": "2025-11-01T10:00:00",
+                "model": "gpt-4",
+                "promptVersion": "v1.0",
+                "ExecutionData": {
+                  "ID": "EX002-run_gpt4_v1",
+                  "output": "WWU steht für **Wohnungswirtschaftsunternehmen**. Das sind Unternehmen wie Baugenossenschaften oder Hausverwaltungen, die im Rahmen der Immobilienverwaltung als Eigen- oder Fremdleistung tätig sind und gesetzlich vorgeschriebene Versorgungspflichten für Allgemein- und Leerstandversorgung übernehmen.",
+                  "outputScore": 0.432,
+                  "outputScoreReason": "The Actual Output correctly defines WWU as Wohnungswirtschaftsunternehmen and mentions examples like Baugenossenschaften and Hausverwaltungen, aligning with the Expected Output. However, it omits several key details: the specific role of WWU as the main B2B target for Smart Immo+, their legal representation of energy customers, and their responsibilities regarding energy supply management (e.g., supplier selection, billing, meter readings). The Actual Output is clear but lacks the depth and completeness found in the Expected Output.",
+                  "ragRelevancyScore": 0.564,
+                  "ragRelevancyScoreReason": "The score is 0.56 because, while the relevant statements clearly define 'WWU' as 'Wohnungswirtschaftsunternehmen' and provide detailed context, the majority of the retrieval context is not directly answering what 'WWU' stands for, as noted in the irrelevancy reasons such as 'does not explain what WWU stands for' and 'describes the responsibilities of a WWU, not what the abbreviation stands for.'",
+                  "hallucinationRate": 0.57,
+                  "hallucinationRateReason": "Geschätzt aus Output-Qualitätsscore",
+                  "systemPromptAlignmentScore": 0.45,
+                  "systemPromptAlignmentScoreReason": "Geschätzt basierend auf Relevanz und Output-Score"
+                }
+              },
+              {
+                "ID": "3-run_gpt4_v2",
+                "baseID": 1,
+                "version": "run_gpt4_v2",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT001-run_gpt4_v2",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet. SI+ vertreibt EnBW Commodity über die Wohnungswirtschaftsbranche. \n\nDie Hauptzielgruppe sind Wohnungswirtschaftsunternehmen (WWU), die mindestens fünf und teilweise bis zu Tausende Immobilien in ihrem WWU-Bestand verwalten. WWU profitieren von attraktiven B2B-Lieferkonditionen für ihren gesamten Verwalterbestand und wünschen sich skalierbare und effiziente Möglichkeiten für resultierende Lieferstellen- und Energievertragsdatenverwaltung in hohem Volumen. \n\nImmobilienverwalter verantworten die Erfüllung gesetzlicher Pflichten wie die Verwaltung von Lieferstellen aus ihrem Immobilienbestand. SI+ Kunden sind in Masse für die reibungslose Energieversorgung von Lieferstellen für Allgemein- und Leerstandversorgung verantwortlich.\n\nDas SI+ Angebot unterstützt die Tagesgeschäftanforderungen für WWU und deren Mitarbeiter insbesondere durch exklusive SI+ Online-Portal-Services, welche u.A. durch Standardisierung von Formularen und Prozessen auf Kunden und Anbieterseite die Effizienz für erforderliche Meldeprozesse und resultierender Energiekunden und -vertragsverwaltung für Allgemein und/oder Leerstandsversorgung positiv unterstützt."
+                },
+                "timestamp": "2025-11-04T15:30:00",
+                "model": "gpt-4",
+                "promptVersion": "v2.0",
+                "ExecutionData": {
+                  "ID": "EX001-run_gpt4_v2",
+                  "output": "Smart Immo+ (SI+) ist ein B2B-Geschäftsbereich der EnBW, der sich auf Dienstleistungen für Wohnungswirtschaftsunternehmen (WWU) spezialisiert hat. SI+ ermöglicht WWU die effiziente Verwaltung von Energielieferstellen für Allgemein- und Leerstandversorgung durch standardisierte Prozesse, exklusive Online-Portal-Services und attraktive Commodity-Konditionen.",
+                  "outputScore": 0.82,
+                  "outputScoreReason": "Much improved with v2.0 prompt - captures key B2B nature and main services",
+                  "ragRelevancyScore": 0.91,
+                  "ragRelevancyScoreReason": "Excellent retrieval with better context selection",
+                  "hallucinationRate": 0.18,
+                  "hallucinationRateReason": "Significantly reduced hallucination",
+                  "systemPromptAlignmentScore": 0.85,
+                  "systemPromptAlignmentScoreReason": "Strong improvement in alignment"
+                }
+              },
+              {
+                "ID": "4-run_gpt4_v2",
+                "baseID": 2,
+                "version": "run_gpt4_v2",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT002-run_gpt4_v2",
+                  "Input": "Wofür steht WWU?",
+                  "expectedOutput": "WWU steht für Wohnungswirtschaftsunternehmen – ein Unternehmen, das in der Wohnungswirtschaft tätig ist, wie z. B. eine Baugenossenschaft oder eine Hausverwaltung - Hauptsache Immobilienverwalter. \n\nDiese Firmen übernehmen Verwalterpflichten für oder als Immobilieneigentümer und sind genau deswegen Hauptzielgruppe des B2B-Geschäftsbereichs Smart Immo+. WWU erfüllt für jede Lieferstelle aus dem Verwalterbestand (Allgemein- und Leerstandversorgung) in nachgewiesener Verwalterrolle die gesetzlichen Pflichten der eigentlichen Immobilien-/Wohnraumeigentümer.\n\nWWU fungiert für den beim Energieversorger nachgewiesenen Lieferstellenbestand - rechtlich anerkannte Vertretung des belieferten Energiekunden (Immobilieneigentümer). WWU erfüllen alle klassischen Lieferkunden-Aufgaben von Energieversorgerwahl, Abschlagzahlung, Zählerstände, Rechnungen und Kundendatenpflege. WWU verwalten Energielieferkunden und -verträge aus ihrem Bestand vom jeweiligen Lieferstart bis zum Lieferende."
+                },
+                "timestamp": "2025-11-04T15:30:00",
+                "model": "gpt-4",
+                "promptVersion": "v2.0",
+                "ExecutionData": {
+                  "ID": "EX002-run_gpt4_v2",
+                  "output": "WWU steht für Wohnungswirtschaftsunternehmen. Das sind Unternehmen wie Baugenossenschaften oder Hausverwaltungen, die als Immobilienverwalter tätig sind. Sie sind die Hauptzielgruppe von Smart Immo+ und übernehmen als rechtlich anerkannte Vertretung der Immobilieneigentümer alle Aufgaben der Energieversorgung, einschließlich Vertragsmanagement, Abschlagzahlungen und Rechnungsverwaltung für Lieferstellen.",
+                  "outputScore": 0.78,
+                  "outputScoreReason": "Good improvement - includes key role in Smart Immo+ and legal representation",
+                  "ragRelevancyScore": 0.84,
+                  "ragRelevancyScoreReason": "Better context selection with improved relevance",
+                  "hallucinationRate": 0.22,
+                  "hallucinationRateReason": "Reduced hallucination rate",
+                  "systemPromptAlignmentScore": 0.81,
+                  "systemPromptAlignmentScoreReason": "Improved alignment with better completeness"
+                }
+              },
+              {
+                "ID": "5-run_claude_v1",
+                "baseID": 1,
+                "version": "run_claude_v1",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT001-run_claude_v1",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet. SI+ vertreibt EnBW Commodity über die Wohnungswirtschaftsbranche. \n\nDie Hauptzielgruppe sind Wohnungswirtschaftsunternehmen (WWU), die mindestens fünf und teilweise bis zu Tausende Immobilien in ihrem WWU-Bestand verwalten. WWU profitieren von attraktiven B2B-Lieferkonditionen für ihren gesamten Verwalterbestand und wünschen sich skalierbare und effiziente Möglichkeiten für resultierende Lieferstellen- und Energievertragsdatenverwaltung in hohem Volumen. \n\nImmobilienverwalter verantworten die Erfüllung gesetzlicher Pflichten wie die Verwaltung von Lieferstellen aus ihrem Immobilienbestand. SI+ Kunden sind in Masse für die reibungslose Energieversorgung von Lieferstellen für Allgemein- und Leerstandversorgung verantwortlich.\n\nDas SI+ Angebot unterstützt die Tagesgeschäftanforderungen für WWU und deren Mitarbeiter insbesondere durch exklusive SI+ Online-Portal-Services, welche u.A. durch Standardisierung von Formularen und Prozessen auf Kunden und Anbieterseite die Effizienz für erforderliche Meldeprozesse und resultierender Energiekunden und -vertragsverwaltung für Allgemein und/oder Leerstandsversorgung positiv unterstützt."
+                },
+                "timestamp": "2025-11-03T11:20:00",
+                "model": "claude-3-sonnet",
+                "promptVersion": "v1.0",
+                "ExecutionData": {
+                  "ID": "EX001-run_claude_v1",
+                  "output": "Smart Immo+ ist ein spezialisierter B2B-Service der EnBW für die Wohnungswirtschaftsbranche. Das Angebot richtet sich an Wohnungswirtschaftsunternehmen (WWU) und unterstützt diese bei der effizienten Verwaltung von Energielieferstellen durch Online-Portal-Services, standardisierte Prozesse und günstige Energiekonditionen.",
+                  "outputScore": 0.74,
+                  "outputScoreReason": "Solid answer covering main aspects, Claude's concise style",
+                  "ragRelevancyScore": 0.88,
+                  "ragRelevancyScoreReason": "Good context retrieval",
+                  "hallucinationRate": 0.26,
+                  "hallucinationRateReason": "Acceptable hallucination level",
+                  "systemPromptAlignmentScore": 0.79,
+                  "systemPromptAlignmentScoreReason": "Good alignment"
+                }
+              }
+            ]
+          },
+          {
+            "id": "subwf-2",
+            "name": "RAG Performance Subworkflow",
+            "description": "Tests retrieval-augmented generation performance",
+            "createdAt": "2025-10-20T09:00:00",
+            "updatedAt": "2025-11-05T16:00:00",
+            "runCount": 4,
+            "runs": [
+              {
+                "ID": "3-run_claude_v1",
+                "baseID": 3,
+                "version": "run_claude_v1",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT003-run_claude_v1",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet."
+                },
+                "timestamp": "2025-11-05T16:00:00",
+                "model": "claude-3",
+                "promptVersion": "v1.0",
+                "ExecutionData": {
+                  "ID": "EX003-run_claude_v1",
+                  "output": "immo+ ist ein Business-Portal der EnBW für Wohnungswirtschaftsunternehmen zur Verwaltung von Energielieferstellen.",
+                  "outputScore": 0.75,
+                  "outputScoreReason": "Good summary but missing some details",
+                  "ragRelevancyScore": 0.92,
+                  "ragRelevancyScoreReason": "Excellent retrieval of relevant context",
+                  "hallucinationRate": 0.25,
+                  "hallucinationRateReason": "Minimal hallucination detected",
+                  "systemPromptAlignmentScore": 0.88,
+                  "systemPromptAlignmentScoreReason": "Strong alignment with system prompt"
+                }
+              },
+              {
+                "ID": "4-run_gpt4_v1",
+                "baseID": 4,
+                "version": "run_gpt4_v1",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT004-run_gpt4_v1",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet."
+                },
+                "timestamp": "2025-11-02T10:00:00",
+                "model": "gpt-4",
+                "promptVersion": "v1.0",
+                "ExecutionData": {
+                  "ID": "EX004-run_gpt4_v1",
+                  "output": "Immo+ ist ein EnBW-Portal für Wohnungswirtschaft zur Verwaltung von Energieverträgen.",
+                  "outputScore": 0.65,
+                  "outputScoreReason": "Basic answer, missing B2B context",
+                  "ragRelevancyScore": 0.76,
+                  "ragRelevancyScoreReason": "Moderate retrieval quality",
+                  "hallucinationRate": 0.35,
+                  "hallucinationRateReason": "Some information not from context",
+                  "systemPromptAlignmentScore": 0.72,
+                  "systemPromptAlignmentScoreReason": "Acceptable alignment"
+                }
+              },
+              {
+                "ID": "5-run_claude_v2",
+                "baseID": 5,
+                "version": "run_claude_v2",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT005-run_claude_v2",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet."
+                },
+                "timestamp": "2025-11-06T09:00:00",
+                "model": "claude-3-opus",
+                "promptVersion": "v2.0",
+                "ExecutionData": {
+                  "ID": "EX005-run_claude_v2",
+                  "output": "Smart Immo+ ist ein B2B-Geschäftsbereich der EnBW, spezialisiert auf Dienstleistungen für Wohnungswirtschaftsunternehmen. Der Service bietet standardisierte Prozesse für die Verwaltung von Energielieferstellen, attraktive Commodity-Konditionen und exklusive Online-Portal-Funktionen.",
+                  "outputScore": 0.87,
+                  "outputScoreReason": "Excellent comprehensive answer with v2.0 and Opus model",
+                  "ragRelevancyScore": 0.94,
+                  "ragRelevancyScoreReason": "Outstanding context retrieval and usage",
+                  "hallucinationRate": 0.13,
+                  "hallucinationRateReason": "Very low hallucination",
+                  "systemPromptAlignmentScore": 0.91,
+                  "systemPromptAlignmentScoreReason": "Excellent alignment"
+                }
+              },
+              {
+                "ID": "6-run_gpt4turbo_v2",
+                "baseID": 6,
+                "version": "run_gpt4turbo_v2",
+                "active": false,
+                "IsRunning": false,
+                "GroundTruthData": {
+                  "ID": "GT006-run_gpt4turbo_v2",
+                  "Input": "Was ist immo+ ?",
+                  "expectedOutput": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Unternehmen anbietet."
+                },
+                "timestamp": "2025-11-06T14:00:00",
+                "model": "gpt-4-turbo",
+                "promptVersion": "v2.0",
+                "ExecutionData": {
+                  "ID": "EX006-run_gpt4turbo_v2",
+                  "output": "Smart Immo+ (SI+) ist ein EnBW-Geschäftsbereich, der B2B-Dienstleistungen für Wohnungswirtschaftsunternehmen anbietet. SI+ vertreibt EnBW Commodity über die Wohnungswirtschaftsbranche und unterstützt WWU durch Online-Portal-Services, standardisierte Prozesse und attraktive Lieferkonditionen bei der effizienten Verwaltung von Energielieferstellen.",
+                  "outputScore": 0.93,
+                  "outputScoreReason": "Excellent comprehensive answer, nearly perfect",
+                  "ragRelevancyScore": 0.97,
+                  "ragRelevancyScoreReason": "Outstanding retrieval with high precision",
+                  "hallucinationRate": 0.07,
+                  "hallucinationRateReason": "Minimal hallucination",
+                  "systemPromptAlignmentScore": 0.96,
+                  "systemPromptAlignmentScoreReason": "Near perfect alignment"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]
