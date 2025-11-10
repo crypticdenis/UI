@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { getUniqueScoreFields, getScoreColor, formatNumber } from './utils/metricUtils';
 
 const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => {
   // Get all runs that have this question (same baseID)
@@ -62,29 +63,18 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
             className="score-bar" 
             style={{ 
               width: `${(score || 0) * 100}%`,
-              backgroundColor: getScoreColorGranular(score)
+              backgroundColor: getScoreColor(score)
             }}
           >
-            <span className="score-bar-value">{score?.toFixed(2) || '-'}</span>
+            <span className="score-bar-value">{formatNumber(score)}</span>
           </div>
         </div>
       </div>
     );
   };
 
-  const getScoreColorGranular = (score) => {
-    if (score === null || score === undefined || isNaN(score)) return '#6b7280';
-    const numScore = Number(score);
-    const normalizedScore = numScore > 1 ? numScore / 10 : numScore;
-    if (normalizedScore >= 0.9) return '#059669';
-    if (normalizedScore >= 0.8) return '#10b981';
-    if (normalizedScore >= 0.7) return '#34d399';
-    if (normalizedScore >= 0.6) return '#fbbf24';
-    if (normalizedScore >= 0.5) return '#f59e0b';
-    if (normalizedScore >= 0.4) return '#f97316';
-    if (normalizedScore >= 0.3) return '#ef4444';
-    return '#dc2626';
-  };
+  // Get all unique score fields dynamically
+  const scoreFields = useMemo(() => getUniqueScoreFields(allRuns), [allRuns]);
 
   const [expandedContent, setExpandedContent] = useState(null);
 
@@ -115,17 +105,14 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
       link.click();
       URL.revokeObjectURL(url);
     } else if (format === 'csv') {
-      const headers = ['Version', 'Base ID', 'Model', 'Prompt Version', 'Timestamp', 'Output Score', 'RAG Score', 'Hallucination', 'Prompt Alignment'];
+      const headers = ['Version', 'Base ID', 'Model', 'Prompt Version', 'Timestamp', ...scoreFields.map(f => f.label)];
       const rows = selectedQuestions.map(q => [
         q.version,
         q.baseID,
         q.model,
         q.promptVersion,
         q.timestamp,
-        q.ExecutionData?.outputScore?.toFixed(2) || '',
-        q.ExecutionData?.ragRelevancyScore?.toFixed(3) || '',
-        q.ExecutionData?.hallucinationRate?.toFixed(2) || '',
-        q.ExecutionData?.systemPromptAlignmentScore?.toFixed(2) || ''
+        ...scoreFields.map(f => formatNumber(q.ExecutionData?.[f.key]))
       ]);
       
       const csvContent = [
@@ -193,11 +180,13 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
               {availableVersions.map(version => {
                 const run = runsByVersion[version];
                 const isSelected = selectedVersions.includes(version);
-                const avgScore = run.ExecutionData ? (
-                  (run.ExecutionData.outputScore || 0) +
-                  (run.ExecutionData.ragRelevancyScore || 0) +
-                  (run.ExecutionData.systemPromptAlignmentScore || 0)
-                ) / 3 : 0;
+                // Calculate average score dynamically from all numeric score fields
+                const avgScore = run.ExecutionData ? (() => {
+                  const scores = scoreFields
+                    .map(f => run.ExecutionData[f.key])
+                    .filter(v => v != null && !isNaN(v));
+                  return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+                })() : 0;
                 
                 return (
                   <div
@@ -216,8 +205,8 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                       </div>
                       <div className="version-card-title">
                         <h4>{version}</h4>
-                        <div className="version-score-badge" style={{ backgroundColor: getScoreColorGranular(avgScore) }}>
-                          {avgScore.toFixed(2)}
+                        <div className="version-score-badge" style={{ backgroundColor: getScoreColor(avgScore) }}>
+                          {formatNumber(avgScore)}
                         </div>
                       </div>
                     </div>
@@ -257,30 +246,14 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                     </div>
                     
                     <div className="version-card-scores">
-                      <div className="mini-score">
-                        <span className="mini-score-label">Output</span>
-                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.outputScore) }}>
-                          {run.ExecutionData?.outputScore?.toFixed(2) || '-'}
-                        </span>
-                      </div>
-                      <div className="mini-score">
-                        <span className="mini-score-label">RAG</span>
-                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.ragRelevancyScore) }}>
-                          {run.ExecutionData?.ragRelevancyScore?.toFixed(2) || '-'}
-                        </span>
-                      </div>
-                      <div className="mini-score">
-                        <span className="mini-score-label">Halluc.</span>
-                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.hallucinationRate) }}>
-                          {run.ExecutionData?.hallucinationRate?.toFixed(2) || '-'}
-                        </span>
-                      </div>
-                      <div className="mini-score">
-                        <span className="mini-score-label">Prompt</span>
-                        <span className="mini-score-value" style={{ color: getScoreColorGranular(run.ExecutionData?.systemPromptAlignmentScore) }}>
-                          {run.ExecutionData?.systemPromptAlignmentScore?.toFixed(2) || '-'}
-                        </span>
-                      </div>
+                      {scoreFields.slice(0, 4).map(field => (
+                        <div key={field.key} className="mini-score">
+                          <span className="mini-score-label">{field.label.split(' ')[0]}</span>
+                          <span className="mini-score-value" style={{ color: getScoreColor(run.ExecutionData?.[field.key]) }}>
+                            {formatNumber(run.ExecutionData?.[field.key])}
+                          </span>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 );
@@ -381,25 +354,12 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
 
                   <h4 style={{ marginTop: '16px', marginBottom: '12px', color: '#34d399' }}>Evaluation Scores</h4>
                   <div className="comparison-scores-enhanced">
-                    {renderScoreWithDelta(
-                      question.ExecutionData?.outputScore,
-                      selectedQuestions[0]?.ExecutionData?.outputScore,
-                      'Output Score'
-                    )}
-                    {renderScoreWithDelta(
-                      question.ExecutionData?.ragRelevancyScore,
-                      selectedQuestions[0]?.ExecutionData?.ragRelevancyScore,
-                      'RAG Relevancy'
-                    )}
-                    {renderScoreWithDelta(
-                      question.ExecutionData?.hallucinationRate,
-                      selectedQuestions[0]?.ExecutionData?.hallucinationRate,
-                      'Hallucination Rate'
-                    )}
-                    {renderScoreWithDelta(
-                      question.ExecutionData?.systemPromptAlignmentScore,
-                      selectedQuestions[0]?.ExecutionData?.systemPromptAlignmentScore,
-                      'Prompt Alignment'
+                    {scoreFields.map(field => 
+                      renderScoreWithDelta(
+                        question.ExecutionData?.[field.key],
+                        selectedQuestions[0]?.ExecutionData?.[field.key],
+                        field.label
+                      )
                     )}
                   </div>
                 </div>

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { getUniqueScoreFields, getScoreColor, formatNumber } from './utils/metricUtils';
 
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });
@@ -13,11 +14,19 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const uniqueModels = [...new Set(runs.map(r => r.model).filter(Boolean))].sort();
   const uniquePromptVersions = [...new Set(runs.map(r => r.promptVersion).filter(Boolean))].sort();
   const uniqueVersions = [...new Set(runs.map(r => r.version).filter(Boolean))].sort();
+  
+  // Get all unique score fields dynamically
+  const scoreFields = useMemo(() => getUniqueScoreFields(runs), [runs]);
 
-  // Group runs by version and calculate aggregate stats
+  // Group runs by version and calculate aggregate stats dynamically
   const groupedRuns = runs.reduce((acc, run) => {
     const version = run.version;
     if (!acc[version]) {
+      const scoreMetrics = {};
+      scoreFields.forEach(field => {
+        scoreMetrics[`total_${field.key}`] = 0;
+      });
+      
       acc[version] = {
         version: version,
         runs: [],
@@ -25,11 +34,8 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
         promptVersion: run.promptVersion,
         timestamp: run.timestamp,
         questionCount: 0,
-        totalOutputScore: 0,
-        totalRagScore: 0,
-        totalHallucinationRate: 0,
-        totalSystemPromptScore: 0,
-        validScoreCount: 0
+        validScoreCount: 0,
+        ...scoreMetrics
       };
     }
     
@@ -41,12 +47,14 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       acc[version].timestamp = run.timestamp;
     }
     
-    // Aggregate scores
+    // Aggregate scores dynamically
     if (run.ExecutionData) {
-      acc[version].totalOutputScore += run.ExecutionData.outputScore || 0;
-      acc[version].totalRagScore += run.ExecutionData.ragRelevancyScore || 0;
-      acc[version].totalHallucinationRate += run.ExecutionData.hallucinationRate || 0;
-      acc[version].totalSystemPromptScore += run.ExecutionData.systemPromptAlignmentScore || 0;
+      scoreFields.forEach(field => {
+        const value = run.ExecutionData[field.key];
+        if (value != null && !isNaN(value)) {
+          acc[version][`total_${field.key}`] += value;
+        }
+      });
       acc[version].validScoreCount++;
     }
     
@@ -54,18 +62,25 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   }, {});
 
   // Convert to array and calculate averages
-  const runsArray = Object.values(groupedRuns).map(group => ({
-    version: group.version,
-    model: group.model,
-    promptVersion: group.promptVersion,
-    timestamp: group.timestamp,
-    questionCount: group.questionCount,
-    avgOutputScore: group.validScoreCount > 0 ? (group.totalOutputScore / group.validScoreCount).toFixed(2) : '-',
-    avgRagScore: group.validScoreCount > 0 ? (group.totalRagScore / group.validScoreCount).toFixed(2) : '-',
-    avgHallucinationRate: group.validScoreCount > 0 ? (group.totalHallucinationRate / group.validScoreCount).toFixed(2) : '-',
-    avgSystemPromptScore: group.validScoreCount > 0 ? (group.totalSystemPromptScore / group.validScoreCount).toFixed(2) : '-',
-    runs: group.runs
-  }));
+  const runsArray = Object.values(groupedRuns).map(group => {
+    const avgScores = {};
+    scoreFields.forEach(field => {
+      const total = group[`total_${field.key}`];
+      avgScores[`avg_${field.key}`] = group.validScoreCount > 0 
+        ? formatNumber(total / group.validScoreCount)
+        : '-';
+    });
+    
+    return {
+      version: group.version,
+      model: group.model,
+      promptVersion: group.promptVersion,
+      timestamp: group.timestamp,
+      questionCount: group.questionCount,
+      ...avgScores,
+      runs: group.runs
+    };
+  });
 
   // Filter runs
   const filteredRuns = runsArray.filter(run => {
@@ -119,19 +134,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     if (aStr > bStr) return sortConfig.direction === 'ascending' ? 1 : -1;
     return 0;
   });
-
-  const getScoreColor = (score) => {
-    const numScore = parseFloat(score);
-    if (isNaN(numScore)) return '#6b7280';
-    if (numScore >= 0.9) return '#059669';
-    if (numScore >= 0.8) return '#10b981';
-    if (numScore >= 0.7) return '#34d399';
-    if (numScore >= 0.6) return '#fbbf24';
-    if (numScore >= 0.5) return '#f59e0b';
-    if (numScore >= 0.4) return '#f97316';
-    if (numScore >= 0.3) return '#ef4444';
-    return '#dc2626';
-  };
 
   return (
     <div className="runs-overview">
@@ -290,10 +292,11 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
           <option value="timestamp">Timestamp</option>
           <option value="model">Model</option>
           <option value="promptVersion">Prompt Version</option>
-          <option value="avgOutputScore">Avg Output Score</option>
-          <option value="avgRagScore">Avg RAG Score</option>
-          <option value="avgHallucinationRate">Avg Hallucination</option>
-          <option value="avgSystemPromptScore">Avg Prompt Score</option>
+          {scoreFields.map(field => (
+            <option key={field.key} value={`avg_${field.key}`}>
+              Avg {field.label}
+            </option>
+          ))}
           <option value="questionCount">Question Count</option>
         </select>
         <select 
@@ -308,9 +311,11 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
 
       <div className="runs-grid">
         {sortedRuns.map((run) => {
-          const avgScore = ((parseFloat(run.avgOutputScore) || 0) + 
-                           (parseFloat(run.avgRagScore) || 0) + 
-                           (parseFloat(run.avgSystemPromptScore) || 0)) / 3;
+          // Calculate average score dynamically from all score fields
+          const scores = scoreFields
+            .map(f => parseFloat(run[`avg_${f.key}`]))
+            .filter(v => !isNaN(v));
+          const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
           
           // Descriptive grading system
           let overallGrade, gradeColor, gradeBgColor;
@@ -345,7 +350,12 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
           }
           
           return (
-            <div key={run.version} className="run-card clickable" onClick={() => onViewRunDetails(run.version, run.runs)}>
+            <div 
+              key={run.version} 
+              className="run-card clickable" 
+              data-run-version={run.version}
+              onClick={() => onViewRunDetails(run.version, run.runs)}
+            >
               <div className="run-card-header">
                 <div className="run-card-title">
                   <h3>{run.version}</h3>
@@ -392,66 +402,26 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
               </div>
 
               <div className="run-card-scores">
-                <div className="score-item">
-                  <span className="score-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                    </svg>
-                    Output
-                  </span>
-                  <span 
-                    className="score-value" 
-                    style={{ backgroundColor: getScoreColor(run.avgOutputScore) }}
-                  >
-                    {run.avgOutputScore}
-                  </span>
-                </div>
-                <div className="score-item">
-                  <span className="score-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                    </svg>
-                    RAG
-                  </span>
-                  <span 
-                    className="score-value" 
-                    style={{ backgroundColor: getScoreColor(run.avgRagScore) }}
-                  >
-                    {run.avgRagScore}
-                  </span>
-                </div>
-                <div className="score-item">
-                  <span className="score-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                      <line x1="12" y1="9" x2="12" y2="13"/>
-                      <line x1="12" y1="17" x2="12.01" y2="17"/>
-                    </svg>
-                    Hallucination
-                  </span>
-                  <span 
-                    className="score-value" 
-                    style={{ backgroundColor: getScoreColor(run.avgHallucinationRate) }}
-                  >
-                    {run.avgHallucinationRate}
-                  </span>
-                </div>
-                <div className="score-item">
-                  <span className="score-label">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                      <polyline points="14 2 14 8 20 8"/>
-                    </svg>
-                    Prompt
-                  </span>
-                  <span 
-                    className="score-value" 
-                    style={{ backgroundColor: getScoreColor(run.avgSystemPromptScore) }}
-                  >
-                    {run.avgSystemPromptScore}
-                  </span>
-                </div>
+                {scoreFields.map(field => {
+                  const avgValue = run[`avg_${field.key}`];
+                  return (
+                    <div key={field.key} className="score-item">
+                      <span className="score-label">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <circle cx="12" cy="12" r="3"/>
+                          <path d="M12 1v6m0 6v6"/>
+                        </svg>
+                        {field.label.split(' ')[0]}
+                      </span>
+                      <span 
+                        className="score-value" 
+                        style={{ backgroundColor: getScoreColor(parseFloat(avgValue)) }}
+                      >
+                        {avgValue}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
 
               <button 

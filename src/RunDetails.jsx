@@ -1,5 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import CollapsibleCell from './CollapsibleCell';
+import { 
+  calculateAggregateScores, 
+  getScoreColor, 
+  getUniqueScoreFields
+} from './utils/metricUtils';
 
 const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpandContent }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'baseID', direction: 'ascending' });
@@ -63,36 +68,11 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
     return 0;
   });
 
-  const getScoreColorGranular = (score) => {
-    if (score === null || score === undefined || isNaN(score)) return '#6b7280';
-    const numScore = Number(score);
-    const normalizedScore = numScore > 1 ? numScore / 10 : numScore;
-    if (normalizedScore >= 0.9) return '#059669';
-    if (normalizedScore >= 0.8) return '#10b981';
-    if (normalizedScore >= 0.7) return '#34d399';
-    if (normalizedScore >= 0.6) return '#fbbf24';
-    if (normalizedScore >= 0.5) return '#f59e0b';
-    if (normalizedScore >= 0.4) return '#f97316';
-    if (normalizedScore >= 0.3) return '#ef4444';
-    return '#dc2626';
-  };
-
-  // Calculate aggregate scores for this run
-  const avgScores = questions.reduce((acc, q) => {
-    if (q.ExecutionData) {
-      acc.outputScore += q.ExecutionData.outputScore || 0;
-      acc.ragScore += q.ExecutionData.ragRelevancyScore || 0;
-      acc.hallucinationRate += q.ExecutionData.hallucinationRate || 0;
-      acc.systemPromptScore += q.ExecutionData.systemPromptAlignmentScore || 0;
-      acc.count++;
-    }
-    return acc;
-  }, { outputScore: 0, ragScore: 0, hallucinationRate: 0, systemPromptScore: 0, count: 0 });
-
-  const avgOutputScore = avgScores.count > 0 ? (avgScores.outputScore / avgScores.count).toFixed(2) : '-';
-  const avgRagScore = avgScores.count > 0 ? (avgScores.ragScore / avgScores.count).toFixed(2) : '-';
-  const avgHallucinationRate = avgScores.count > 0 ? (avgScores.hallucinationRate / avgScores.count).toFixed(2) : '-';
-  const avgSystemPromptScore = avgScores.count > 0 ? (avgScores.systemPromptScore / avgScores.count).toFixed(2) : '-';
+  // Calculate aggregate scores dynamically
+  const aggregateScores = useMemo(() => calculateAggregateScores(questions), [questions]);
+  
+  // Get all unique score fields from the questions
+  const scoreFields = useMemo(() => getUniqueScoreFields(questions), [questions]);
 
   const firstQuestion = questions[0] || {};
 
@@ -134,30 +114,14 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
           <span className="stat-label">Questions</span>
           <span className="stat-value-large">{questions.length}</span>
         </div>
-        <div className="stat-card">
-          <span className="stat-label">Avg Output Score</span>
-          <span className="stat-value-large" style={{ color: getScoreColorGranular(avgOutputScore) }}>
-            {avgOutputScore}
-          </span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Avg RAG Score</span>
-          <span className="stat-value-large" style={{ color: getScoreColorGranular(avgRagScore) }}>
-            {avgRagScore}
-          </span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Avg Hallucination</span>
-          <span className="stat-value-large" style={{ color: getScoreColorGranular(avgHallucinationRate) }}>
-            {avgHallucinationRate}
-          </span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-label">Avg Prompt Score</span>
-          <span className="stat-value-large" style={{ color: getScoreColorGranular(avgSystemPromptScore) }}>
-            {avgSystemPromptScore}
-          </span>
-        </div>
+        {aggregateScores.metrics.map(metric => (
+          <div key={metric.key} className="stat-card">
+            <span className="stat-label">Avg {metric.label}</span>
+            <span className="stat-value-large" style={{ color: getScoreColor(metric.average) }}>
+              {metric.formatted}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="details-controls">
@@ -214,10 +178,11 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
             className="sort-select"
           >
             <option value="baseID">Question ID</option>
-            <option value="ExecutionData.outputScore">Output Score</option>
-            <option value="ExecutionData.ragRelevancyScore">RAG Score</option>
-            <option value="ExecutionData.hallucinationRate">Hallucination Rate</option>
-            <option value="ExecutionData.systemPromptAlignmentScore">Prompt Score</option>
+            {scoreFields.map(field => (
+              <option key={field.key} value={`ExecutionData.${field.key}`}>
+                {field.label}
+              </option>
+            ))}
           </select>
           <select 
             value={sortConfig.direction} 
@@ -237,10 +202,9 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
               <th>Q ID</th>
               <th>Input</th>
               <th>Output</th>
-              <th>Output Score</th>
-              <th>RAG Score</th>
-              <th>Hallucination</th>
-              <th>Prompt Score</th>
+              {scoreFields.map(field => (
+                <th key={field.key}>{field.label}</th>
+              ))}
               <th>Actions</th>
             </tr>
           </thead>
@@ -271,34 +235,18 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpand
                     onExpand={onExpandContent}
                   />
                 </td>
-                <td className="score-cell" style={{ 
-                  backgroundColor: getScoreColorGranular(question.ExecutionData?.outputScore),
-                  color: '#ffffff',
-                  fontWeight: '600'
-                }}>
-                  {question.ExecutionData?.outputScore?.toFixed(2) || '-'}
-                </td>
-                <td className="score-cell" style={{ 
-                  backgroundColor: getScoreColorGranular(question.ExecutionData?.ragRelevancyScore),
-                  color: '#ffffff',
-                  fontWeight: '600'
-                }}>
-                  {question.ExecutionData?.ragRelevancyScore?.toFixed(2) || '-'}
-                </td>
-                <td className="score-cell" style={{ 
-                  backgroundColor: getScoreColorGranular(question.ExecutionData?.hallucinationRate),
-                  color: '#ffffff',
-                  fontWeight: '600'
-                }}>
-                  {question.ExecutionData?.hallucinationRate?.toFixed(2) || '-'}
-                </td>
-                <td className="score-cell" style={{ 
-                  backgroundColor: getScoreColorGranular(question.ExecutionData?.systemPromptAlignmentScore),
-                  color: '#ffffff',
-                  fontWeight: '600'
-                }}>
-                  {question.ExecutionData?.systemPromptAlignmentScore?.toFixed(2) || '-'}
-                </td>
+                {scoreFields.map(field => {
+                  const value = question.ExecutionData?.[field.key];
+                  return (
+                    <td key={field.key} className="score-cell" style={{ 
+                      backgroundColor: getScoreColor(value),
+                      color: '#ffffff',
+                      fontWeight: '600'
+                    }}>
+                      {value != null ? value.toFixed(2) : '-'}
+                    </td>
+                  );
+                })}
                 <td>
                   <button 
                     className="compare-question-btn"

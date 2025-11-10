@@ -1,9 +1,17 @@
 .App {
-  padding: 32px 40px;
+  display: flex;
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #f1f5f9;
   min-height: 100vh;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+}
+
+.main-content {
+  flex: 1;
+  padding: 32px 40px;
+  transition: margin-left 0.2s ease;
+  animation: fadeIn 0.3s ease;
+  min-height: 100vh;
 }
 
 .dashboard-header {
@@ -1614,6 +1622,46 @@
   opacity: 1;
 }
 
+/* Highlight flash animation for navigation */
+.run-card.highlight-flash {
+  animation: highlightPulse 2s ease-in-out;
+}
+
+@keyframes highlightPulse {
+  0% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+  15% {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(96, 165, 250, 0.6), 0 0 40px rgba(254, 143, 15, 0.4);
+    border-color: #60a5fa;
+  }
+  30% {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 36px rgba(96, 165, 250, 0.5), 0 0 32px rgba(254, 143, 15, 0.3);
+  }
+  45% {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(96, 165, 250, 0.6), 0 0 40px rgba(254, 143, 15, 0.4);
+    border-color: #60a5fa;
+  }
+  60% {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 36px rgba(96, 165, 250, 0.4), 0 0 28px rgba(254, 143, 15, 0.2);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.005);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3), 0 0 20px rgba(254, 143, 15, 0.15);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: rgba(96, 165, 250, 0.2);
+  }
+}
+
 .run-card-header {
   display: flex;
   justify-content: space-between;
@@ -2492,11 +2540,6 @@
   min-width: 140px;
   margin-right: 8px;
 }
-
-.main-content {
-  animation: fadeIn 0.3s ease;
-}
-
 
 /* Breadcrumb Navigation */
 .breadcrumb-nav {

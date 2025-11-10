@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict xFwUjRu142VWIcgRXMwSkGm4PQUUMddRXWa4J6clKyLTXTpuoiS5rgqQcj6mowh
+\restrict 40wSc7sQagQqWhrFQ2jZdAcor9oY8u5MdIsVa7TAXQprKIwBgrex6i1tidSE86b
 
 -- Dumped from database version 14.19 (Homebrew)
 -- Dumped by pg_dump version 14.19 (Homebrew)
@@ -19,7 +19,7 @@ SET client_min_messages = warning;
 SET row_security = off;
 
 --
--- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: -
+-- Name: update_updated_at_column(); Type: FUNCTION; Schema: public; Owner: butler_user
 --
 
 CREATE FUNCTION public.update_updated_at_column() RETURNS trigger
@@ -32,12 +32,14 @@ END;
 $$;
 
 
+ALTER FUNCTION public.update_updated_at_column() OWNER TO butler_user;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: projects; Type: TABLE; Schema: public; Owner: -
+-- Name: projects; Type: TABLE; Schema: public; Owner: butler_user
 --
 
 CREATE TABLE public.projects (
@@ -49,8 +51,10 @@ CREATE TABLE public.projects (
 );
 
 
+ALTER TABLE public.projects OWNER TO butler_user;
+
 --
--- Name: TABLE projects; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE projects; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON TABLE public.projects IS 'Top-level organizational unit. Empty in current implementation.
@@ -58,7 +62,7 @@ Consider populating or removing if hierarchical structure is not needed.';
 
 
 --
--- Name: question_evaluations; Type: TABLE; Schema: public; Owner: -
+-- Name: question_evaluations; Type: TABLE; Schema: public; Owner: denis
 --
 
 CREATE TABLE public.question_evaluations (
@@ -77,8 +81,10 @@ CREATE TABLE public.question_evaluations (
 );
 
 
+ALTER TABLE public.question_evaluations OWNER TO denis;
+
 --
--- Name: TABLE question_evaluations; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE question_evaluations; Type: COMMENT; Schema: public; Owner: denis
 --
 
 COMMENT ON TABLE public.question_evaluations IS 'Source of truth for evaluation scores. Contains individual question evaluations.
@@ -86,7 +92,7 @@ When adding new score metrics, add column here first, then sync to runs table.';
 
 
 --
--- Name: question_evaluations_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: question_evaluations_id_seq; Type: SEQUENCE; Schema: public; Owner: denis
 --
 
 CREATE SEQUENCE public.question_evaluations_id_seq
@@ -98,15 +104,17 @@ CREATE SEQUENCE public.question_evaluations_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.question_evaluations_id_seq OWNER TO denis;
+
 --
--- Name: question_evaluations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: question_evaluations_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: denis
 --
 
 ALTER SEQUENCE public.question_evaluations_id_seq OWNED BY public.question_evaluations.id;
 
 
 --
--- Name: run_questions; Type: TABLE; Schema: public; Owner: -
+-- Name: run_questions; Type: TABLE; Schema: public; Owner: denis
 --
 
 CREATE TABLE public.run_questions (
@@ -122,15 +130,17 @@ CREATE TABLE public.run_questions (
 );
 
 
+ALTER TABLE public.run_questions OWNER TO denis;
+
 --
--- Name: TABLE run_questions; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE run_questions; Type: COMMENT; Schema: public; Owner: denis
 --
 
 COMMENT ON TABLE public.run_questions IS 'Individual questions within test runs. Empty - data flow bypasses this table.';
 
 
 --
--- Name: run_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+-- Name: run_questions_id_seq; Type: SEQUENCE; Schema: public; Owner: denis
 --
 
 CREATE SEQUENCE public.run_questions_id_seq
@@ -142,15 +152,17 @@ CREATE SEQUENCE public.run_questions_id_seq
     CACHE 1;
 
 
+ALTER TABLE public.run_questions_id_seq OWNER TO denis;
+
 --
--- Name: run_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+-- Name: run_questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: denis
 --
 
 ALTER SEQUENCE public.run_questions_id_seq OWNED BY public.run_questions.id;
 
 
 --
--- Name: runs; Type: TABLE; Schema: public; Owner: -
+-- Name: runs; Type: TABLE; Schema: public; Owner: butler_user
 --
 
 CREATE TABLE public.runs (
@@ -182,8 +194,10 @@ CREATE TABLE public.runs (
 );
 
 
+ALTER TABLE public.runs OWNER TO butler_user;
+
 --
--- Name: TABLE runs; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE runs; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON TABLE public.runs IS 'Denormalized view combining test execution results with evaluation scores. 
@@ -192,28 +206,28 @@ New metrics added here will automatically appear in the UI without code changes.
 
 
 --
--- Name: COLUMN runs.id; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN runs.id; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON COLUMN public.runs.id IS 'Composite key: {base_id}-{version}. Example: 42-run_gpt4_v1';
 
 
 --
--- Name: COLUMN runs.output_score; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN runs.output_score; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON COLUMN public.runs.output_score IS 'Quality score for model output (0-1 scale). Higher is better.';
 
 
 --
--- Name: COLUMN runs.test_score; Type: COMMENT; Schema: public; Owner: -
+-- Name: COLUMN runs.test_score; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON COLUMN public.runs.test_score IS 'Custom test metric added for validation (0-1 scale). Example of dynamic metric.';
 
 
 --
--- Name: subworkflows; Type: TABLE; Schema: public; Owner: -
+-- Name: subworkflows; Type: TABLE; Schema: public; Owner: butler_user
 --
 
 CREATE TABLE public.subworkflows (
@@ -226,15 +240,17 @@ CREATE TABLE public.subworkflows (
 );
 
 
+ALTER TABLE public.subworkflows OWNER TO butler_user;
+
 --
--- Name: TABLE subworkflows; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE subworkflows; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON TABLE public.subworkflows IS 'Sub-components of workflows. Empty in current implementation.';
 
 
 --
--- Name: workflows; Type: TABLE; Schema: public; Owner: -
+-- Name: workflows; Type: TABLE; Schema: public; Owner: butler_user
 --
 
 CREATE TABLE public.workflows (
@@ -247,29 +263,31 @@ CREATE TABLE public.workflows (
 );
 
 
+ALTER TABLE public.workflows OWNER TO butler_user;
+
 --
--- Name: TABLE workflows; Type: COMMENT; Schema: public; Owner: -
+-- Name: TABLE workflows; Type: COMMENT; Schema: public; Owner: butler_user
 --
 
 COMMENT ON TABLE public.workflows IS 'Evaluation workflows within projects. Empty in current implementation.';
 
 
 --
--- Name: question_evaluations id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: question_evaluations id; Type: DEFAULT; Schema: public; Owner: denis
 --
 
 ALTER TABLE ONLY public.question_evaluations ALTER COLUMN id SET DEFAULT nextval('public.question_evaluations_id_seq'::regclass);
 
 
 --
--- Name: run_questions id; Type: DEFAULT; Schema: public; Owner: -
+-- Name: run_questions id; Type: DEFAULT; Schema: public; Owner: denis
 --
 
 ALTER TABLE ONLY public.run_questions ALTER COLUMN id SET DEFAULT nextval('public.run_questions_id_seq'::regclass);
 
 
 --
--- Name: projects projects_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: projects projects_pkey; Type: CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.projects
@@ -277,7 +295,7 @@ ALTER TABLE ONLY public.projects
 
 
 --
--- Name: question_evaluations question_evaluations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: question_evaluations question_evaluations_pkey; Type: CONSTRAINT; Schema: public; Owner: denis
 --
 
 ALTER TABLE ONLY public.question_evaluations
@@ -285,7 +303,7 @@ ALTER TABLE ONLY public.question_evaluations
 
 
 --
--- Name: run_questions run_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: run_questions run_questions_pkey; Type: CONSTRAINT; Schema: public; Owner: denis
 --
 
 ALTER TABLE ONLY public.run_questions
@@ -293,7 +311,7 @@ ALTER TABLE ONLY public.run_questions
 
 
 --
--- Name: run_questions run_questions_run_id_question_number_key; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: run_questions run_questions_run_id_question_number_key; Type: CONSTRAINT; Schema: public; Owner: denis
 --
 
 ALTER TABLE ONLY public.run_questions
@@ -301,7 +319,7 @@ ALTER TABLE ONLY public.run_questions
 
 
 --
--- Name: runs runs_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: runs runs_pkey; Type: CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.runs
@@ -309,7 +327,7 @@ ALTER TABLE ONLY public.runs
 
 
 --
--- Name: subworkflows subworkflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: subworkflows subworkflows_pkey; Type: CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.subworkflows
@@ -317,7 +335,7 @@ ALTER TABLE ONLY public.subworkflows
 
 
 --
--- Name: workflows workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: workflows workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.workflows
@@ -325,91 +343,91 @@ ALTER TABLE ONLY public.workflows
 
 
 --
--- Name: idx_question_evaluations_question; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_question_evaluations_question; Type: INDEX; Schema: public; Owner: denis
 --
 
 CREATE INDEX idx_question_evaluations_question ON public.question_evaluations USING btree (question_id);
 
 
 --
--- Name: idx_question_evaluations_question_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_question_evaluations_question_id; Type: INDEX; Schema: public; Owner: denis
 --
 
 CREATE INDEX idx_question_evaluations_question_id ON public.question_evaluations USING btree (question_id);
 
 
 --
--- Name: idx_run_questions_run; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_run_questions_run; Type: INDEX; Schema: public; Owner: denis
 --
 
 CREATE INDEX idx_run_questions_run ON public.run_questions USING btree (run_id);
 
 
 --
--- Name: idx_runs_active; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_active; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_active ON public.runs USING btree (active);
 
 
 --
--- Name: idx_runs_base_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_base_id; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_base_id ON public.runs USING btree (base_id);
 
 
 --
--- Name: idx_runs_base_id_version; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_base_id_version; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_base_id_version ON public.runs USING btree (base_id, version);
 
 
 --
--- Name: idx_runs_subworkflow_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_subworkflow_id; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_subworkflow_id ON public.runs USING btree (subworkflow_id);
 
 
 --
--- Name: idx_runs_timestamp; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_timestamp; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_timestamp ON public.runs USING btree ("timestamp");
 
 
 --
--- Name: idx_runs_version; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_version; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_version ON public.runs USING btree (version);
 
 
 --
--- Name: idx_runs_workflow_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_runs_workflow_id; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_runs_workflow_id ON public.runs USING btree (workflow_id);
 
 
 --
--- Name: idx_subworkflows_workflow_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_subworkflows_workflow_id; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_subworkflows_workflow_id ON public.subworkflows USING btree (workflow_id);
 
 
 --
--- Name: idx_workflows_project_id; Type: INDEX; Schema: public; Owner: -
+-- Name: idx_workflows_project_id; Type: INDEX; Schema: public; Owner: butler_user
 --
 
 CREATE INDEX idx_workflows_project_id ON public.workflows USING btree (project_id);
 
 
 --
--- Name: question_evaluations question_evaluations_question_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: question_evaluations question_evaluations_question_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: denis
 --
 
 ALTER TABLE ONLY public.question_evaluations
@@ -417,7 +435,7 @@ ALTER TABLE ONLY public.question_evaluations
 
 
 --
--- Name: runs runs_subworkflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: runs runs_subworkflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.runs
@@ -425,7 +443,7 @@ ALTER TABLE ONLY public.runs
 
 
 --
--- Name: runs runs_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: runs runs_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.runs
@@ -433,7 +451,7 @@ ALTER TABLE ONLY public.runs
 
 
 --
--- Name: subworkflows subworkflows_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: subworkflows subworkflows_workflow_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.subworkflows
@@ -441,7 +459,7 @@ ALTER TABLE ONLY public.subworkflows
 
 
 --
--- Name: workflows workflows_project_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: workflows workflows_project_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: butler_user
 --
 
 ALTER TABLE ONLY public.workflows
@@ -449,8 +467,43 @@ ALTER TABLE ONLY public.workflows
 
 
 --
+-- Name: SCHEMA public; Type: ACL; Schema: -; Owner: denis
+--
+
+GRANT ALL ON SCHEMA public TO butler_user;
+
+
+--
+-- Name: TABLE question_evaluations; Type: ACL; Schema: public; Owner: denis
+--
+
+GRANT ALL ON TABLE public.question_evaluations TO butler_user;
+
+
+--
+-- Name: SEQUENCE question_evaluations_id_seq; Type: ACL; Schema: public; Owner: denis
+--
+
+GRANT ALL ON SEQUENCE public.question_evaluations_id_seq TO butler_user;
+
+
+--
+-- Name: TABLE run_questions; Type: ACL; Schema: public; Owner: denis
+--
+
+GRANT ALL ON TABLE public.run_questions TO butler_user;
+
+
+--
+-- Name: SEQUENCE run_questions_id_seq; Type: ACL; Schema: public; Owner: denis
+--
+
+GRANT ALL ON SEQUENCE public.run_questions_id_seq TO butler_user;
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict xFwUjRu142VWIcgRXMwSkGm4PQUUMddRXWa4J6clKyLTXTpuoiS5rgqQcj6mowh
+\unrestrict 40wSc7sQagQqWhrFQ2jZdAcor9oY8u5MdIsVa7TAXQprKIwBgrex6i1tidSE86b
 

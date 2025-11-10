@@ -1,0 +1,9 @@
+     child_table      |  child_column  | parent_table  | parent_column | update_rule | delete_rule 
+----------------------+----------------+---------------+---------------+-------------+-------------
+ question_evaluations | question_id    | run_questions | id            | NO ACTION   | CASCADE
+ runs                 | subworkflow_id | subworkflows  | id            | NO ACTION   | CASCADE
+ runs                 | workflow_id    | workflows     | id            | NO ACTION   | CASCADE
+ subworkflows         | workflow_id    | workflows     | id            | NO ACTION   | CASCADE
+ workflows            | project_id     | projects      | id            | NO ACTION   | CASCADE
+(5 rows)
+
