@@ -1,3 +1,4 @@
+````markdown
 # GitHub Pages Deployment Guide
 
 ## 🎉 Your app is deployed!
@@ -140,3 +141,5 @@ To use your own domain:
 - [ ] Make repository public (if needed)
 - [ ] Test the live URL
 - [ ] Share URL and password with authorized users
+
+````

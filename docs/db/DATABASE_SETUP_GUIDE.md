@@ -1,3 +1,4 @@
+````markdown
 # Butler Eval - Database Setup Guide
 
 **For**: New team members  
@@ -140,26 +141,27 @@ curl http://localhost:3001/api/projects
 
 ## 📚 Understanding the Structure
 
-### Read These (In Order)
-1. **DATABASE_STRUCTURE.md** - Complete overview (15 min read)
-2. **database/VISUAL_SCHEMA.md** - Visual diagrams (5 min read)
-
 ### Key Concepts
 
 **Hierarchy**:
 ```
-projects → workflows → subworkflows → runs
+projects → workflows → subworkflows → runs → questions
 ```
 
 **Dynamic Metrics**:
-- Any column ending in `_score`, `_rate`, `_rating` auto-displays in UI
-- Add new metric = just add column to `runs` table
+- Any column with numeric scores automatically displays in UI
+- Add new metric = just add column to `question_evaluations` table
 - No frontend code changes needed!
 
 **Data Flow**:
 ```
-Test Script → Database → Backend API → Frontend UI
+Evaluation Script → Database → Backend API → Frontend UI
 ```
+
+### Learn More
+- **Complete schema**: `docs/db/DATABASE_STRUCTURE.md`
+- **Visual diagrams**: `database/VISUAL_SCHEMA.md`
+- **Data hierarchy**: `docs/db/HIERARCHY_STRUCTURE.md`
 
 ---
 
@@ -186,14 +188,6 @@ brew services start postgresql@14
 
 # Start if needed (Linux):
 sudo systemctl start postgresql
-```
-
-### "Port 5432 already in use"
-```bash
-# Check what's using it
-lsof -i :5432
-
-# Or use different port in backend config
 ```
 
 ---
@@ -268,9 +262,11 @@ After setup, verify:
 ## 🎯 Next Steps
 
 1. ✅ Database setup complete
-2. 📖 Read DATABASE_STRUCTURE.md for details
+2. 📖 Read `DATABASE_STRUCTURE.md` for detailed schema information
 3. 🔧 Configure backend connection
 4. 🚀 Start backend and test API
 5. 💻 Run frontend and verify UI displays data
 
-**Questions?** See DATABASE_STRUCTURE.md for detailed table documentation and query examples.
+**Questions?** See `DATABASE_STRUCTURE.md` for detailed table documentation and query examples.
+
+````

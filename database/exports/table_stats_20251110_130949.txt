@@ -1,5 +1,0 @@
- database_name |  size   
----------------+---------
- butler_eval   | 9697 kB
-(1 row)
-

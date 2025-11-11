@@ -178,6 +178,7 @@ CLEANUP SUMMARY:
 
 NEXT STEPS:
 1. Review DATABASE_ANALYSIS.md for recommendations
+1. Review docs/DATABASE_ANALYSIS.md for recommendations
 2. Consider: Simplifying schema OR populating hierarchy tables
 3. Implement: Automated sync for new metrics
 4. Set up: Regular backups with pg_dump

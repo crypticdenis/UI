@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import './NavigationSidebar.css';
+import '../styles/NavigationSidebar.css';
 
 const NavigationSidebar = ({ 
   currentView, 

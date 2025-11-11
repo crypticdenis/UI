@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import ProjectsLandingPage from './ProjectsLandingPage.jsx';
-import WorkflowsOverview from './WorkflowsOverview.jsx';
-import SubWorkflowsView from './SubWorkflowsView.jsx';
-import RunsOverview from './RunsOverview.jsx';
-import RunDetails from './RunDetails.jsx';
-import QuestionComparison from './QuestionComparison.jsx';
-import ContentViewer from './ContentViewer.jsx';
-import EvaluationTrigger from './EvaluationTrigger.jsx';
-import NavigationSidebar from './NavigationSidebar.jsx';
-import './App.css';
+import ProjectsLandingPage from './views/ProjectsLandingPage.jsx';
+import WorkflowsOverview from './views/WorkflowsOverview.jsx';
+import SubWorkflowsView from './views/SubWorkflowsView.jsx';
+import RunsOverview from './views/RunsOverview.jsx';
+import RunDetails from './views/RunDetails.jsx';
+import QuestionComparison from './views/QuestionComparison.jsx';
+import ContentViewer from './components/ContentViewer.jsx';
+import EvaluationTrigger from './components/EvaluationTrigger.jsx';
+import NavigationSidebar from './components/NavigationSidebar.jsx';
+import './styles/App.css';
 
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';

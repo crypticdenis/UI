@@ -1,3 +1,4 @@
+````markdown
 # Butler Eval - Database Structure Guide
 
 **Database**: `butler_eval`  
@@ -491,3 +492,5 @@ GET http://localhost:3001/api/projects
 **Maintenance**: Delete unused tables, keep hierarchy clean
 
 **Key Insight**: The `runs` table stores everything needed for display (denormalized), while `run_questions` and `question_evaluations` provide detailed drill-down data.
+
+````

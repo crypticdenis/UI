@@ -1,3 +1,4 @@
+````markdown
 # Deployment Guide with Authentication
 
 ## Overview
@@ -115,3 +116,5 @@ For even more security, you can add IP whitelisting in Vercel:
 
 - Vercel Docs: https://vercel.com/docs
 - Netlify Docs: https://docs.netlify.com
+
+````

@@ -1,3 +1,4 @@
+````markdown
 # Hierarchical Navigation Structure
 
 ## Overview
@@ -152,21 +153,17 @@ All levels use the same design patterns:
 - Consistent color scheme and styling
 - Smooth animations and transitions
 
-## Future Database Integration
+## Database Schema
 
-The current implementation uses JSON files (`projectsData.json`) for data storage. When integrating with PostgreSQL:
+The PostgreSQL database implements this hierarchy with the following tables:
 
-1. **Projects Table** - Store project metadata
-2. **Workflows Table** - Store workflows linked to projects
-3. **Subworkflows Table** - Store subworkflows linked to workflows
-4. **Runs Table** - Store individual run data linked to subworkflows
-5. **Questions Table** - Store question/answer data for each run
+1. **projects** - Project metadata
+2. **workflows** - Workflows linked to projects
+3. **subworkflows** - Subworkflows linked to workflows
+4. **runs** - Individual test runs linked to subworkflows
+5. **run_questions** - Questions in each run
+6. **question_evaluations** - Evaluation results and metrics
 
-The component structure is designed to easily swap JSON data with API calls to the database.
+See `DATABASE_STRUCTURE.md` for complete schema details.
 
-## Notes
-
-- Currently only supports creating new projects (workflows and subworkflows come from external data)
-- The "Run Evaluation" button only appears when viewing runs (not on higher levels)
-- All existing functionality for runs, details, and comparisons remains unchanged
-- The hierarchy provides better organization for multiple evaluation projects and workflows
+````

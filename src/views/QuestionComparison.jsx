@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { getUniqueScoreFields, getScoreColor, formatNumber } from './utils/metricUtils';
+import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
 const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => {
   // Get all runs that have this question (same baseID)

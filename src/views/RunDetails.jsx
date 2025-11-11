@@ -1,10 +1,10 @@
 import React, { useState, useMemo } from 'react';
-import CollapsibleCell from './CollapsibleCell';
+import CollapsibleCell from '../components/CollapsibleCell';
 import { 
   calculateAggregateScores, 
   getScoreColor, 
   getUniqueScoreFields
-} from './utils/metricUtils';
+} from '../utils/metricUtils';
 
 const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpandContent }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'baseID', direction: 'ascending' });

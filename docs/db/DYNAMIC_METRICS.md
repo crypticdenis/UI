@@ -1,3 +1,4 @@
+````markdown
 # Dynamic Metrics Implementation
 
 ## Overview
@@ -135,12 +136,4 @@ These continue to work exactly as before, but are now handled dynamically.
 5. Verify UI responsiveness with many metrics (10+)
 6. Test with missing or null metric values
 
-## Future Enhancements
-
-Potential improvements:
-1. Custom color scales per metric type
-2. Metric grouping/categorization in UI
-3. User-configurable metric display order
-4. Metric thresholds configuration
-5. Chart/graph visualizations for metric trends
-6. Metric comparison across different runs
+````

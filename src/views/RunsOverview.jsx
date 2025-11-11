@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { getUniqueScoreFields, getScoreColor, formatNumber } from './utils/metricUtils';
+import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });

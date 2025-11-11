@@ -79,30 +79,61 @@ A comprehensive React-based evaluation dashboard for analyzing LLM model perform
 UI/
 ├── src/                          # Frontend source code
 │   ├── App.jsx                   # Main application component
-│   ├── components/
-│   │   ├── NavigationSidebar.jsx # VS Code-style sidebar navigation
-│   │   ├── ProjectsLandingPage.jsx # Project overview
-│   │   ├── WorkflowsOverview.jsx   # Workflow listing
-│   │   ├── SubWorkflowsView.jsx    # Subworkflow listing
-│   │   ├── RunsOverview.jsx        # Run cards with aggregated metrics
-│   │   ├── RunDetails.jsx          # Detailed run view with questions
-│   │   ├── QuestionComparison.jsx  # Compare same question across runs
-│   │   ├── Comparison.jsx          # Compare different runs
-│   │   ├── FilterBar.jsx           # Filtering controls
-│   │   ├── ColumnSettings.jsx      # Column visibility settings
-│   │   ├── CollapsibleCell.jsx     # Expandable table cells
-│   │   └── ContentViewer.jsx       # Modal for viewing full content
-│   ├── utils/
-│   │   └── metricUtils.js          # Dynamic metric detection & formatting
-│   └── assets/                     # Static assets
-├── server/
-│   ├── server.js                   # Express backend API
-│   └── package.json                # Backend dependencies
-├── database/
-│   ├── schema.sql                  # Database schema
-│   └── mock_data.sql               # Sample data
-└── public/                         # Static files
-
+│   ├── main.jsx                  # Application entry point
+│   │
+│   ├── components/               # Reusable UI components
+│   │   ├── AuthWrapper.jsx
+│   │   ├── CollapsibleCell.jsx
+│   │   ├── ColumnSettings.jsx
+│   │   ├── ContentViewer.jsx
+│   │   ├── EvaluationTrigger.jsx
+│   │   ├── FilterBar.jsx
+│   │   ├── Modal.jsx
+│   │   ├── NavigationSidebar.jsx
+│   │   └── RunTable.jsx
+│   │
+│   ├── views/                    # Page-level components
+│   │   ├── Comparison.jsx
+│   │   ├── ProjectsLandingPage.jsx
+│   │   ├── QuestionComparison.jsx
+│   │   ├── RunDetails.jsx
+│   │   ├── RunsOverview.jsx
+│   │   ├── SubWorkflowsView.jsx
+│   │   └── WorkflowsOverview.jsx
+│   │
+│   ├── styles/                   # CSS stylesheets
+│   │   ├── App.css
+│   │   ├── NavigationSidebar.css
+│   │   └── index.css
+│   │
+│   ├── utils/                    # Utility functions
+│   │   └── metricUtils.js        # Dynamic metric detection
+│   │
+│   └── assets/                   # Static assets
+│
+├── server/                       # Backend API
+│   ├── server.js                 # Express server
+│   └── package.json              # Backend dependencies
+│
+├── database/                     # Database files
+│   ├── schema.sql                # Database schema
+│   ├── mock_data.sql             # Sample data
+│   ├── cleanup.sql               # Maintenance scripts
+│   ├── export_database.sh        # Backup scripts
+│   ├── ARCHITECTURE_DIAGRAM.md   # Schema diagrams
+│   └── VISUAL_SCHEMA.md          # ERD visualizations
+│
+├── docs/                         # Documentation
+│   ├── DEPLOYMENT.md             # Deployment guide
+│   ├── GITHUB_DEPLOYMENT.md      # GitHub Pages guide
+│   └── db/                       # Database documentation
+│       ├── DATABASE_SETUP.md
+│       ├── DATABASE_SETUP_GUIDE.md
+│       ├── DATABASE_STRUCTURE.md
+│       ├── DYNAMIC_METRICS.md
+│       └── HIERARCHY_STRUCTURE.md
+│
+└── public/                       # Static files
 ```
 
 ---
@@ -132,21 +163,20 @@ UI/
 - CORS enabled
 
 **API Endpoints:**
-- `GET /api/projects` - Fetch all projects
-- `GET /api/projects/:id` - Fetch specific project
-- `GET /api/workflows/:projectId` - Fetch workflows for a project
-- `GET /api/runs/:workflowId` - Fetch runs for a workflow
-- Additional endpoints for filtering and aggregations
+- `GET /api/projects` - Fetch all projects with full hierarchy
+- Additional endpoints for workflows, runs, and metrics
 
 ### Database (PostgreSQL)
 
 **Schema:**
-- `projects` - Top-level projects
+- `projects` - Top-level organization
 - `workflows` - Evaluation workflows
-- `subworkflows` - Sub-components of workflows
-- `ground_truth_data` - Expected inputs/outputs
-- `test_runs` - Individual test executions
-- `execution_data` - Run results and metrics
+- `subworkflows` - Workflow components
+- `runs` - Test run metadata
+- `run_questions` - Questions in each run
+- `question_evaluations` - Evaluation results and metrics
+
+See `docs/db/DATABASE_STRUCTURE.md` for complete schema details.
 
 ---
 
@@ -201,76 +231,41 @@ All numeric scores are automatically color-coded:
 
 ## 🧩 Component Overview
 
-### Navigation Components
+### View Components (`src/views/`)
 
-**NavigationSidebar.jsx**
-- VS Code-inspired collapsible sidebar
-- Tree structure with expand/collapse functionality
-- Auto-expands current navigation path
-- Active state highlighting
-- Resizable width (drag to resize)
+**ProjectsLandingPage.jsx** - Main landing page showing all projects
 
-### View Components
+**WorkflowsOverview.jsx** - Workflows within a selected project
 
-**ProjectsLandingPage.jsx**
-- Grid of project cards
-- Project creation functionality
-- Project statistics
+**SubWorkflowsView.jsx** - Subworkflows and their runs
 
-**WorkflowsOverview.jsx**
-- List of workflows within a project
-- Workflow metadata and run counts
+**RunsOverview.jsx** - All runs with filtering, sorting, and metrics
 
-**SubWorkflowsView.jsx**
-- Display subworkflows for a workflow
-- Navigate to subworkflow runs
+**RunDetails.jsx** - Detailed view of a single run with all questions
 
-**RunsOverview.jsx**
-- Run cards with aggregated metrics
-- Filtering by model, prompt version, version
-- Search functionality
-- Sort by any metric
-- Overall grade calculation
+**Comparison.jsx** - Side-by-side comparison of multiple runs
 
-**RunDetails.jsx**
-- Detailed view of a single run
-- Table of all questions with results
-- Dynamic metric columns
-- Filtering and sorting
-- Click to compare questions
+**QuestionComparison.jsx** - Compare the same question across different runs
 
-### Comparison Components
+### UI Components (`src/components/`)
 
-**QuestionComparison.jsx**
-- Compare the same question across different runs
-- Side-by-side view of inputs, outputs, and scores
-- Delta calculations showing improvements/regressions
-- Export to CSV/JSON
+**NavigationSidebar.jsx** - VS Code-style collapsible navigation
 
-**Comparison.jsx**
-- Compare different runs side-by-side
-- Full execution data comparison
-- Expandable content sections
+**RunTable.jsx** - Reusable table component for displaying runs
 
-### Utility Components
+**FilterBar.jsx** - Dynamic filtering controls
 
-**CollapsibleCell.jsx**
-- Expandable table cells for long content
-- Preview with character limit
-- Expand button for full view
+**ColumnSettings.jsx** - Show/hide table columns
 
-**ContentViewer.jsx**
-- Modal for viewing full content
-- Syntax highlighting
-- Copy to clipboard functionality
+**CollapsibleCell.jsx** - Expandable table cells for long content
 
-**FilterBar.jsx**
-- Dynamic filtering controls
-- Multiple filter types (dropdowns, search, range)
+**ContentViewer.jsx** - Modal viewer for full content
 
-**ColumnSettings.jsx**
-- Show/hide table columns
-- Save preferences
+**Modal.jsx** - Reusable modal dialog
+
+**AuthWrapper.jsx** - Authentication wrapper
+
+**EvaluationTrigger.jsx** - Trigger evaluation component
 
 ---
 
@@ -332,15 +327,7 @@ The UI will automatically:
 
 ### Database Schema
 
-See `database/schema.sql` for the complete database schema.
-
-**Key tables:**
-- `projects`: Top-level organization
-- `workflows`: Evaluation workflows
-- `subworkflows`: Workflow components
-- `ground_truth_data`: Expected test data
-- `test_runs`: Individual test executions
-- `execution_data`: Results and metrics
+See `database/schema.sql` for the complete database schema or `docs/db/DATABASE_STRUCTURE.md` for detailed documentation.
 
 ---
 
@@ -438,10 +425,12 @@ npm run lint
 
 ## 📚 Additional Documentation
 
-- **Database Setup**: See `DATABASE_SETUP.md`
-- **Deployment**: See `DEPLOYMENT.md`
-- **Dynamic Metrics**: See `DYNAMIC_METRICS.md`
-- **Comparing Runs**: See `COMPARING_RUNS.md`
+- **Database Setup**: `docs/db/DATABASE_SETUP_GUIDE.md` - Quick start guide
+- **Database Structure**: `docs/db/DATABASE_STRUCTURE.md` - Complete schema documentation
+- **Dynamic Metrics**: `docs/db/DYNAMIC_METRICS.md` - How the metrics system works
+- **Data Hierarchy**: `docs/db/HIERARCHY_STRUCTURE.md` - Understanding the data structure
+- **Deployment**: `docs/DEPLOYMENT.md` - Production deployment guide
+- **GitHub Pages**: `docs/GITHUB_DEPLOYMENT.md` - Deploy to GitHub Pages
 
 ---
 

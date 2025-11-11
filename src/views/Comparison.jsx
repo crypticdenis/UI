@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { extractMetrics, getScoreColor, formatNumber } from './utils/metricUtils';
+import { extractMetrics, getScoreColor, formatNumber } from '../utils/metricUtils';
 
 const Comparison = ({ runs = [] }) => {
   const [modalContent, setModalContent] = useState(null);
