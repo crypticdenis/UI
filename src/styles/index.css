@@ -1,8 +1,9 @@
 :root {
-  --primary-color: #000098;
+  --primary-color: #4d4dff;
+  --primary-dark: #000098;
   --accent-color: #e58a06;
-  --primary-light: rgba(0, 0, 152, 0.1);
-  --primary-medium: rgba(0, 0, 152, 0.2);
+  --primary-light: rgba(77, 77, 255, 0.1);
+  --primary-medium: rgba(77, 77, 255, 0.2);
   --accent-light: rgba(229, 138, 6, 0.1);
   --accent-medium: rgba(229, 138, 6, 0.2);
 }
