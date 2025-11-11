@@ -91,13 +91,10 @@ const NavigationSidebar = ({
   // Handle resize functionality
   const handleMouseDown = (e) => {
     e.preventDefault();
+    e.stopPropagation();
     setIsResizing(true);
-  };
-
-  useEffect(() => {
+    
     const handleMouseMove = (e) => {
-      if (!isResizing) return;
-      
       const newWidth = e.clientX;
       if (newWidth >= 200 && newWidth <= 600) {
         setSidebarWidth(newWidth);
@@ -109,18 +106,13 @@ const NavigationSidebar = ({
 
     const handleMouseUp = () => {
       setIsResizing(false);
-    };
-
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-    }
-
-    return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [isResizing, onWidthChange]);
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   // Notify parent of width changes when collapsed state changes
   useEffect(() => {
@@ -130,24 +122,25 @@ const NavigationSidebar = ({
   }, [isCollapsed, sidebarWidth, onWidthChange]);
 
   return (
-    <div 
-      ref={sidebarRef}
-      className={`navigation-sidebar ${isCollapsed ? 'collapsed' : ''} ${isResizing ? 'resizing' : ''}`}
-      style={{ 
-        width: isCollapsed ? '56px' : `${sidebarWidth}px`,
-        '--sidebar-width': `${sidebarWidth}px`
-      }}
-    >
-      {/* Resize handle - must be first for proper z-index */}
-      {!isCollapsed && (
-        <div 
-          className="sidebar-resize-handle"
-          onMouseDown={handleMouseDown}
-          title="Drag to resize sidebar"
-        />
-      )}
-      
-      <div className="sidebar-header">
+    <>
+      <div 
+        ref={sidebarRef}
+        className={`navigation-sidebar ${isCollapsed ? 'collapsed' : ''} ${isResizing ? 'resizing' : ''}`}
+        style={{ 
+          width: isCollapsed ? '56px' : `${sidebarWidth}px`,
+          '--sidebar-width': `${sidebarWidth}px`
+        }}
+      >
+        {/* Resize handle - must be first for proper z-index */}
+        {!isCollapsed && (
+          <div 
+            className="sidebar-resize-handle"
+            onMouseDown={handleMouseDown}
+            title="Drag to resize sidebar"
+          />
+        )}
+        
+        <div className="sidebar-header">
         <div className="sidebar-title">
           {!isCollapsed && <span>Explorer</span>}
         </div>
@@ -342,7 +335,34 @@ const NavigationSidebar = ({
           ))}
         </div>
       )}
-    </div>
+      </div>
+      
+      {/* Expand width button - positioned outside sidebar */}
+      {!isCollapsed && (
+        <button 
+          className="sidebar-expand-btn"
+          style={{
+            left: `${sidebarWidth}px`
+          }}
+          onClick={() => {
+            const newWidth = sidebarWidth >= 450 ? 280 : 500;
+            setSidebarWidth(newWidth);
+            if (onWidthChange) {
+              onWidthChange(newWidth);
+            }
+          }}
+          title={sidebarWidth >= 450 ? "Shrink sidebar" : "Expand sidebar width"}
+        >
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+            {sidebarWidth >= 450 ? (
+              <path d="M15 18l-6-6 6-6"/>
+            ) : (
+              <path d="M9 18l6-6-6-6"/>
+            )}
+          </svg>
+        </button>
+      )}
+    </>
   );
 };
 

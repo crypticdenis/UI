@@ -300,69 +300,85 @@
   user-select: none;
 }
 
+/* Expand width button */
+.sidebar-expand-btn {
+  position: fixed;
+  left: 280px; /* Default position, overridden by inline style */
+  top: 50vh;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(90deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  border-radius: 0 8px 8px 0;
+  border-left: none;
+  color: var(--primary-color);
+  cursor: pointer;
+  transition: left 0.2s ease, width 0.2s ease;
+  z-index: 99;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.sidebar-expand-btn:hover {
+  background: linear-gradient(90deg, rgba(96, 165, 250, 0.2), rgba(96, 165, 250, 0.15));
+  border-color: var(--primary-color);
+  width: 28px;
+  box-shadow: 2px 0 12px rgba(96, 165, 250, 0.4);
+}
+
+.sidebar-expand-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.sidebar-expand-btn:hover svg {
+  transform: scale(1.1);
+}
+
 /* Resize handle */
 .sidebar-resize-handle {
   position: absolute;
-  right: -6px;
+  right: 0;
   top: 0;
   bottom: 0;
-  width: 12px;
+  width: 8px;
   cursor: col-resize;
   background: transparent;
-  transition: background 0.2s ease;
-  z-index: 102;
+  transition: all 0.2s ease;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .sidebar-resize-handle:hover {
-  background: rgba(96, 165, 250, 0.15);
-  width: 16px;
-  right: -8px;
+  background: rgba(96, 165, 250, 0.2);
+  width: 12px;
 }
 
 .sidebar-resize-handle::before {
   content: '';
   position: absolute;
-  width: 4px;
-  height: 60px;
-  background: rgba(96, 165, 250, 0.5);
-  border-radius: 3px;
+  width: 3px;
+  height: 40px;
+  background: rgba(96, 165, 250, 0.6);
+  border-radius: 2px;
   opacity: 0;
   transition: opacity 0.2s ease;
-  box-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
 }
 
 .sidebar-resize-handle:hover::before {
   opacity: 1;
 }
 
-.sidebar-resize-handle::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: linear-gradient(to bottom, 
-    transparent 0%, 
-    rgba(96, 165, 250, 0.7) 10%, 
-    rgba(96, 165, 250, 0.7) 90%, 
-    transparent 100%);
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.sidebar-resize-handle:hover::after {
-  opacity: 1;
-}
-
 .navigation-sidebar.resizing .sidebar-resize-handle {
-  background: rgba(96, 165, 250, 0.2);
-  width: 16px;
-  right: -8px;
+  background: rgba(96, 165, 250, 0.3);
+  width: 12px;
 }
 
 .navigation-sidebar.resizing .sidebar-resize-handle::before {
   opacity: 1;
+  background: rgba(96, 165, 250, 0.8);
 }
