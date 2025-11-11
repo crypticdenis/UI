@@ -1,3 +1,12 @@
+:root {
+  --primary-color: #000098;
+  --accent-color: #e58a06;
+  --primary-light: rgba(0, 0, 152, 0.1);
+  --primary-medium: rgba(0, 0, 152, 0.2);
+  --accent-light: rgba(229, 138, 6, 0.1);
+  --accent-medium: rgba(229, 138, 6, 0.2);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -13,7 +22,7 @@ body {
 }
 
 ::selection {
-  background: rgba(96, 165, 250, 0.3);
+  background: var(--primary-medium);
   color: #ffffff;
 }
 
