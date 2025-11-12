@@ -1,0 +1,51 @@
+services:
+  # Backend API Server
+  backend:
+    build:
+      context: ../server
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: butler-eval-backend-${ENV:-prod}
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - DB_HOST=${DB_HOST:-localhost}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-butler_eval}
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - PORT=3001
+    restart: unless-stopped
+    networks:
+      - butler-eval-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend (Vite)
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        - VITE_API_URL=${VITE_API_URL:-http://localhost:3001/api}
+        - VITE_BASE_PATH=${VITE_BASE_PATH:-/}
+    container_name: butler-eval-frontend-${ENV:-prod}
+    ports:
+      - "${FRONTEND_PORT:-5174}:80"
+    environment:
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:3001/api}
+      - VITE_BASE_PATH=${VITE_BASE_PATH:-/}
+    restart: unless-stopped
+    networks:
+      - butler-eval-network
+    depends_on:
+      backend:
+        condition: service_healthy
+
+networks:
+  butler-eval-network:
+    driver: bridge

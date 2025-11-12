@@ -173,6 +173,26 @@ function formatRun(run) {
 
 // API Routes
 
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
+  try {
+    // Check database connection
+    await pool.query('SELECT NOW()');
+    res.json({ 
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(503).json({ 
+      status: 'unhealthy',
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
+});
+
 // Get all projects with full hierarchy
 app.get('/api/projects', async (req, res) => {
   try {

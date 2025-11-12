@@ -4,7 +4,26 @@ A comprehensive React-based evaluation dashboard for analyzing LLM model perform
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Option 1: Docker Deployment (Recommended)
+
+The easiest way to run the application is using Docker:
+
+```bash
+cd docker
+cp .env.example .env
+# Edit .env with your database credentials
+./start.sh
+```
+
+Access at:
+- Frontend: http://localhost:5174
+- Backend: http://localhost:3001/api
+
+📖 **Full Docker documentation:** See [`docker/README.md`](docker/README.md) and [`docker/DEPLOYMENT_DE.md`](docker/DEPLOYMENT_DE.md)
+
+### Option 2: Manual Setup
+
+#### Prerequisites
 
 - **Node.js** (v16 or higher)
 - **PostgreSQL** (v14 or higher)
