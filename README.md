@@ -4,9 +4,9 @@ A comprehensive React-based evaluation dashboard for analyzing LLM model perform
 
 ## 🚀 Quick Start
 
-### Option 1: Docker Deployment (Recommended)
+### Docker Deployment (Recommended) 🐳
 
-The easiest way to run the application is using Docker:
+The easiest and recommended way to run the application:
 
 ```bash
 cd docker
@@ -15,13 +15,23 @@ cp .env.example .env
 ./start.sh
 ```
 
-Access at:
+**Access at:**
 - Frontend: http://localhost:5174
-- Backend: http://localhost:3001/api
+- Backend API: http://localhost:3001/api
+- Health Check: http://localhost:3001/api/health
+
+**Features:**
+- ✅ Automatic setup with Docker Compose
+- ✅ Frontend (React + Vite + Nginx)
+- ✅ Backend (Node.js + Express)
+- ✅ Configurable environment variables
+- ✅ Works with existing PostgreSQL database
 
 📖 **Full Docker documentation:** See [`docker/README.md`](docker/README.md) and [`docker/DEPLOYMENT_DE.md`](docker/DEPLOYMENT_DE.md)
 
-### Option 2: Manual Setup
+---
+
+### Manual Setup (Development)
 
 #### Prerequisites
 
@@ -49,19 +59,19 @@ Access at:
    ```
 
 3. **Set up PostgreSQL database**
+   
+   📖 See [`docs/db/DATABASE_SETUP_GUIDE.md`](docs/db/DATABASE_SETUP_GUIDE.md) for detailed instructions.
+   
+   Quick setup:
    ```bash
-   # Create database and user
-   psql -U postgres
-   CREATE DATABASE butler_eval;
-   CREATE USER butler_user WITH PASSWORD 'your_password';
-   GRANT ALL PRIVILEGES ON DATABASE butler_eval TO butler_user;
-   \q
-
-   # Run schema
-   psql -U butler_user -d butler_eval -f database/schema.sql
-
+   # Create database
+   createdb butler_eval
+   
+   # Load schema
+   psql -U postgres -d butler_eval -f database/schema.sql
+   
    # (Optional) Load mock data
-   psql -U butler_user -d butler_eval -f database/mock_data.sql
+   psql -U postgres -d butler_eval -f database/mock_data.sql
    ```
 
 4. **Configure environment**
@@ -71,7 +81,7 @@ Access at:
    DB_HOST=localhost
    DB_PORT=5432
    DB_NAME=butler_eval
-   DB_USER=butler_user
+   DB_USER=postgres
    DB_PASSWORD=your_password
    PORT=3001
    ```
@@ -144,7 +154,7 @@ UI/
 │
 ├── docs/                         # Documentation
 │   ├── DEPLOYMENT.md             # Deployment guide
-│   ├── GITHUB_DEPLOYMENT.md      # GitHub Pages guide
+│   ├── README.md                 # Documentation overview
 │   └── db/                       # Database documentation
 │       ├── DATABASE_SETUP.md
 │       ├── DATABASE_SETUP_GUIDE.md
@@ -426,9 +436,10 @@ npm run lint
 - Check `npm install` completed successfully
 
 ### Backend won't connect to database
-- Verify PostgreSQL is running: `psql -U postgres`
-- Check credentials in `server/.env`
-- Verify database exists: `psql -U butler_user -d butler_eval`
+- **Docker**: Set `DB_HOST=host.docker.internal` in `docker/.env`
+- **Manual**: Verify PostgreSQL is running: `psql -U postgres`
+- Check credentials in `server/.env` or `docker/.env`
+- Verify database exists: `psql -U postgres -d butler_eval`
 
 ### No data showing
 - Check if database has data: Run queries from `database/mock_data.sql`
@@ -444,36 +455,15 @@ npm run lint
 
 ## 📚 Additional Documentation
 
-- **Database Setup**: `docs/db/DATABASE_SETUP_GUIDE.md` - Quick start guide
-- **Database Structure**: `docs/db/DATABASE_STRUCTURE.md` - Complete schema documentation
-- **Dynamic Metrics**: `docs/db/DYNAMIC_METRICS.md` - How the metrics system works
-- **Data Hierarchy**: `docs/db/HIERARCHY_STRUCTURE.md` - Understanding the data structure
-- **Deployment**: `docs/DEPLOYMENT.md` - Production deployment guide
-- **GitHub Pages**: `docs/GITHUB_DEPLOYMENT.md` - Deploy to GitHub Pages
+### Deployment
+- **Docker Setup**: [`docker/README.md`](docker/README.md) - Docker deployment guide (English)
+- **Docker Deployment**: [`docker/DEPLOYMENT_DE.md`](docker/DEPLOYMENT_DE.md) - Detailed deployment guide (German)
+- **Documentation Hub**: [`docs/README.md`](docs/README.md) - Complete documentation overview
+
+### Database
+- **Database Setup**: [`docs/db/DATABASE_SETUP_GUIDE.md`](docs/db/DATABASE_SETUP_GUIDE.md) - Quick start guide
+- **Database Structure**: [`docs/db/DATABASE_STRUCTURE.md`](docs/db/DATABASE_STRUCTURE.md) - Complete schema documentation
+- **Dynamic Metrics**: [`docs/db/DYNAMIC_METRICS.md`](docs/db/DYNAMIC_METRICS.md) - How the metrics system works
+- **Data Hierarchy**: [`docs/db/HIERARCHY_STRUCTURE.md`](docs/db/HIERARCHY_STRUCTURE.md) - Understanding the data structure
 
 ---
-
-## 🤝 Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Test thoroughly
-4. Submit a pull request
-
----
-
-## 📝 License
-
-[Your License Here]
-
----
-
-## 👥 Authors
-
-[Your Name/Team]
-
----
-
-## 🙏 Acknowledgments
-
-Built with React, Vite, Express, and PostgreSQL.

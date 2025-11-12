@@ -401,17 +401,27 @@ DELETE FROM projects WHERE id = 'proj-butler';
 
 ### Quick Backup
 ```bash
-pg_dump -U denis -d butler_eval -f backup.sql
+pg_dump -U postgres -d butler_eval -f backup.sql
+```
+
+**Restore**:
+```bash
+psql -U postgres -d butler_eval -f backup.sql
+```
+
+**Export to CSV**:
+```bash
+psql -U postgres -d butler_eval -c "COPY runs TO STDOUT CSV HEADER" > runs.csv
 ```
 
 ### Restore
 ```bash
-psql -U denis -d butler_eval -f backup.sql
+psql -U postgres -d butler_eval -f backup.sql
 ```
 
 ### Export to CSV
 ```bash
-psql -U denis -d butler_eval -c "COPY runs TO STDOUT CSV HEADER" > runs.csv
+psql -U postgres -d butler_eval -c "COPY runs TO STDOUT CSV HEADER" > runs.csv
 ```
 
 ---
@@ -460,8 +470,9 @@ WHERE datname = 'butler_eval';
 ## 🚀 Quick Reference
 
 ### Connection
+**Example query**:
 ```bash
-psql -U denis -d butler_eval
+psql -U postgres -d butler_eval
 ```
 
 ### Backend

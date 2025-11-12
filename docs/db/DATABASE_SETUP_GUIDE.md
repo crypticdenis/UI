@@ -1,9 +1,10 @@
 ````markdown
 # Butler Eval - Database Setup Guide
 
-**For**: New team members  
-**Time Required**: 5-10 minutes  
 **Prerequisites**: PostgreSQL 14+ installed
+
+> 💡 **Using Docker?** The Docker deployment connects to your existing PostgreSQL database automatically.  
+> See [`docker/README.md`](../../docker/README.md) for containerized deployment.
 
 ---
 
@@ -30,7 +31,7 @@ EOF
 ### Step 3: Load Schema
 ```bash
 # From project root directory
-psql -U denis -d butler_eval -f database/schema.sql
+psql -U postgres -d butler_eval -f database/schema.sql
 
 # Or if using butler_user:
 psql -U butler_user -d butler_eval -f database/schema.sql
@@ -44,7 +45,7 @@ psql -U butler_user -d butler_eval -f database/schema.sql
 
 ### Check Tables Created
 ```bash
-psql -U denis -d butler_eval -c "\dt"
+psql -U postgres -d butler_eval -c "\dt"
 ```
 
 **Expected Output** (6 tables):
@@ -59,7 +60,7 @@ psql -U denis -d butler_eval -c "\dt"
 
 ### View Schema Details
 ```bash
-psql -U denis -d butler_eval -c "\d+ runs"
+psql -U postgres -d butler_eval -c "\d+ runs"
 ```
 
 ---
@@ -68,13 +69,13 @@ psql -U denis -d butler_eval -c "\d+ runs"
 
 If `database/mock_data.sql` is provided:
 ```bash
-psql -U denis -d butler_eval -f database/mock_data.sql
+psql -U postgres -d butler_eval -f database/mock_data.sql
 ```
 
 Otherwise, create a minimal example:
 ```sql
 -- Connect to database
-psql -U denis -d butler_eval
+psql -U postgres -d butler_eval
 
 -- Create sample project
 INSERT INTO projects (id, name, description, created_at, updated_at) VALUES
@@ -110,10 +111,10 @@ INSERT INTO runs (
 Edit `server/.env` or `server/server.js`:
 ```javascript
 const pool = new Pool({
-  user: 'denis',           // or 'butler_user'
+  user: 'butler_user',     // or 'postgres'
   host: 'localhost',
   database: 'butler_eval',
-  password: 'butler123',   // if using butler_user
+  password: 'butler123',
   port: 5432,
 });
 ```
@@ -175,7 +176,7 @@ createdb butler_eval
 ### "Permission denied"
 ```bash
 # Grant permissions
-psql -U postgres -d butler_eval -c "GRANT ALL ON SCHEMA public TO denis;"
+psql -U postgres -d butler_eval -c "GRANT ALL ON SCHEMA public TO butler_user;"
 ```
 
 ### "Cannot connect to server"
@@ -198,7 +199,7 @@ sudo systemctl start postgresql
 ```bash
 dropdb butler_eval
 createdb butler_eval
-psql -U denis -d butler_eval -f database/schema.sql
+psql -U postgres -d butler_eval -f database/schema.sql
 ```
 
 ### Or Just Truncate Data
@@ -237,12 +238,12 @@ GROUP BY p.name, w.name, sw.name;
 
 **Backup database**:
 ```bash
-pg_dump -U denis -d butler_eval -f backup_$(date +%Y%m%d).sql
+pg_dump -U postgres -d butler_eval -f backup_$(date +%Y%m%d).sql
 ```
 
 **Restore database**:
 ```bash
-psql -U denis -d butler_eval -f backup_20251110.sql
+psql -U postgres -d butler_eval -f backup_20251110.sql
 ```
 
 ---
