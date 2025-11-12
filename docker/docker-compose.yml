@@ -17,7 +17,7 @@ services:
       - PORT=3001
     restart: unless-stopped
     networks:
-      - butler-eval-network
+      - ai-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
       interval: 30s
@@ -41,11 +41,11 @@ services:
       - VITE_BASE_PATH=${VITE_BASE_PATH:-/}
     restart: unless-stopped
     networks:
-      - butler-eval-network
+      - ai-net
     depends_on:
       backend:
         condition: service_healthy
 
 networks:
-  butler-eval-network:
-    driver: bridge
+  ai-net:
+    external: true

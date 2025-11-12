@@ -40,3 +40,6 @@ data/legacy/
 scripts/legacy/
 docs/legacy/
 src/legacy/
+docker/.env.prod
+docker/.env.test
+docker/.env
