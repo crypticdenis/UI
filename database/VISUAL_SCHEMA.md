@@ -41,124 +41,134 @@
                │
                │ 1:N (CASCADE)
                │
-┌──────────────▼──────────────────────────────┐
-│                  runs                       │
-│─────────────────────────────────────────────│
-│ • id (PK) varchar(100)                      │
-│   subworkflow_id (FK) OR workflow_id (FK)   │
-│   base_id, version                          │
-│   model, prompt_version, timestamp          │
-│   input_text, expected_output, output       │
-│   output_score, rag_relevancy_score         │
-│   hallucination_rate, test_score            │
-│   system_prompt_alignment_score             │
-│   ...all score reason fields...            │
-└─────────────────────────────────────────────┘
+┌──────────────▼───────────────────────────────────────────┐
+│                       runs                               │
+│  (Denormalized - each row is a question/answer pair)     │
+│──────────────────────────────────────────────────────────│
+│ • id (PK) varchar(100) - "{base_id}-{version}"           │
+│   subworkflow_id (FK) OR workflow_id (FK)                │
+│   base_id - Question identifier (for comparison)         │
+│   version - Run version (e.g., "v1.0", "v2.0")           │
+│   model, prompt_version, timestamp                       │
+│                                                          │
+│ Ground Truth Data:                                       │
+│   ground_truth_id, input_text, expected_output           │
+│                                                          │
+│ Execution Data:                                          │
+│   execution_id, output                                   │
+│                                                          │
+│ Evaluation Scores (dynamic):                             │
+│   output_score, output_score_reason                      │
+│   rag_relevancy_score, rag_relevancy_score_reason        │
+│   hallucination_rate, hallucination_rate_reason          │
+│   system_prompt_alignment_score, ..._reason              │
+│   test_score (example custom metric)                     │
+│   ...any *_score or *_rate field will be detected...     │
+│                                                          │
+│ Status:                                                  │
+│   active, is_running                                     │
+└──────────────────────────────────────────────────────────┘
 
-
-┌─────────────────────────────┐
-│       run_questions         │
-│─────────────────────────────│
-│ • id (PK) integer           │
-│   run_id                    │
-│   question_number           │
-│   question_text             │
-│   ground_truth_answer       │
-│   expected_sources          │
-│   execution_answer          │
-│   execution_sources         │
-│   created_at                │
-└──────────────┬──────────────┘
-               │
-               │ 1:1 (CASCADE)
-               │
-┌──────────────▼──────────────┐
-│    question_evaluations     │
-│─────────────────────────────│
-│ • id (PK) integer           │
-│   question_id (FK)          │
-│   output_score              │
-│   rag_relevancy_score       │
-│   hallucination_rate        │
-│   system_prompt_..._score   │
-│   test_score                │
-│   reasoning                 │
-│   evaluation_metadata       │
-│   created_at, updated_at    │
-└─────────────────────────────┘
+Note: run_questions and question_evaluations tables exist in schema 
+      but are EMPTY and UNUSED. All data flows through runs table.
 ```
 
 ## Current Data Distribution
 
 ```
-Butler Evaluation Project (1)
-  └─ Main Butler Workflow (1)
-      ├─ Question Answering Subworkflow (5 runs)
-      │   ├─ run_gpt4_v1
-      │   ├─ run_gpt4_v2
-      │   ├─ run_claude_v1
-      │   ├─ run_claude_v2
-      │   └─ ...
+Butler Evaluation Project
+  └─ Main Butler Workflow
+      ├─ Question Answering Subworkflow
+      │   ├─ v1.0 (multiple questions, same version)
+      │   ├─ v2.0 (same questions, different version)
+      │   └─ v3.0 (same questions, different version)
       │
-      └─ RAG Performance Subworkflow (4 runs)
-          ├─ rag_test_v1
-          ├─ rag_test_v2
-          ├─ ...
-          └─ ...
+      └─ RAG Performance Subworkflow
+          ├─ v1.0 (different set of questions)
+          ├─ v2.0 (same questions, different version)
+          └─ v3.0 (same questions, different version)
 
-Total: 15 runs, 85 questions, 85 evaluations
+Example: 
+- Question with base_id=7 exists in v1.0, v2.0, v3.0
+- Each is a separate row in runs table
+- All can be compared side-by-side in UI
 ```
 
 ## Data Flow
 
 ```
-┌──────────────┐
-│ Test Script  │
-└──────┬───────┘
+┌──────────────────────────────────────────────────────┐
+│ Test Script / Data Import                            │
+└──────┬───────────────────────────────────────────────┘
        │
-       ↓ Executes tests
+       ↓ INSERT INTO runs (all data in one table)
        │
-┌──────▼─────────────────────────┐
-│   Populates Database           │
-│                                │
-│  runs (execution + scores)     │
-│  run_questions (Q&A details)   │
-│  question_evaluations (scores) │
-└──────┬─────────────────────────┘
+┌──────▼───────────────────────────────────────────────┐
+│  Database (PostgreSQL)                                │
+│                                                       │
+│  runs table contains:                                 │
+│  • Each row = 1 question/answer with scores           │
+│  • base_id = question identifier                      │
+│  • version = run version (v1.0, v2.0, etc.)           │
+│  • All ground truth, execution, and evaluation data   │
+│                                                       │
+│  Example: Question 7 across 3 versions = 3 rows       │
+│    - {7, "v1.0", model, prompt, scores...}            │
+│    - {7, "v2.0", model, prompt, scores...}            │
+│    - {7, "v3.0", model, prompt, scores...}            │
+└──────┬───────────────────────────────────────────────┘
        │
-       ↓ Backend queries
+       ↓ SELECT * FROM runs WHERE...
        │
-┌──────▼──────────────────────────┐
-│  GET /api/projects               │
-│                                  │
-│  buildProjectHierarchy()         │
-│  - SELECT projects               │
-│  - JOIN workflows                │
-│  - JOIN subworkflows             │
-│  - JOIN runs                     │
-│  - Format nested JSON            │
-└──────┬───────────────────────────┘
+┌──────▼───────────────────────────────────────────────┐
+│  Backend API (Node.js/Express)                        │
+│                                                       │
+│  GET /api/projects                                    │
+│  buildProjectHierarchy()                              │
+│    - JOIN projects → workflows → subworkflows → runs  │
+│    - Returns nested JSON hierarchy                    │
+│                                                       │
+│  GET /api/health                                      │
+│    - Database connection check                        │
+└──────┬───────────────────────────────────────────────┘
        │
-       ↓ Returns hierarchy
+       ↓ JSON API response
        │
-┌──────▼──────────────────────────┐
-│  Frontend React App              │
-│                                  │
-│  - RunsOverview.jsx              │
-│  - RunDetails.jsx                │
-│  - Comparison.jsx                │
-│  - QuestionComparison.jsx        │
-│                                  │
-│  metricUtils.js extracts         │
-│  dynamic metrics                 │
-└──────┬───────────────────────────┘
+┌──────▼───────────────────────────────────────────────┐
+│  Frontend (React + Vite)                              │
+│                                                       │
+│  1. RunsOverview.jsx                                  │
+│     • Groups runs by version                          │
+│     • Calculates aggregate scores                     │
+│     • Displays run cards with filters                 │
+│                                                       │
+│  2. RunDetails.jsx                                    │
+│     • Shows all questions in a specific run version   │
+│     • Each row = one question with scores             │
+│     • Click row → triggers comparison                 │
+│                                                       │
+│  3. QuestionComparison.jsx                            │
+│     • Filters: allRuns.filter(run => run.baseID === X)│
+│     • Shows same question across different versions   │
+│     • Calculates deltas (↑5%, ↓3%)                    │
+│     • Side-by-side comparison cards                   │
+│                                                       │
+│  metricUtils.js                                       │
+│     • getUniqueScoreFields() - detects all *_score    │
+│     • getScoreColor() - color codes 0-1 values        │
+│     • Dynamic metric system (no hardcoding!)          │
+└──────┬───────────────────────────────────────────────┘
        │
-       ↓ Renders
-       │
-┌──────▼──────────────────────────┐
-│  User sees color-coded metrics  │
-│  organized by hierarchy          │
-└──────────────────────────────────┘
+       ↓
+┌──────▼───────────────────────────────────────────────┐
+│  User Interface                                       │
+│                                                       │
+│  • Hierarchical navigation (Projects → Runs)          │
+│  • Color-coded scores (green=good, red=poor)          │
+│  • Filter by model, prompt version, score range       │
+│  • Compare same question across multiple versions     │
+│  • Export to CSV/JSON                                 │
+└───────────────────────────────────────────────────────┘
 ```
 
 ## Key Design Decisions
@@ -181,12 +191,46 @@ Total: 15 runs, 85 questions, 85 evaluations
 
 ## Table Relationships Summary
 
-| Parent → Child | Type | Delete Behavior |
-|----------------|------|-----------------|
-| projects → workflows | 1:N | CASCADE |
-| workflows → subworkflows | 1:N | CASCADE |
-| subworkflows → runs | 1:N | CASCADE |
-| workflows → runs | 1:N | CASCADE |
-| run_questions → question_evaluations | 1:1 | CASCADE |
+| Parent → Child | Type | Delete Behavior | Status |
+|----------------|------|-----------------|--------|
+| projects → workflows | 1:N | CASCADE | ✅ Active |
+| workflows → subworkflows | 1:N | CASCADE | ✅ Active |
+| subworkflows → runs | 1:N | CASCADE | ✅ Active |
+| workflows → runs | 1:N | CASCADE | ✅ Active |
+| run_questions → question_evaluations | 1:1 | CASCADE | ⚠️ Tables exist but UNUSED |
 
-**Note**: A run can belong to EITHER a workflow OR a subworkflow (constraint enforced)
+**Important Notes:**
+- A run can belong to EITHER a workflow OR a subworkflow (CHECK constraint enforced)
+- `run_questions` and `question_evaluations` tables exist for schema compatibility but contain no data
+- All actual data flows through the `runs` table
+- Each row in `runs` = one question/answer pair with complete evaluation data
+
+## Question Comparison Logic
+
+**How the UI compares questions across runs:**
+
+1. **Identification**: Questions are identified by `base_id` field
+2. **Versioning**: Same question exists in multiple rows with different `version` values
+3. **Filtering**: `allRuns.filter(run => run.baseID === selectedQuestionBaseID)`
+4. **Grouping**: Group filtered runs by `version` to get one row per version
+5. **Comparison**: Display side-by-side with delta calculations
+6. **Metrics**: Dynamically detect all `*_score` and `*_rate` fields
+
+**Example:**
+```
+Question "What is the capital of France?" (base_id = 7)
+
+runs table:
+┌────┬─────────┬─────────┬────────┬───────┬──────────────┬───────────────┐
+│ id │ base_id │ version │ model  │ output│ output_score │ rag_..._score │
+├────┼─────────┼─────────┼────────┼───────┼──────────────┼───────────────┤
+│7-v1│    7    │  v1.0   │ gpt-4  │ Paris │    0.95      │     0.88      │
+│7-v2│    7    │  v2.0   │ gpt-4  │ Paris │    0.98      │     0.92      │
+│7-v3│    7    │  v3.0   │ claude │ Paris │    0.97      │     0.90      │
+└────┴─────────┴─────────┴────────┴───────┴──────────────┴───────────────┘
+
+Comparison UI shows:
+• v1.0: 0.95 score
+• v2.0: 0.98 score (+3% vs v1.0) ↑
+• v3.0: 0.97 score (+2% vs v1.0) ↑
+```
