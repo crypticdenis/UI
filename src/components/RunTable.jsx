@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import CollapsibleCell from './CollapsibleCell';
 
 const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpandContent }) => {
   const handleSelect = (id) => {
-    setSelectedRuns((prevSelectedRuns) => {
+    setSelectedRuns?.((prevSelectedRuns) => {
       if (prevSelectedRuns.includes(id)) {
         return prevSelectedRuns.filter((runId) => runId !== id);
       } else {
@@ -13,23 +13,109 @@ const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpan
   };
 
   const getScoreColorGranular = (score) => {
-    // Handle null, undefined, or non-numeric values
     if (score === null || score === undefined || isNaN(score)) {
-      return '#6b7280'; // Gray for invalid values
+      return '#6b7280';
     }
     
-    // Convert to number and normalize to 0-1 range if needed
     const numScore = Number(score);
     const normalizedScore = numScore > 1 ? numScore / 10 : numScore;
     
-    if (normalizedScore >= 0.9) return '#059669'; // emerald-600 - excellent
-    if (normalizedScore >= 0.8) return '#10b981'; // emerald-500 - very good
-    if (normalizedScore >= 0.7) return '#34d399'; // emerald-400 - good
-    if (normalizedScore >= 0.6) return '#fbbf24'; // amber-400 - moderate
-    if (normalizedScore >= 0.5) return '#f59e0b'; // amber-500 - fair
-    if (normalizedScore >= 0.4) return '#f97316'; // orange-500 - poor
-    if (normalizedScore >= 0.3) return '#ef4444'; // red-500 - bad
-    return '#dc2626'; // red-600 - very bad
+    if (normalizedScore >= 0.9) return '#059669';
+    if (normalizedScore >= 0.8) return '#10b981';
+    if (normalizedScore >= 0.7) return '#34d399';
+    if (normalizedScore >= 0.6) return '#fbbf24';
+    if (normalizedScore >= 0.5) return '#f59e0b';
+    if (normalizedScore >= 0.4) return '#f97316';
+    if (normalizedScore >= 0.3) return '#ef4444';
+    return '#dc2626';
+  };
+
+  // Extract all columns dynamically from flat database structure
+  const allColumns = useMemo(() => {
+    if (!runs || runs.length === 0) return [];
+    
+    const cols = [];
+    const seen = new Set();
+    
+    runs.forEach(run => {
+      Object.keys(run).forEach(key => {
+        if (seen.has(key)) return;
+        
+        const value = run[key];
+        
+        // Skip null/undefined
+        if (value === null || value === undefined) return;
+        
+        // Skip system fields
+        if (['runId', 'creationTs', 'executionTs'].includes(key)) return;
+        
+        seen.add(key);
+        
+        // Determine display name
+        let display = key
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/_/g, ' ')
+          .trim()
+          .replace(/\b\w/g, l => l.toUpperCase());
+        
+        cols.push({ key, display });
+      });
+    });
+    
+    // Sort columns: id first, then input/output fields, then metrics, then others
+    return cols.sort((a, b) => {
+      const order = {
+        'id': 0,
+        'input': 1,
+        'expectedOutput': 2,
+        'output': 3,
+      };
+      
+      const aOrder = order[a.key] ?? (a.key.toLowerCase().includes('score') || 
+                                      a.key.toLowerCase().includes('accuracy') ||
+                                      a.key.toLowerCase().includes('rate') ? 100 : 200);
+      const bOrder = order[b.key] ?? (b.key.toLowerCase().includes('score') || 
+                                      b.key.toLowerCase().includes('accuracy') ||
+                                      b.key.toLowerCase().includes('rate') ? 100 : 200);
+      
+      if (aOrder !== bOrder) return aOrder - bOrder;
+      return a.key.localeCompare(b.key);
+    });
+  }, [runs]);
+
+  const getCellValue = (run, colKey) => {
+    const value = run[colKey];
+    // If it's a metric object with {value, reason}, extract the value
+    if (value && typeof value === 'object' && 'value' in value) {
+      return value.value;
+    }
+    return value;
+  };
+
+  const isNumeric = (value) => {
+    return typeof value === 'number' && !isNaN(value);
+  };
+
+  const isLongText = (value) => {
+    return typeof value === 'string' && value.length > 50;
+  };
+
+  const isMetricField = (key) => {
+    const lower = key.toLowerCase();
+    return lower.includes('score') || 
+           lower.includes('rate') || 
+           lower.includes('accuracy') ||
+           lower.includes('precision') ||
+           lower.includes('recall');
+  };
+
+  const formatValue = (value) => {
+    if (value === null || value === undefined) return '-';
+    if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+    if (typeof value === 'number') return value.toFixed(2);
+    if (typeof value === 'string') return value;
+    if (typeof value === 'object') return JSON.stringify(value);
+    return String(value);
   };
 
   return (
@@ -37,189 +123,92 @@ const RunTable = ({ runs, selectedRuns, setSelectedRuns, visibleColumns, onExpan
       <table className="run-table">
         <thead>
           <tr>
-            {visibleColumns.compare && <th>Compare</th>}
-            {visibleColumns.ID && <th>ID</th>}
-            {visibleColumns.timestamp && <th>Timestamp</th>}
-            {visibleColumns.model && <th>Model</th>}
-            {visibleColumns.promptVersion && <th>Prompt Version</th>}
-            {visibleColumns.active && <th>Active</th>}
-            {visibleColumns.isRunning && <th>Is Running</th>}
-            {visibleColumns.gtID && <th>GT ID</th>}
-            {visibleColumns.input && <th>Input</th>}
-            {visibleColumns.expectedOutput && <th>Expected Output</th>}
-            {visibleColumns.output && <th>Actual Output</th>}
-            {visibleColumns.outputScore && <th>Output Score</th>}
-            {visibleColumns.outputScoreReason && <th>Output Score Reason</th>}
-            {visibleColumns.ragRelevancyScore && <th>RAG Relevancy Score</th>}
-            {visibleColumns.ragRelevancyScoreReason && <th>RAG Relevancy Reason</th>}
-            {visibleColumns.hallucinationRate && <th>Hallucination Rate</th>}
-            {visibleColumns.hallucinationRateReason && <th>Hallucination Reason</th>}
-            {visibleColumns.systemPromptScore && <th>System Prompt Score</th>}
-            {visibleColumns.systemPromptScoreReason && <th>System Prompt Reason</th>}
+            {visibleColumns?.compare && <th>Compare</th>}
+            {allColumns.map(col => (
+              <th key={col.key}>{col.display}</th>
+            ))}
           </tr>
         </thead>
         <tbody>
           {runs.map((run) => (
-            <tr key={run.ID}>
-              {visibleColumns.compare && (
+            <tr key={run.id}>
+              {visibleColumns?.compare && (
                 <td>
                   <input
                     type="checkbox"
-                    checked={selectedRuns.includes(run.ID)}
-                    onChange={() => handleSelect(run.ID)}
+                    checked={selectedRuns?.includes(run.id)}
+                    onChange={() => handleSelect(run.id)}
                   />
                 </td>
               )}
-              {visibleColumns.ID && <td>{run.ID}</td>}
-              {visibleColumns.timestamp && (
-                <td style={{ fontSize: '12px', color: '#94a3b8' }}>
-                  {run.timestamp ? new Date(run.timestamp).toLocaleString('de-DE', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  }) : '-'}
-                </td>
-              )}
-              {visibleColumns.model && (
-                <td style={{ 
-                  fontSize: '13px', 
-                  fontWeight: '500',
-                  color: '#60a5fa'
-                }}>
-                  {run.model || '-'}
-                </td>
-              )}
-              {visibleColumns.promptVersion && (
-                <td style={{ 
-                  fontSize: '13px', 
-                  fontWeight: '500',
-                  color: '#fe8f0f'
-                }}>
-                  {run.promptVersion || '-'}
-                </td>
-              )}
-              {visibleColumns.active && <td>{run.active ? 'Yes' : 'No'}</td>}
-              {visibleColumns.isRunning && <td>{run.IsRunning ? 'Yes' : 'No'}</td>}
-              {visibleColumns.gtID && <td>{run.GroundTruthData?.ID || '-'}</td>}
-              {visibleColumns.input && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.GroundTruthData?.Input || run['Test-Input']} 
-                    title="Input / Question"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
-              {visibleColumns.expectedOutput && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.GroundTruthData?.expectedOutput || run['Expected-Output']} 
-                    title="Expected Output"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
-              {visibleColumns.output && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.ExecutionData?.output || run['Actual-Output']} 
-                    title="Actual Output"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
-              {visibleColumns.outputScore && (
-                <td style={{ 
-                  backgroundColor: getScoreColorGranular(run.ExecutionData?.outputScore || run.Score), 
-                  color: '#ffffff',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }}>
-                  {run.ExecutionData?.outputScore || run.Score}
-                </td>
-              )}
-              {visibleColumns.outputScoreReason && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.ExecutionData?.outputScoreReason || run.ScoreReason} 
-                    title="Output Score Reason"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
-              {visibleColumns.ragRelevancyScore && (
-                <td style={{ 
-                  backgroundColor: getScoreColorGranular(run.ExecutionData?.ragRelevancyScore || run['RAG Relevancy Score']), 
-                  color: '#ffffff',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }}>
-                  {run.ExecutionData?.ragRelevancyScore || run['RAG Relevancy Score']}
-                </td>
-              )}
-              {visibleColumns.ragRelevancyScoreReason && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.ExecutionData?.ragRelevancyScoreReason || run['RAG Relevancy Reason']} 
-                    title="RAG Relevancy Reason"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
-              {visibleColumns.hallucinationRate && (
-                <td style={{ 
-                  backgroundColor: getScoreColorGranular(run.ExecutionData?.hallucinationRate || 0), 
-                  color: '#ffffff',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }}>
-                  {run.ExecutionData?.hallucinationRate?.toFixed(2) || '-'}
-                </td>
-              )}
-              {visibleColumns.hallucinationRateReason && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.ExecutionData?.hallucinationRateReason || '-'} 
-                    title="Hallucination Rate Reason"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
-              {visibleColumns.systemPromptScore && (
-                <td style={{ 
-                  backgroundColor: getScoreColorGranular(run.ExecutionData?.systemPromptAlignmentScore || 0), 
-                  color: '#ffffff',
-                  fontWeight: '600',
-                  textAlign: 'center'
-                }}>
-                  {run.ExecutionData?.systemPromptAlignmentScore?.toFixed(2) || '-'}
-                </td>
-              )}
-              {visibleColumns.systemPromptScoreReason && (
-                <td>
-                  <CollapsibleCell 
-                    content={run.ExecutionData?.systemPromptAlignmentScoreReason || '-'} 
-                    title="System Prompt Alignment Reason"
-                    runId={run.ID}
-                    gtId={run.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-              )}
+              {allColumns.map(col => {
+                const value = getCellValue(run, col.key);
+                
+                // Handle ID
+                if (col.key === 'id') {
+                  return (
+                    <td key={col.key} style={{ fontWeight: '600', color: '#60a5fa' }}>
+                      {value}
+                    </td>
+                  );
+                }
+                
+                // Handle timestamps
+                if (col.key.toLowerCase().includes('timestamp') || col.key.toLowerCase().includes('ts')) {
+                  return (
+                    <td key={col.key} style={{ fontSize: '12px', color: '#94a3b8' }}>
+                      {value ? new Date(value).toLocaleString('de-DE', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      }) : '-'}
+                    </td>
+                  );
+                }
+                
+                // Handle numeric metrics with color coding
+                if (isNumeric(value) && isMetricField(col.key)) {
+                  const metricObj = run[col.key];
+                  const reason = metricObj?.reason || '';
+                  
+                  return (
+                    <td 
+                      key={col.key} 
+                      style={{ 
+                        backgroundColor: getScoreColorGranular(value), 
+                        color: '#ffffff',
+                        fontWeight: '600',
+                        textAlign: 'center'
+                      }}
+                      title={reason}
+                    >
+                      {value.toFixed(2)}
+                    </td>
+                  );
+                }
+                
+                // Handle long text with collapsible cell
+                if (isLongText(value)) {
+                  return (
+                    <td key={col.key}>
+                      <CollapsibleCell 
+                        content={value} 
+                        title={col.display}
+                        runId={run.id}
+                        gtId={run.id}
+                        onExpand={onExpandContent}
+                      />
+                    </td>
+                  );
+                }
+                
+                // Default rendering
+                return (
+                  <td key={col.key}>{formatValue(value)}</td>
+                );
+              })}
             </tr>
           ))}
         </tbody>

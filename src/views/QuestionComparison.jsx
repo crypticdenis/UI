@@ -2,18 +2,57 @@ import React, { useState, useMemo } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
 const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => {
-  // Get all runs that have this question (same baseID)
-  const questionsWithSameID = allRuns.filter(run => run.baseID === baseID);
+  // Find the base execution and its position within its run
+  const baseRun = allRuns.find(run => (run.runs || []).some(exec => exec.id === baseID));
+  const baseExecutions = baseRun?.runs || [];
+  const baseIndex = baseExecutions.findIndex(exec => exec.id === baseID);
+  const baseExecution = baseExecutions[baseIndex];
   
-  // Group by version
+  // Match executions at the SAME POSITION across all runs (same workflow)
+  const questionsWithSameID = allRuns.flatMap(run => {
+    const executions = run.runs || [];
+    const matchingExec = executions[baseIndex];
+    if (matchingExec) {
+      return [{
+        ...matchingExec,
+        runVersion: run.version,
+        runId: run.id
+      }];
+    }
+    return [];
+  });
+  
+  const allExecutions = allRuns.flatMap(run => 
+    (run.runs || []).map(exec => ({
+      ...exec,
+      runVersion: run.version,
+      runId: run.id
+    }))
+  );
+  
+  console.log('QuestionComparison - baseID:', baseID);
+  console.log('QuestionComparison - baseExecution:', baseExecution);
+  console.log('QuestionComparison - baseIndex:', baseIndex);
+  console.log('QuestionComparison - currentRunVersion:', currentRunVersion);
+  console.log('QuestionComparison - allRuns:', allRuns);
+  console.log('QuestionComparison - allRuns length:', allRuns.length);
+  if (allRuns.length > 0) {
+    console.log('QuestionComparison - first run:', allRuns[0]);
+  }
+  console.log('QuestionComparison - allExecutions:', allExecutions);
+  console.log('QuestionComparison - questionsWithSameID:', questionsWithSameID);
+  
+  // Group by run version
   const runsByVersion = questionsWithSameID.reduce((acc, q) => {
-    if (!acc[q.version]) {
-      acc[q.version] = q;
+    if (!acc[q.runVersion]) {
+      acc[q.runVersion] = q;
     }
     return acc;
   }, {});
 
   const availableVersions = Object.keys(runsByVersion);
+  console.log('QuestionComparison - availableVersions:', availableVersions);
+  console.log('QuestionComparison - runsByVersion:', runsByVersion);
   
   // Initialize with current run selected
   const [selectedVersions, setSelectedVersions] = useState([currentRunVersion]);
@@ -30,9 +69,9 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
     .map(v => runsByVersion[v])
     .filter(Boolean)
     .sort((a, b) => {
-      // Sort by timestamp
-      if (a.timestamp && b.timestamp) {
-        return new Date(a.timestamp) - new Date(b.timestamp);
+      // Sort by execution timestamp
+      if (a.executionTs && b.executionTs) {
+        return new Date(a.executionTs) - new Date(b.executionTs);
       }
       return 0;
     });
@@ -73,27 +112,30 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
     );
   };
 
-  // Get all unique score fields dynamically
-  const scoreFields = useMemo(() => getUniqueScoreFields(allRuns), [allRuns]);
+  // Get all unique score fields dynamically from executions
+  const scoreFields = useMemo(() => getUniqueScoreFields(questionsWithSameID), [questionsWithSameID]);
 
   const [expandedContent, setExpandedContent] = useState(null);
 
   const exportComparison = (format) => {
     if (format === 'json') {
       const exportData = selectedQuestions.map(q => ({
+        id: q.id,
         version: q.version,
-        baseID: q.baseID,
-        model: q.model,
-        promptVersion: q.promptVersion,
         timestamp: q.timestamp,
-        input: q.GroundTruthData?.Input || q['Test-Input'],
-        output: q.ExecutionData?.output || q['Actual-Output'],
-        scores: {
-          outputScore: q.ExecutionData?.outputScore,
-          ragRelevancyScore: q.ExecutionData?.ragRelevancyScore,
-          hallucinationRate: q.ExecutionData?.hallucinationRate,
-          systemPromptAlignmentScore: q.ExecutionData?.systemPromptAlignmentScore
-        }
+        input: q.input,
+        expectedOutput: q.expectedOutput,
+        output: q.output,
+        metrics: scoreFields.reduce((acc, field) => {
+          const metricData = q[field.key];
+          if (metricData && typeof metricData === 'object' && 'value' in metricData) {
+            acc[field.key] = {
+              value: metricData.value,
+              reason: metricData.reason
+            };
+          }
+          return acc;
+        }, {})
       }));
       
       const dataStr = JSON.stringify(exportData, null, 2);
@@ -134,7 +176,12 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
     <div className="comparison-modal-overlay" onClick={onClose}>
       <div className="comparison-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="comparison-modal-header">
-          <h2>Compare Question {baseID} Across Runs</h2>
+          <h2>Compare Question Across Runs</h2>
+          {baseExecution && (
+            <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '8px', fontStyle: 'italic' }}>
+              Position {baseIndex + 1}: "{baseExecution.input?.length > 80 ? baseExecution.input.substring(0, 80) + '...' : baseExecution.input}"
+            </div>
+          )}
           <div className="modal-header-actions">
             <div className="export-buttons">
               <button 
@@ -174,19 +221,53 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
         </div>
 
         <div className="comparison-modal-body">
-          <div className="comparison-selector">
-            <h3>Select Runs to Compare:</h3>
-            <div className="version-selection-grid">
-              {availableVersions.map(version => {
+          {availableVersions.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center' }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
+              <h3 style={{ color: '#94a3b8', marginBottom: '12px' }}>No Matching Executions Found</h3>
+              <p style={{ color: '#64748b', marginBottom: '8px' }}>
+                Could not find other runs with execution at position {baseIndex + 1}
+              </p>
+              <div style={{ marginTop: '24px', padding: '16px', background: '#1e293b', borderRadius: '8px', textAlign: 'left' }}>
+                <strong style={{ color: '#60a5fa' }}>Debug Info:</strong>
+                <div style={{ fontFamily: 'monospace', fontSize: '12px', marginTop: '8px', color: '#cbd5e1' }}>
+                  <div>Execution ID: {baseID}</div>
+                  <div>Position in run: {baseIndex + 1}</div>
+                  <div>Question: {baseExecution?.input}</div>
+                  <div>Total runs available: {allRuns.length}</div>
+                  <div>Total executions found: {allExecutions.length}</div>
+                  <div>Executions at same position: {questionsWithSameID.length}</div>
+                  <div>Current run version: {currentRunVersion}</div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="comparison-selector">
+                <h3>Select Runs to Compare:</h3>
+                {availableVersions.length === 1 && (
+                  <div style={{ padding: '12px', marginBottom: '16px', background: '#1e40af20', border: '1px solid #3b82f6', borderRadius: '6px', color: '#93c5fd' }}>
+                    ℹ️ Only one run found with this execution. Add more runs to compare across versions.
+                  </div>
+                )}
+                <div className="version-selection-grid">
+                  {availableVersions.map(version => {
                 const run = runsByVersion[version];
                 const isSelected = selectedVersions.includes(version);
-                // Calculate average score dynamically from all numeric score fields
-                const avgScore = run.ExecutionData ? (() => {
+                // Calculate average score dynamically from all metric fields
+                const avgScore = (() => {
                   const scores = scoreFields
-                    .map(f => run.ExecutionData[f.key])
+                    .map(f => {
+                      const val = run[f.key];
+                      // Handle metric objects with value property
+                      if (val && typeof val === 'object' && 'value' in val) {
+                        return val.value;
+                      }
+                      return val;
+                    })
                     .filter(v => v != null && !isNaN(v));
                   return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-                })() : 0;
+                })();
                 
                 return (
                   <div
@@ -246,14 +327,18 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                     </div>
                     
                     <div className="version-card-scores">
-                      {scoreFields.slice(0, 4).map(field => (
-                        <div key={field.key} className="mini-score">
-                          <span className="mini-score-label">{field.label.split(' ')[0]}</span>
-                          <span className="mini-score-value" style={{ color: getScoreColor(run.ExecutionData?.[field.key]) }}>
-                            {formatNumber(run.ExecutionData?.[field.key])}
-                          </span>
-                        </div>
-                      ))}
+                      {scoreFields.slice(0, 4).map(field => {
+                        const val = run[field.key];
+                        const score = val && typeof val === 'object' && 'value' in val ? val.value : val;
+                        return (
+                          <div key={field.key} className="mini-score">
+                            <span className="mini-score-label">{field.label.split(' ')[0]}</span>
+                            <span className="mini-score-value" style={{ color: getScoreColor(score) }}>
+                              {formatNumber(score)}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 );
@@ -270,8 +355,8 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
           {selectedQuestions.length > 0 && (
             <div className="comparison-container">
               {selectedQuestions.map((question) => (
-                <div key={question.ID} className="comparison-card">
-                  <h3>Run: {question.version}</h3>
+                <div key={question.id} className="comparison-card">
+                  <h3>Run: {question.runVersion}</h3>
                   <div style={{ 
                     display: 'flex', 
                     gap: '16px', 
@@ -280,9 +365,9 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                     borderBottom: '1px solid rgba(96, 165, 250, 0.2)',
                     flexWrap: 'wrap'
                   }}>
-                    {question.timestamp && (
+                    {question.executionTs && (
                       <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-                        <strong>⏰ Zeitstempel:</strong> {new Date(question.timestamp).toLocaleString('de-DE', {
+                        <strong>⏰ Timestamp:</strong> {new Date(question.executionTs).toLocaleString('de-DE', {
                           year: 'numeric',
                           month: 'long',
                           day: '2-digit',
@@ -292,14 +377,14 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                         })}
                       </span>
                     )}
-                    {question.model && (
+                    {question.duration != null && (
                       <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '600' }}>
-                        <strong>Model:</strong> {question.model}
+                        <strong>Duration:</strong> {question.duration}s
                       </span>
                     )}
-                    {question.promptVersion && (
+                    {question.totalTokens != null && (
                       <span style={{ fontSize: '13px', color: '#fe8f0f', fontWeight: '600' }}>
-                        <strong>Prompt:</strong> {question.promptVersion}
+                        <strong>Tokens:</strong> {question.totalTokens}
                       </span>
                     )}
                   </div>
@@ -308,15 +393,39 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                   <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                       <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', flex: 1, fontSize: '14px', color: '#cbd5e1' }}>
-                        {(question.GroundTruthData?.Input || question['Test-Input'] || '').substring(0, 200)}
-                        {(question.GroundTruthData?.Input || question['Test-Input'] || '').length > 200 && '...'}
+                        {(question.input || '').substring(0, 200)}
+                        {(question.input || '').length > 200 && '...'}
                       </div>
-                      {(question.GroundTruthData?.Input || question['Test-Input'] || '').length > 200 && (
+                      {(question.input || '').length > 200 && (
                         <button
                           className="comparison-expand-icon"
                           onClick={() => setExpandedContent({ 
-                            title: `${question.version} - Input`, 
-                            content: question.GroundTruthData?.Input || question['Test-Input'] 
+                            title: `${question.runVersion} - Input`, 
+                            content: question.input 
+                          })}
+                          title="View full content"
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#fbbf24' }}>Expected Output</h4>
+                  <div style={{ marginBottom: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
+                      <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', flex: 1, fontSize: '14px', color: '#cbd5e1' }}>
+                        {(question.expectedOutput || '').substring(0, 300)}
+                        {(question.expectedOutput || '').length > 300 && '...'}
+                      </div>
+                      {(question.expectedOutput || '').length > 300 && (
+                        <button
+                          className="comparison-expand-icon"
+                          onClick={() => setExpandedContent({ 
+                            title: `${question.runVersion} - Expected Output`, 
+                            content: question.expectedOutput 
                           })}
                           title="View full content"
                         >
@@ -332,15 +441,15 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                   <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
                       <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', flex: 1, fontSize: '14px', color: '#cbd5e1' }}>
-                        {(question.ExecutionData?.output || question['Actual-Output'] || '').substring(0, 300)}
-                        {(question.ExecutionData?.output || question['Actual-Output'] || '').length > 300 && '...'}
+                        {(question.output || '').substring(0, 300)}
+                        {(question.output || '').length > 300 && '...'}
                       </div>
-                      {(question.ExecutionData?.output || question['Actual-Output'] || '').length > 300 && (
+                      {(question.output || '').length > 300 && (
                         <button
                           className="comparison-expand-icon"
                           onClick={() => setExpandedContent({ 
-                            title: `${question.version} - Output`, 
-                            content: question.ExecutionData?.output || question['Actual-Output'] 
+                            title: `${question.runVersion} - Output`, 
+                            content: question.output 
                           })}
                           title="View full content"
                         >
@@ -354,17 +463,25 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
 
                   <h4 style={{ marginTop: '16px', marginBottom: '12px', color: '#34d399' }}>Evaluation Scores</h4>
                   <div className="comparison-scores-enhanced">
-                    {scoreFields.map(field => 
-                      renderScoreWithDelta(
-                        question.ExecutionData?.[field.key],
-                        selectedQuestions[0]?.ExecutionData?.[field.key],
+                    {scoreFields.map(field => {
+                      const currentVal = question[field.key];
+                      const currentScore = currentVal && typeof currentVal === 'object' && 'value' in currentVal ? currentVal.value : currentVal;
+                      
+                      const prevVal = selectedQuestions[0]?.[field.key];
+                      const prevScore = prevVal && typeof prevVal === 'object' && 'value' in prevVal ? prevVal.value : prevVal;
+                      
+                      return renderScoreWithDelta(
+                        currentScore,
+                        prevScore,
                         field.label
-                      )
-                    )}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
             </div>
+          )}
+            </> 
           )}
         </div>
 

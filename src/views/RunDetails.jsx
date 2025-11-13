@@ -1,280 +1,362 @@
 import React, { useState, useMemo } from 'react';
 import CollapsibleCell from '../components/CollapsibleCell';
-import { 
-  calculateAggregateScores, 
-  getScoreColor, 
-  getUniqueScoreFields
-} from '../utils/metricUtils';
+
+const getScoreColor = (score) => {
+  if (score >= 0.9) return '#10b981';
+  if (score >= 0.8) return '#22c55e';
+  if (score >= 0.7) return '#84cc16';
+  if (score >= 0.6) return '#eab308';
+  if (score >= 0.5) return '#f97316';
+  return '#ef4444';
+};
 
 const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpandContent }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'baseID', direction: 'ascending' });
-  const [filters, setFilters] = useState({
-    baseID: '',
-    input: '',
-    outputScore: ''
-  });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+  const [searchInput, setSearchInput] = useState('');
+  const [expandedRows, setExpandedRows] = useState(new Set());
 
-  // Extract unique values for dropdowns
-  const uniqueBaseIDs = [...new Set(questions.map(q => q.baseID).filter(Boolean))].sort((a, b) => a - b);
-  const uniqueScoreRanges = [
-    { label: '0.9 - 1.0 (Excellent)', min: 0.9, max: 1.0 },
-    { label: '0.8 - 0.9 (Good)', min: 0.8, max: 0.9 },
-    { label: '0.7 - 0.8 (Fair)', min: 0.7, max: 0.8 },
-    { label: '0.6 - 0.7 (Average)', min: 0.6, max: 0.7 },
-    { label: '0.5 - 0.6 (Below Average)', min: 0.5, max: 0.6 },
-    { label: '< 0.5 (Poor)', min: 0, max: 0.5 }
-  ];
+  console.log('RunDetails received:', { runVersion, questionsCount: questions?.length, questions });
+  
+  const toggleRowExpansion = (questionId) => {
+    setExpandedRows(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(questionId)) {
+        newSet.delete(questionId);
+      } else {
+        newSet.add(questionId);
+      }
+      return newSet;
+    });
+  };
+
+  // Define field display order helper first
+  const getFieldOrder = (key) => {
+    const orderMap = {
+      'id': 1,
+      'sessionId': 5,
+      'input': 10,
+      'expectedOutput': 11,
+      'output': 12,
+      'duration': 100,
+      'totalTokens': 101,
+      'executionTs': 102,
+    };
+    
+    // Metrics get 200+, everything else gets 300+
+    if (orderMap[key] !== undefined) return orderMap[key];
+    return key.toLowerCase().includes('score') || 
+           key.toLowerCase().includes('rate') || 
+           key.toLowerCase().includes('accuracy') ||
+           key.toLowerCase().includes('metric') ? 200 : 300;
+  };
+
+  // Extract ALL fields dynamically from the data
+  const allFields = useMemo(() => {
+    if (!questions || questions.length === 0) return [];
+    
+    const fieldMap = new Map();
+    const skipFields = new Set(['runId', 'workflowId', 'parentExecutionId', 'creationTs']);
+    
+    questions.forEach(q => {
+      Object.keys(q).forEach(key => {
+        if (skipFields.has(key)) return; // Skip internal fields
+        
+        const val = q[key];
+        if (!fieldMap.has(key)) {
+          // Determine field type
+          let type = 'text';
+          let isMetric = false;
+          
+          if (val && typeof val === 'object' && 'value' in val) {
+            // Metric object with {value, reason}
+            type = typeof val.value === 'number' ? 'metric' : 'text';
+            isMetric = true;
+          } else if (typeof val === 'number') {
+            type = 'number';
+          } else if (typeof val === 'string' && val.length > 50) {
+            type = 'longtext';
+          }
+          
+          fieldMap.set(key, {
+            key,
+            label: key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().replace(/\b\w/g, l => l.toUpperCase()),
+            type,
+            isMetric,
+            order: getFieldOrder(key)
+          });
+        } else {
+          // Update field type if we find a longer value
+          const existingField = fieldMap.get(key);
+          if (existingField.type === 'text' && typeof val === 'string' && val.length > 50) {
+            existingField.type = 'longtext';
+          }
+        }
+      });
+    });
+    
+    // Sort fields by order
+    return Array.from(fieldMap.values()).sort((a, b) => a.order - b.order);
+  }, [questions]);
 
   // Filter questions
-  const filteredQuestions = questions.filter(q => {
-    if (filters.baseID && q.baseID !== parseInt(filters.baseID)) return false;
-    if (filters.input && !(q.GroundTruthData?.Input || '').toLowerCase().includes(filters.input.toLowerCase())) return false;
-    if (filters.outputScore) {
-      const scoreRange = uniqueScoreRanges.find(r => r.label === filters.outputScore);
-      if (scoreRange) {
-        const score = q.ExecutionData?.outputScore || 0;
-        if (score < scoreRange.min || score >= scoreRange.max) return false;
-      }
-    }
-    return true;
-  });
+  const filteredQuestions = useMemo(() => {
+    if (!questions) return [];
+    
+    return questions.filter(q => {
+      if (!searchInput) return true;
+      const search = searchInput.toLowerCase();
+      return (
+        (q.input || '').toLowerCase().includes(search) ||
+        (q.output || '').toLowerCase().includes(search) ||
+        (q.expectedOutput || '').toLowerCase().includes(search)
+      );
+    });
+  }, [questions, searchInput]);
 
   // Sort questions
-  const sortedQuestions = [...filteredQuestions].sort((a, b) => {
-    let aValue, bValue;
+  const sortedQuestions = useMemo(() => {
+    return [...filteredQuestions].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
 
-    if (sortConfig.key.startsWith('ExecutionData.')) {
-      const field = sortConfig.key.split('.')[1];
-      aValue = a.ExecutionData?.[field];
-      bValue = b.ExecutionData?.[field];
-    } else {
-      aValue = a[sortConfig.key];
-      bValue = b[sortConfig.key];
+      // Handle metric objects - extract value
+      if (aValue && typeof aValue === 'object' && 'value' in aValue) {
+        aValue = aValue.value;
+      }
+      if (bValue && typeof bValue === 'object' && 'value' in bValue) {
+        bValue = bValue.value;
+      }
+
+      if (aValue == null) return 1;
+      if (bValue == null) return -1;
+
+      // Handle numeric sorting
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+      }
+
+      // Handle string sorting
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortConfig.direction === 'ascending' 
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      return 0;
+    });
+  }, [filteredQuestions, sortConfig]);
+
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'ascending' ? 'descending' : 'ascending'
+    }));
+  };
+
+  const getCellValue = (question, field) => {
+    const value = question[field.key];
+    
+    if (value == null || value === undefined) return '-';
+    
+    // Handle metric objects
+    if (field.isMetric && typeof value === 'object' && 'value' in value) {
+      return value.value;
     }
+    
+    return value;
+  };
 
-    // Numeric sorting
-    if (['baseID', 'outputScore', 'ragRelevancyScore', 'hallucinationRate', 'systemPromptAlignmentScore'].includes(sortConfig.key) ||
-        sortConfig.key.includes('Score') || sortConfig.key.includes('Rate')) {
-      const aNum = parseFloat(aValue) || 0;
-      const bNum = parseFloat(bValue) || 0;
-      return sortConfig.direction === 'ascending' ? aNum - bNum : bNum - aNum;
+  const getCellReason = (question, field) => {
+    if (!field.isMetric) return null;
+    const value = question[field.key];
+    if (value && typeof value === 'object' && 'reason' in value) {
+      return value.reason;
     }
-
-    // String sorting
-    const aStr = String(aValue || '').toLowerCase();
-    const bStr = String(bValue || '').toLowerCase();
-    if (aStr < bStr) return sortConfig.direction === 'ascending' ? -1 : 1;
-    if (aStr > bStr) return sortConfig.direction === 'ascending' ? 1 : -1;
-    return 0;
-  });
-
-  // Calculate aggregate scores dynamically
-  const aggregateScores = useMemo(() => calculateAggregateScores(questions), [questions]);
-  
-  // Get all unique score fields from the questions
-  const scoreFields = useMemo(() => getUniqueScoreFields(questions), [questions]);
-
-  const firstQuestion = questions[0] || {};
+    return null;
+  };
 
   return (
     <div className="run-details">
-      <div className="run-details-header">
-        <button onClick={onBack} className="back-button">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M19 12H5M12 19l-7-7 7-7"/>
-          </svg>
-          Back to Runs
+      <div className="details-header">
+        <button className="back-button" onClick={onBack}>
+          ← Back
         </button>
-        <div className="run-details-title">
-          <h2>Run: {runVersion}</h2>
-          <div className="run-meta-inline">
-            <span style={{ color: '#60a5fa', fontWeight: '600' }}>
-              {firstQuestion.model}
-            </span>
-            <span style={{ color: '#fe8f0f', fontWeight: '600' }}>
-              {firstQuestion.promptVersion}
-            </span>
-            {firstQuestion.timestamp && (
-              <span style={{ color: '#94a3b8', fontSize: '13px' }}>
-                ⏰ {new Date(firstQuestion.timestamp).toLocaleString('de-DE', {
-                  year: 'numeric',
-                  month: '2-digit',
-                  day: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </span>
-            )}
-          </div>
+        <h1>Run: {runVersion}</h1>
+        <div className="details-stats">
+          <span>{sortedQuestions.length} execution{sortedQuestions.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
 
-      <div className="run-summary-stats">
-        <div className="stat-card">
-          <span className="stat-label">Questions</span>
-          <span className="stat-value-large">{questions.length}</span>
-        </div>
-        {aggregateScores.metrics.map(metric => (
-          <div key={metric.key} className="stat-card">
-            <span className="stat-label">Avg {metric.label}</span>
-            <span className="stat-value-large" style={{ color: getScoreColor(metric.average) }}>
-              {metric.formatted}
-            </span>
-          </div>
-        ))}
-      </div>
-
-      <div className="details-controls">
-        <div className="details-filters">
-          <select
-            value={filters.baseID}
-            onChange={(e) => setFilters({ ...filters, baseID: e.target.value })}
-            className="filter-select"
-            title="Filter by question ID"
-          >
-            <option value="">All Question IDs</option>
-            {uniqueBaseIDs.map(id => (
-              <option key={id} value={id}>Question {id}</option>
-            ))}
-          </select>
-          <input
-            type="text"
-            placeholder="Filter by Input text... (Ctrl+K to focus)"
-            value={filters.input}
-            onChange={(e) => setFilters({ ...filters, input: e.target.value })}
-            className="filter-input"
-          />
-          <select
-            value={filters.outputScore}
-            onChange={(e) => setFilters({ ...filters, outputScore: e.target.value })}
-            className="filter-select"
-            title="Filter by score range"
-          >
-            <option value="">All Score Ranges</option>
-            {uniqueScoreRanges.map(range => (
-              <option key={range.label} value={range.label}>{range.label}</option>
-            ))}
-          </select>
-          {(filters.baseID || filters.input || filters.outputScore) && (
-            <button 
-              onClick={() => setFilters({ baseID: '', input: '', outputScore: '' })}
-              className="clear-filters-btn"
-              title="Clear all filters"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"/>
-                <line x1="6" y1="6" x2="18" y2="18"/>
-              </svg>
-              Clear
-            </button>
-          )}
-        </div>
-
-        <div className="details-sort">
-          <label>Sort By:</label>
-          <select 
-            value={sortConfig.key} 
-            onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })}
-            className="sort-select"
-          >
-            <option value="baseID">Question ID</option>
-            {scoreFields.map(field => (
-              <option key={field.key} value={`ExecutionData.${field.key}`}>
-                {field.label}
-              </option>
-            ))}
-          </select>
-          <select 
-            value={sortConfig.direction} 
-            onChange={(e) => setSortConfig({ ...sortConfig, direction: e.target.value })}
-            className="sort-select"
-          >
-            <option value="ascending">↑ Ascending</option>
-            <option value="descending">↓ Descending</option>
-          </select>
-        </div>
+      <div className="filters-section">
+        <input
+          type="text"
+          placeholder="Search input, output, or expected output..."
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="search-input"
+        />
       </div>
 
       <div className="questions-table-container">
         <table className="questions-table">
           <thead>
             <tr>
-              <th>Q ID</th>
-              <th>Input</th>
-              <th>Output</th>
-              {scoreFields.map(field => (
-                <th key={field.key}>{field.label}</th>
+              <th style={{ width: '40px' }}></th>
+              {allFields.map(field => (
+                <th key={field.key} onClick={() => handleSort(field.key)} style={{ cursor: 'pointer' }}>
+                  {field.label} {sortConfig.key === field.key && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
+                </th>
               ))}
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {sortedQuestions.map((question) => (
-              <tr 
-                key={question.ID}
-                onClick={() => onCompareQuestion(question.baseID, runVersion)}
-                style={{ cursor: 'pointer' }}
-                title="Click to compare this question across runs"
-              >
-                <td className="question-id">{question.baseID}</td>
-                <td className="question-cell">
-                  <CollapsibleCell 
-                    content={question.GroundTruthData?.Input || question['Test-Input']} 
-                    title="Input / Question"
-                    runId={question.ID}
-                    gtId={question.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-                <td className="question-cell">
-                  <CollapsibleCell 
-                    content={question.ExecutionData?.output || question['Actual-Output']} 
-                    title="Actual Output"
-                    runId={question.ID}
-                    gtId={question.GroundTruthData?.ID}
-                    onExpand={onExpandContent}
-                  />
-                </td>
-                {scoreFields.map(field => {
-                  const value = question.ExecutionData?.[field.key];
-                  return (
-                    <td key={field.key} className="score-cell" style={{ 
-                      backgroundColor: getScoreColor(value),
-                      color: '#ffffff',
-                      fontWeight: '600'
-                    }}>
-                      {value != null ? value.toFixed(2) : '-'}
-                    </td>
-                  );
-                })}
-                <td>
-                  <button 
-                    className="compare-question-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onCompareQuestion(question.baseID, runVersion);
-                    }}
-                    title="Compare this question across all runs"
-                  >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                      <rect x="9" y="3" width="6" height="4" rx="1"/>
-                      <path d="M9 12h6M9 16h6"/>
-                    </svg>
-                    <span className="compare-btn-text">Compare</span>
-                  </button>
+            {sortedQuestions.length === 0 ? (
+              <tr>
+                <td colSpan={allFields.length + 1} style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                  No executions found
                 </td>
               </tr>
-            ))}
+            ) : (
+              sortedQuestions.map((question) => {
+                const isExpanded = expandedRows.has(question.id);
+                return (
+                  <React.Fragment key={question.id}>
+                    <tr>
+                      <td style={{ width: '40px', textAlign: 'center', padding: '8px' }}>
+                        <button
+                          onClick={() => toggleRowExpansion(question.id)}
+                          style={{
+                            background: 'transparent',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: '#3b82f6',
+                            fontSize: '18px',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                          title={isExpanded ? "Collapse row" : "Expand row"}
+                        >
+                          {isExpanded ? '▼' : '▶'}
+                        </button>
+                      </td>
+                      {allFields.map(field => {
+                        const cellValue = getCellValue(question, field);
+                        const reason = getCellReason(question, field);
+                    
+                        // Handle different field types
+                        if (field.type === 'longtext' && typeof cellValue === 'string') {
+                          return (
+                            <td key={field.key} className="question-cell" style={{ maxWidth: '300px' }}>
+                              <div style={{ wordBreak: 'break-word' }}>
+                                {isExpanded ? cellValue : (cellValue.length > 100 ? cellValue.substring(0, 100) + '...' : cellValue)}
+                              </div>
+                            </td>
+                          );
+                        }
+                    
+                        if (field.type === 'metric' && typeof cellValue === 'number') {
+                          return (
+                            <td 
+                              key={field.key} 
+                              className="metric-cell" 
+                              style={{ 
+                                backgroundColor: getScoreColor(cellValue),
+                                color: '#ffffff',
+                                padding: '8px',
+                                textAlign: 'center',
+                                fontWeight: '700',
+                                fontSize: '16px'
+                              }}
+                              title={reason && !isExpanded ? reason : ''}
+                            >
+                              {cellValue.toFixed(2)}
+                            </td>
+                          );
+                        }
+                    
+                    if (field.type === 'number' && typeof cellValue === 'number') {
+                      return (
+                        <td key={field.key} style={{ textAlign: 'right', fontFamily: 'monospace' }}>
+                          {cellValue.toFixed(2)}
+                        </td>
+                      );
+                    }
+                    
+                        // Default text rendering
+                        const textValue = String(cellValue);
+                        const displayValue = isExpanded || textValue.length <= 100 ? textValue : textValue.substring(0, 100) + '...';
+                        
+                        return (
+                          <td key={field.key} style={{ maxWidth: '300px' }}>
+                            <div style={{ wordBreak: 'break-word' }}>
+                              {displayValue}
+                            </div>
+                          </td>
+                        );
+                      })}
+                      <td>
+                        {onCompareQuestion && (
+                          <button 
+                            className="compare-question-btn"
+                            onClick={() => onCompareQuestion(question.id, runVersion)}
+                            title="Compare this execution across all runs"
+                          >
+                            Compare
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                    {isExpanded && (
+                      <tr style={{ backgroundColor: '#1e293b' }}>
+                        <td colSpan={allFields.length + 2} style={{ padding: '16px' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                            {allFields.map(field => {
+                              const cellValue = getCellValue(question, field);
+                              const reason = getCellReason(question, field);
+                              
+                              return (
+                                <div key={field.key} style={{ borderBottom: '1px solid #334155', paddingBottom: '12px' }}>
+                                  <div style={{ fontWeight: '600', color: '#60a5fa', marginBottom: '8px', fontSize: '13px' }}>
+                                    {field.label}
+                                  </div>
+                                  <div style={{ color: '#e2e8f0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', lineHeight: '1.6' }}>
+                                    {field.type === 'metric' && typeof cellValue === 'number' ? (
+                                      <div>
+                                        <span style={{ 
+                                          padding: '4px 12px',
+                                          borderRadius: '4px',
+                                          backgroundColor: getScoreColor(cellValue),
+                                          color: 'white',
+                                          fontWeight: '700',
+                                          fontSize: '16px'
+                                        }}>
+                                          {cellValue.toFixed(2)}
+                                        </span>
+                                        {reason && (
+                                          <div style={{ marginTop: '8px', fontStyle: 'italic', color: '#cbd5e1' }}>
+                                            {reason}
+                                          </div>
+                                        )}
+                                      </div>
+                                    ) : String(cellValue)}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
           </tbody>
         </table>
       </div>
-
-      {sortedQuestions.length === 0 && (
-        <div className="no-results">
-          <p>No questions found matching the filters.</p>
-        </div>
-      )}
     </div>
   );
 };

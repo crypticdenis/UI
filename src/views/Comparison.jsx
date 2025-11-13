@@ -17,8 +17,8 @@ const Comparison = ({ runs = [] }) => {
   return (
     <div className="comparison-container">
       {runs && runs.length > 0 ? runs.map((run) => (
-        <div key={run.ID} className="comparison-card">
-          <h3>Run {run.ID}</h3>
+        <div key={run.id} className="comparison-card">
+          <h3>Execution {run.id}</h3>
           <div style={{ 
             display: 'flex', 
             gap: '16px', 
@@ -51,21 +51,21 @@ const Comparison = ({ runs = [] }) => {
             )}
           </div>
           
-          <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#60a5fa' }}>Ground Truth Data</h4>
+          <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#60a5fa' }}>Test Data</h4>
           <p>
-            <strong>GT ID:</strong> {run.GroundTruthData?.ID || '-'}
+            <strong>ID:</strong> {run.id || '-'}
           </p>
           <div style={{ marginBottom: '10px' }}>
             <strong>Input:</strong>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', flex: 1 }}>
-                {(run.GroundTruthData?.Input || run['Test-Input'] || '').substring(0, 200)}
-                {(run.GroundTruthData?.Input || run['Test-Input'] || '').length > 200 && '...'}
+                {(run.input || '').substring(0, 200)}
+                {(run.input || '').length > 200 && '...'}
               </div>
-              {(run.GroundTruthData?.Input || run['Test-Input'] || '').length > 200 && (
+              {(run.input || '').length > 200 && (
                 <button
                   className="comparison-expand-icon"
-                  onClick={() => setModalContent({ title: `Run ${run.ID} - Input`, content: run.GroundTruthData?.Input || run['Test-Input'] })}
+                  onClick={() => setModalContent({ title: `Run ${run.id} - Input`, content: run.input })}
                   title="View full content"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -79,13 +79,13 @@ const Comparison = ({ runs = [] }) => {
             <strong>Expected Output:</strong>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', flex: 1 }}>
-                {(run.GroundTruthData?.expectedOutput || run['Expected-Output'] || '').substring(0, 200)}
-                {(run.GroundTruthData?.expectedOutput || run['Expected-Output'] || '').length > 200 && '...'}
+                {(run.expectedOutput || '').substring(0, 200)}
+                {(run.expectedOutput || '').length > 200 && '...'}
               </div>
-              {(run.GroundTruthData?.expectedOutput || run['Expected-Output'] || '').length > 200 && (
+              {(run.expectedOutput || '').length > 200 && (
                 <button
                   className="comparison-expand-icon"
-                  onClick={() => setModalContent({ title: `Run ${run.ID} - Expected Output`, content: run.GroundTruthData?.expectedOutput || run['Expected-Output'] })}
+                  onClick={() => setModalContent({ title: `Run ${run.id} - Expected Output`, content: run.expectedOutput })}
                   title="View full content"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -96,24 +96,18 @@ const Comparison = ({ runs = [] }) => {
             </div>
           </div>
           
-          <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#60a5fa' }}>Execution Data</h4>
-          <p>
-            <strong>Active:</strong> {run.active ? 'Yes' : 'No'}
-          </p>
-          <p>
-            <strong>Is Running:</strong> {run.IsRunning ? 'Yes' : 'No'}
-          </p>
+          <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#60a5fa' }}>Execution Results</h4>
           <div style={{ marginBottom: '10px' }}>
             <strong>Output:</strong>
             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px' }}>
               <div style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word', flex: 1 }}>
-                {(run.ExecutionData?.output || run['Actual-Output'] || '').substring(0, 200)}
-                {(run.ExecutionData?.output || run['Actual-Output'] || '').length > 200 && '...'}
+                {(run.output || '').substring(0, 200)}
+                {(run.output || '').length > 200 && '...'}
               </div>
-              {(run.ExecutionData?.output || run['Actual-Output'] || '').length > 200 && (
+              {(run.output || '').length > 200 && (
                 <button
                   className="comparison-expand-icon"
-                  onClick={() => setModalContent({ title: `Run ${run.ID} - Actual Output`, content: run.ExecutionData?.output || run['Actual-Output'] })}
+                  onClick={() => setModalContent({ title: `Run ${run.id} - Actual Output`, content: run.output })}
                   title="View full content"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -125,7 +119,7 @@ const Comparison = ({ runs = [] }) => {
           </div>
           {/* Dynamic Metrics Rendering */}
           {(() => {
-            const { scores, reasons, textFields } = extractMetrics(run.ExecutionData);
+            const { scores, reasons } = extractMetrics(run);
             
             return (
               <>

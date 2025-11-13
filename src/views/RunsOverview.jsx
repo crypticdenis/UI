@@ -11,12 +11,13 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Extract unique values for dropdowns
-  const uniqueModels = [...new Set(runs.map(r => r.model).filter(Boolean))].sort();
-  const uniquePromptVersions = [...new Set(runs.map(r => r.promptVersion).filter(Boolean))].sort();
   const uniqueVersions = [...new Set(runs.map(r => r.version).filter(Boolean))].sort();
   
-  // Get all unique score fields dynamically
-  const scoreFields = useMemo(() => getUniqueScoreFields(runs), [runs]);
+  // Get all unique score fields dynamically from executions within runs
+  const scoreFields = useMemo(() => {
+    const allExecutions = runs.flatMap(run => run.runs || run.questions || []);
+    return getUniqueScoreFields(allExecutions);
+  }, [runs]);
 
   // Group runs by version and calculate aggregate stats dynamically
   const groupedRuns = runs.reduce((acc, run) => {
@@ -29,34 +30,33 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       
       acc[version] = {
         version: version,
-        runs: [],
-        model: run.model,
-        promptVersion: run.promptVersion,
-        timestamp: run.timestamp,
-        questionCount: 0,
+        runs: run.runs || run.questions || [],  // Store the executions
+        id: run.id,
+        workflowId: run.workflowId,
+        startTs: run.startTs,
+        finishTs: run.finishTs,
+        questionCount: run.questionCount || 0,
         validScoreCount: 0,
         ...scoreMetrics
       };
     }
     
-    acc[version].runs.push(run);
-    acc[version].questionCount++;
-    
-    // Update timestamp to latest
-    if (run.timestamp && (!acc[version].timestamp || run.timestamp > acc[version].timestamp)) {
-      acc[version].timestamp = run.timestamp;
-    }
-    
-    // Aggregate scores dynamically
-    if (run.ExecutionData) {
+    // Aggregate scores from executions
+    const executions = run.runs || run.questions || [];
+    executions.forEach(execution => {
       scoreFields.forEach(field => {
-        const value = run.ExecutionData[field.key];
+        const metricData = execution[field.key];
+        // Handle {value, reason} structure
+        const value = metricData && typeof metricData === 'object' && 'value' in metricData 
+          ? metricData.value 
+          : metricData;
+        
         if (value != null && !isNaN(value)) {
-          acc[version][`total_${field.key}`] += value;
+          acc[version][`total_${field.key}`] += parseFloat(value);
+          acc[version].validScoreCount++;
         }
       });
-      acc[version].validScoreCount++;
-    }
+    });
     
     return acc;
   }, {});
@@ -64,49 +64,63 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   // Convert to array and calculate averages
   const runsArray = Object.values(groupedRuns).map(group => {
     const avgScores = {};
+    const executionCount = group.runs?.length || 0;
+    
     scoreFields.forEach(field => {
       const total = group[`total_${field.key}`];
-      avgScores[`avg_${field.key}`] = group.validScoreCount > 0 
-        ? formatNumber(total / group.validScoreCount)
+      // Calculate average per metric (validScoreCount tracks how many times each metric appeared)
+      const metricCount = executionCount; // Assume each execution can have the metric
+      avgScores[`avg_${field.key}`] = metricCount > 0 
+        ? formatNumber(total / metricCount)
         : '-';
     });
     
+    // Calculate run duration
+    let durationMinutes = null;
+    if (group.startTs && group.finishTs) {
+      const start = new Date(group.startTs);
+      const finish = new Date(group.finishTs);
+      durationMinutes = ((finish - start) / 1000 / 60).toFixed(1);
+    }
+    
     return {
       version: group.version,
-      model: group.model,
-      promptVersion: group.promptVersion,
-      timestamp: group.timestamp,
-      questionCount: group.questionCount,
+      id: group.id,
+      workflowId: group.workflowId,
+      startTs: group.startTs,
+      finishTs: group.finishTs,
+      durationMinutes,
+      questionCount: executionCount,
       ...avgScores,
-      runs: group.runs
+      runs: group.runs  // This is the executions array
     };
   });
 
   // Filter runs
   const filteredRuns = runsArray.filter(run => {
-    // Search query filter (searches across version, model, and prompt version)
+    // Search query filter (searches across version, id, and workflow)
     if (searchQuery) {
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch = 
         run.version?.toLowerCase().includes(searchLower) ||
-        run.model?.toLowerCase().includes(searchLower) ||
-        run.promptVersion?.toLowerCase().includes(searchLower);
+        String(run.id || '').includes(searchLower) ||
+        String(run.workflowId || '').includes(searchLower);
       if (!matchesSearch) return false;
     }
     
-    if (filters.model && run.model !== filters.model) return false;
-    if (filters.promptVersion && run.promptVersion !== filters.promptVersion) return false;
+    // Model filter removed - not in database schema
+    // Prompt version filter removed - not in database schema
     if (filters.version && run.version !== filters.version) return false;
     return true;
   });
 
   const clearFilters = () => {
-    setFilters({ model: '', promptVersion: '', version: '' });
+    setFilters({ version: '' });
     setSearchQuery('');
   };
 
-  const hasActiveFilters = filters.model || filters.promptVersion || filters.version || searchQuery;
-  const activeFilterCount = [filters.model, filters.promptVersion, filters.version, searchQuery].filter(Boolean).length;
+  const hasActiveFilters = filters.version || searchQuery;
+  const activeFilterCount = [filters.version, searchQuery].filter(Boolean).length;
 
   // Sort runs
   const sortedRuns = [...filteredRuns].sort((a, b) => {
@@ -121,7 +135,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     }
 
     // Handle timestamp sorting
-    if (sortConfig.key === 'timestamp') {
+    if (sortConfig.key === 'startTs' || sortConfig.key === 'finishTs') {
       const aTime = aValue ? new Date(aValue).getTime() : 0;
       const bTime = bValue ? new Date(bValue).getTime() : 0;
       return sortConfig.direction === 'ascending' ? aTime - bTime : bTime - aTime;
@@ -242,43 +256,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
             ))}
           </select>
         </label>
-        <label>
-          <span className="filter-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            Model
-          </span>
-          <select
-            value={filters.model}
-            onChange={(e) => setFilters({ ...filters, model: e.target.value })}
-            className="filter-select"
-          >
-            <option value="">All Models</option>
-            {uniqueModels.map(model => (
-              <option key={model} value={model}>{model}</option>
-            ))}
-          </select>
-        </label>
-        <label>
-          <span className="filter-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-              <polyline points="14 2 14 8 20 8"/>
-            </svg>
-            Prompt
-          </span>
-          <select
-            value={filters.promptVersion}
-            onChange={(e) => setFilters({ ...filters, promptVersion: e.target.value })}
-            className="filter-select"
-          >
-            <option value="">All Prompt Versions</option>
-            {uniquePromptVersions.map(prompt => (
-              <option key={prompt} value={prompt}>{prompt}</option>
-            ))}
-          </select>
-        </label>
       </div>
 
       <div className="overview-controls">
@@ -289,15 +266,16 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
           className="sort-select"
         >
           <option value="version">Version</option>
-          <option value="timestamp">Timestamp</option>
-          <option value="model">Model</option>
-          <option value="promptVersion">Prompt Version</option>
+          <option value="startTs">Start Time</option>
+          <option value="finishTs">Finish Time</option>
+          <option value="id">Run ID</option>
+          <option value="workflowId">Workflow ID</option>
           {scoreFields.map(field => (
             <option key={field.key} value={`avg_${field.key}`}>
               Avg {field.label}
             </option>
           ))}
-          <option value="questionCount">Question Count</option>
+          <option value="questionCount">Execution Count</option>
         </select>
         <select 
           value={sortConfig.direction} 
@@ -354,7 +332,14 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
               key={run.version} 
               className="run-card clickable" 
               data-run-version={run.version}
-              onClick={() => onViewRunDetails(run.version, run.runs)}
+              onClick={() => {
+                console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
+                console.log('run.runs length:', run.runs?.length);
+                if (run.runs?.length > 0) {
+                  console.log('First run item:', run.runs[0]);
+                }
+                onViewRunDetails(run.version, run.runs);
+              }}
             >
               <div className="run-card-header">
                 <div className="run-card-title">
@@ -378,18 +363,48 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
 
               <div className="run-card-meta">
                 <div className="meta-item">
-                  <span className="meta-label">Model:</span>
-                  <span className="meta-value model-badge">{run.model}</span>
+                  <span className="meta-label">Run ID:</span>
+                  <span className="meta-value model-badge">{run.id}</span>
                 </div>
                 <div className="meta-item">
-                  <span className="meta-label">Prompt:</span>
-                  <span className="meta-value prompt-badge">{run.promptVersion}</span>
+                  <span className="meta-label">Workflow:</span>
+                  <span className="meta-value prompt-badge">{run.workflowId}</span>
                 </div>
-                {run.timestamp && (
+                <div className="meta-item">
+                  <span className="meta-label">Executions:</span>
+                  <span className="meta-value">{run.questionCount}</span>
+                </div>
+                {run.durationMinutes && (
                   <div className="meta-item">
-                    <span className="meta-label">Time:</span>
+                    <span className="meta-label">Duration:</span>
                     <span className="meta-value timestamp">
-                      {new Date(run.timestamp).toLocaleString('de-DE', {
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign: 'middle', marginRight: '4px'}}>
+                        <circle cx="12" cy="12" r="10"/>
+                        <polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      {run.durationMinutes} min
+                    </span>
+                  </div>
+                )}
+                {run.startTs && (
+                  <div className="meta-item">
+                    <span className="meta-label">Started:</span>
+                    <span className="meta-value timestamp">
+                      {new Date(run.startTs).toLocaleString('de-DE', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                )}
+                {run.finishTs && (
+                  <div className="meta-item">
+                    <span className="meta-label">Finished:</span>
+                    <span className="meta-value timestamp">
+                      {new Date(run.finishTs).toLocaleString('de-DE', {
                         year: 'numeric',
                         month: 'short',
                         day: '2-digit',

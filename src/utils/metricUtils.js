@@ -40,10 +40,10 @@ export const isReasonField = (fieldName) => {
 };
 
 /**
- * Extract all metric fields from ExecutionData
+ * Extract all metric fields from execution data (flat structure)
  */
-export const extractMetrics = (executionData) => {
-  if (!executionData || typeof executionData !== 'object') {
+export const extractMetrics = (execution) => {
+  if (!execution || typeof execution !== 'object') {
     return { scores: [], reasons: [], textFields: [] };
   }
 
@@ -51,13 +51,29 @@ export const extractMetrics = (executionData) => {
   const reasons = [];
   const textFields = [];
 
-  Object.entries(executionData).forEach(([key, value]) => {
-    if (isReasonField(key)) {
-      reasons.push({ key, value, label: formatFieldName(key) });
-    } else if (isScoreField(key) && isNumericScore(value)) {
-      scores.push({ key, value, label: formatFieldName(key) });
-    } else if (typeof value === 'string' && key !== 'output') {
-      textFields.push({ key, value, label: formatFieldName(key) });
+  Object.entries(execution).forEach(([key, value]) => {
+    // Skip core fields
+    if (['id', 'runId', 'workflowId', 'sessionId', 'parentExecutionId', 
+         'input', 'expectedOutput', 'output', 'duration', 'totalTokens',
+         'executionTs', 'creationTs'].includes(key)) {
+      return;
+    }
+
+    // Handle metric objects with {value, reason}
+    if (typeof value === 'object' && value !== null && 'value' in value) {
+      scores.push({ 
+        key, 
+        value: value.value, 
+        label: formatFieldName(key),
+        reason: value.reason 
+      });
+      if (value.reason) {
+        reasons.push({ 
+          key: `${key}_reason`, 
+          value: value.reason, 
+          label: `${formatFieldName(key)} Reason` 
+        });
+      }
     }
   });
 
@@ -119,30 +135,31 @@ export const getScoreColor = (score) => {
 };
 
 /**
- * Calculate aggregate scores from an array of questions
+ * Calculate aggregate scores from an array of questions (flat structure)
  */
 export const calculateAggregateScores = (questions) => {
   if (!questions || questions.length === 0) {
     return { metrics: [], count: 0 };
   }
 
-  // Collect all unique score fields
+  // Collect all unique metric fields (those with {value, reason} structure)
   const allScoreFields = new Set();
   questions.forEach(q => {
-    if (q.ExecutionData) {
-      Object.keys(q.ExecutionData).forEach(key => {
-        if (isScoreField(key) && isNumericScore(q.ExecutionData[key])) {
-          allScoreFields.add(key);
-        }
-      });
-    }
+    Object.keys(q).forEach(key => {
+      const value = q[key];
+      // Find metric objects with {value, reason}
+      if (typeof value === 'object' && value !== null && 'value' in value) {
+        allScoreFields.add(key);
+      }
+    });
   });
 
-  // Calculate averages for each score field
+  // Calculate averages for each metric field
   const metrics = [];
   allScoreFields.forEach(fieldKey => {
     const sum = questions.reduce((acc, q) => {
-      const value = q.ExecutionData?.[fieldKey];
+      const data = q[fieldKey];
+      const value = (typeof data === 'object' && data !== null) ? data.value : data;
       return acc + (isNumericScore(value) ? value : 0);
     }, 0);
     
@@ -160,19 +177,19 @@ export const calculateAggregateScores = (questions) => {
 };
 
 /**
- * Get all unique score fields from runs data
+ * Get all unique metric fields from runs data (flat structure)
  */
 export const getUniqueScoreFields = (runs) => {
   const scoreFields = new Set();
   
   runs.forEach(run => {
-    if (run.ExecutionData) {
-      Object.keys(run.ExecutionData).forEach(key => {
-        if (isScoreField(key) && isNumericScore(run.ExecutionData[key])) {
-          scoreFields.add(key);
-        }
-      });
-    }
+    Object.keys(run).forEach(key => {
+      const value = run[key];
+      // Find metric objects with {value, reason} structure
+      if (typeof value === 'object' && value !== null && 'value' in value) {
+        scoreFields.add(key);
+      }
+    });
   });
 
   return Array.from(scoreFields).map(key => ({

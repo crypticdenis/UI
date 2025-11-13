@@ -31,7 +31,7 @@ function App() {
   const [viewerContent, setViewerContent] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(280);
 
-  // Fetch projects from API
+  // Fetch projects from API and auto-select the single project
   useEffect(() => {
     const fetchProjects = async () => {
       try {
@@ -43,6 +43,12 @@ function App() {
         }
         const data = await response.json();
         setProjects(data);
+        
+        // Auto-select the single hardcoded project and show workflows
+        if (data.length > 0) {
+          setSelectedProject(data[0]);
+          setCurrentView('workflows');
+        }
       } catch (err) {
         console.error('Error fetching projects:', err);
         setError(err.message);
@@ -191,6 +197,11 @@ function App() {
   };
 
   const handleViewRunDetails = (version, questions) => {
+    console.log('handleViewRunDetails called with:', { version, questions });
+    console.log('Questions array length:', questions?.length);
+    if (questions?.length > 0) {
+      console.log('First question:', questions[0]);
+    }
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
     // Determine which view we're coming from
@@ -277,27 +288,32 @@ function App() {
       handleSelectProject(project);
     } else if (destination === 'workflow' && project && workflow) {
       setSelectedProject(project);
-      if (workflow.subworkflows && workflow.subworkflows.length > 0) {
-        handleSelectWorkflow(workflow, 'subworkflows');
-      } else {
-        handleSelectWorkflow(workflow, 'runs');
-      }
+      // Always show runs view when clicking on a workflow, regardless of subworkflows
+      handleSelectWorkflow(workflow, 'runs');
     } else if (destination === 'subworkflow' && project && workflow && subworkflow) {
       setSelectedProject(project);
       setSelectedWorkflow(workflow);
       handleSelectSubworkflow(subworkflow);
-    } else if (destination === 'run' && project && workflow && subworkflow && run) {
+    } else if (destination === 'run' && project && workflow && run) {
+      // Handle both main workflow runs (subworkflow = null) and subworkflow runs
       setSelectedProject(project);
       setSelectedWorkflow(workflow);
-      setSelectedSubworkflow(subworkflow);
+      if (subworkflow) {
+        setSelectedSubworkflow(subworkflow);
+      } else {
+        setSelectedSubworkflow(null);
+      }
       // Open run details directly (same behavior as clicking the card)
-      const questions = run.questions || run.runs || [];
+      const questions = run.runs || run.questions || [];
+      console.log('App.jsx - Navigating to run from sidebar:', { version: run.version, questionsCount: questions.length, hasSubworkflow: !!subworkflow });
       handleViewRunDetails(run.version, questions);
     } else if (destination === 'workflow-run' && project && workflow && run) {
       setSelectedProject(project);
       setSelectedWorkflow(workflow);
       // Open workflow run details directly (same behavior as clicking the card)
-      const questions = run.questions || run.runs || [];
+      // Use run.runs for consistency (NavigationSidebar passes this)
+      const questions = run.runs || run.questions || [];
+      console.log('App.jsx - Navigating to workflow-run from sidebar:', { version: run.version, questionsCount: questions.length });
       setSelectedRunVersion(run.version);
       setSelectedRunQuestions(questions);
       setCurrentView('workflow-details');

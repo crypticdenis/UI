@@ -173,32 +173,36 @@ const NavigationSidebar = ({
               {expandedWorkflows.has(workflow.id) && (
                 <div className="nav-tree-children">
                   {/* Direct workflow runs */}
-                  {workflow.runs?.map((run) => (
-                    <div 
-                      key={run.version}
-                      className={`nav-item nested-2 ${
-                        selectedRunVersion === run.version && 
-                        selectedWorkflow?.id === workflow.id && 
-                        !selectedSubworkflow
-                          ? 'active' 
-                          : ''
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        console.log('Sidebar run clicked:', run.version);
-                        onNavigate('run', project, workflow, null, { version: run.version, runs: run.runs || run.questions || [] });
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="nav-item-content">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="9 11 12 14 22 4"/>
-                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                        </svg>
-                        <span className="nav-item-label run-label">{run.version}</span>
+                  {workflow.runs?.length > 0 && (() => {
+                    const uniqueVersions = [...new Set(workflow.runs.map(r => r.version))];
+                    const groupedRuns = uniqueVersions.map(version => {
+                      const runsForVersion = workflow.runs.filter(r => r.version === version);
+                      const allExecutions = runsForVersion.flatMap(tr => tr.runs || tr.questions || []);
+                      return { version, runs: allExecutions, runData: runsForVersion[0] };
+                    });
+                    
+                    return groupedRuns.map((runGroup) => (
+                      <div 
+                        key={runGroup.version}
+                        className={`nav-item nested-2 ${
+                          selectedRunVersion === runGroup.version && 
+                          selectedWorkflow?.id === workflow.id && 
+                          !selectedSubworkflow
+                            ? 'active' 
+                            : ''
+                        }`}
+                        onClick={() => onNavigate('run', project, workflow, null, { version: runGroup.version, runs: runGroup.runs })}
+                      >
+                        <div className="nav-item-content">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                          </svg>
+                          <span className="nav-item-label run-label">{runGroup.version}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ));
+                  })()}
 
                   {/* Subworkflows */}
                   {workflow.subworkflows?.length > 0 && workflow.subworkflows.map(subworkflow => (
@@ -225,30 +229,39 @@ const NavigationSidebar = ({
                       </div>
 
                       {/* Subworkflow Runs */}
-                      {expandedSubworkflows.has(subworkflow.id) && subworkflow.runs?.length > 0 && (
-                        <div className="nav-tree-children">
-                          {subworkflow.runs.map((run) => (
-                            <div 
-                              key={run.version}
-                              className={`nav-item nested-3 ${
-                                selectedRunVersion === run.version && 
-                                selectedSubworkflow?.id === subworkflow.id 
-                                  ? 'active' 
-                                  : ''
-                              }`}
-                              onClick={() => onNavigate('run', project, workflow, subworkflow, { version: run.version, runs: run.runs || run.questions || [] })}
-                            >
-                              <div className="nav-item-content">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="9 11 12 14 22 4"/>
-                                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                                </svg>
-                                <span className="nav-item-label run-label">{run.version}</span>
+                      {expandedSubworkflows.has(subworkflow.id) && subworkflow.runs?.length > 0 && (() => {
+                        const uniqueVersions = [...new Set(subworkflow.runs.map(r => r.version))];
+                        const groupedRuns = uniqueVersions.map(version => {
+                          const runsForVersion = subworkflow.runs.filter(r => r.version === version);
+                          const allExecutions = runsForVersion.flatMap(tr => tr.runs || tr.questions || []);
+                          return { version, runs: allExecutions };
+                        });
+                        
+                        return (
+                          <div className="nav-tree-children">
+                            {groupedRuns.map((runGroup) => (
+                              <div 
+                                key={runGroup.version}
+                                className={`nav-item nested-3 ${
+                                  selectedRunVersion === runGroup.version && 
+                                  selectedSubworkflow?.id === subworkflow.id 
+                                    ? 'active' 
+                                    : ''
+                                }`}
+                                onClick={() => onNavigate('run', project, workflow, subworkflow, { version: runGroup.version, runs: runGroup.runs })}
+                              >
+                                <div className="nav-item-content">
+                                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                    <polyline points="9 11 12 14 22 4"/>
+                                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                                  </svg>
+                                  <span className="nav-item-label run-label">{runGroup.version}</span>
+                                </div>
                               </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                            ))}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
