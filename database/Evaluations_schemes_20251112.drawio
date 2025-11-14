@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e" pages="2">
     <diagram name="Worflows" id="lu12LC9Ns-cLyAJ_GQFr">
-        <mxGraphModel dx="711" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="648" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -74,7 +74,7 @@
         </mxGraphModel>
     </diagram>
     <diagram id="gdspS18NnjzupJbDeMRo" name="Evaluations DB">
-        <mxGraphModel dx="213" dy="224" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+        <mxGraphModel dx="648" dy="537" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -190,9 +190,6 @@
                 </mxCell>
                 <mxCell id="QBL2hY9f1V6iQ2Cf3X95-46" value="creation_ts : datetime" style="text;strokeColor=none;fillColor=none;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;whiteSpace=wrap;html=1;" parent="QBL2hY9f1V6iQ2Cf3X95-36" vertex="1">
                     <mxGeometry y="286" width="180" height="26" as="geometry"/>
-                </mxCell>
-                <mxCell id="cMlPwyckNDixhamfzWKq-1" value="parent_run_id    INTEGER REFERENCES test_run(id)," style="text;whiteSpace=wrap;" vertex="1" parent="1">
-                    <mxGeometry x="260" y="556" width="220" height="40" as="geometry"/>
                 </mxCell>
             </root>
         </mxGraphModel>

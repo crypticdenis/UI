@@ -68,10 +68,10 @@ cp .env.example .env
    createdb butler_eval
    
    # Load schema
-   psql -U postgres -d butler_eval -f database/schema.sql
+   psql -U postgres -d butler_eval -f database/schema_new.sql
    
    # (Optional) Load mock data
-   psql -U postgres -d butler_eval -f database/mock_data.sql
+   psql -U postgres -d butler_eval -f database/mock_data_new.sql
    ```
 
 4. **Configure environment**
@@ -111,56 +111,52 @@ UI/
 │   ├── main.jsx                  # Application entry point
 │   │
 │   ├── components/               # Reusable UI components
-│   │   ├── AuthWrapper.jsx
 │   │   ├── CollapsibleCell.jsx
-│   │   ├── ColumnSettings.jsx
 │   │   ├── ContentViewer.jsx
 │   │   ├── EvaluationTrigger.jsx
-│   │   ├── FilterBar.jsx
-│   │   ├── Modal.jsx
-│   │   ├── NavigationSidebar.jsx
-│   │   └── RunTable.jsx
+│   │   └── NavigationSidebar.jsx
 │   │
 │   ├── views/                    # Page-level components
-│   │   ├── Comparison.jsx
 │   │   ├── ProjectsLandingPage.jsx
-│   │   ├── QuestionComparison.jsx
+│   │   ├── QuestionComparison.jsx    # Compare same execution across runs
+│   │   ├── RunComparison.jsx         # Compare multiple complete runs
 │   │   ├── RunDetails.jsx
 │   │   ├── RunsOverview.jsx
-│   │   ├── SubWorkflowsView.jsx
 │   │   └── WorkflowsOverview.jsx
 │   │
 │   ├── styles/                   # CSS stylesheets
-│   │   ├── App.css
+│   │   ├── App.css               # Main styles with CSS variables
 │   │   ├── NavigationSidebar.css
 │   │   └── index.css
 │   │
 │   ├── utils/                    # Utility functions
-│   │   └── metricUtils.js        # Dynamic metric detection
+│   │   └── metricUtils.js        # Dynamic metric detection & formatting
 │   │
 │   └── assets/                   # Static assets
 │
 ├── server/                       # Backend API
-│   ├── server.js                 # Express server
+│   ├── server.js                 # Express server with PostgreSQL
 │   └── package.json              # Backend dependencies
 │
 ├── database/                     # Database files
-│   ├── schema.sql                # Database schema
-│   ├── mock_data.sql             # Sample data
-│   ├── cleanup.sql               # Maintenance scripts
-│   ├── export_database.sh        # Backup scripts
-│   ├── ARCHITECTURE_DIAGRAM.md   # Schema diagrams
-│   └── VISUAL_SCHEMA.md          # ERD visualizations
+│   ├── schema_new.sql            # Current database schema (evaluation.*)
+│   ├── mock_data_new.sql         # Sample data
+│   └── DATABASE_GUIDE.md         # Database structure documentation
 │
 ├── docs/                         # Documentation
-│   ├── DEPLOYMENT.md             # Deployment guide
 │   ├── README.md                 # Documentation overview
 │   └── db/                       # Database documentation
-│       ├── DATABASE_SETUP.md
 │       ├── DATABASE_SETUP_GUIDE.md
 │       ├── DATABASE_STRUCTURE.md
 │       ├── DYNAMIC_METRICS.md
 │       └── HIERARCHY_STRUCTURE.md
+│
+├── docker/                       # Docker deployment
+│   ├── docker-compose.yml        # Container orchestration
+│   ├── Dockerfile.backend
+│   ├── Dockerfile.frontend
+│   ├── start.sh                  # Quick start script
+│   └── README.md                 # Docker documentation
 │
 └── public/                       # Static files
 ```
@@ -197,15 +193,14 @@ UI/
 
 ### Database (PostgreSQL)
 
-**Schema:**
-- `projects` - Top-level organization
-- `workflows` - Evaluation workflows
-- `subworkflows` - Workflow components
-- `runs` - Test run metadata
-- `run_questions` - Questions in each run
-- `question_evaluations` - Evaluation results and metrics
+**Schema:** Uses `evaluation` namespace for all tables
 
-See `docs/db/DATABASE_STRUCTURE.md` for complete schema details.
+- `evaluation.test_run` - Test run metadata per workflow
+- `evaluation.test_execution` - Individual test executions (with hierarchical parent tracking)
+- `evaluation.test_response` - Actual output/responses
+- `evaluation.evaluation` - Dynamic evaluation metrics
+
+See `database/DATABASE_GUIDE.md` and `docs/db/DATABASE_STRUCTURE.md` for complete schema details.
 
 ---
 
@@ -214,35 +209,35 @@ See `docs/db/DATABASE_STRUCTURE.md` for complete schema details.
 ### 1. **Hierarchical Organization**
 
 ```
-Project (Butler Evaluation Project)
-  └── Workflow (Main Butler Workflow)
-       ├── Subworkflow (Question Answering)
-       │    └── Run (run_gpt4_v1, run_claude_v1, ...)
-       └── Subworkflow (RAG Performance)
-            └── Run (run_gpt4_v1, run_gpt4_v2, ...)
+Workflow (e.g., "RE_Butler", "RAG_Search")
+  └── Test Runs (independent test executions)
+       └── Test Executions (individual questions/tests)
+            └── Sub-Executions (optional, for subworkflow calls)
 ```
+
+**Key Concepts:**
+- Each workflow has independent test runs
+- Sub-executions track subworkflow calls (debugging only, hidden from UI)
+- No project/workflow tables - simplified flat structure
 
 ### 2. **Dynamic Metrics System**
 
 The UI automatically detects and displays any evaluation metrics in your database. No code changes needed to add new metrics!
 
 **How it works:**
-- Scans `execution_data` for numeric fields containing keywords: `score`, `rate`, `accuracy`, `precision`, `recall`, `f1`, `metric`
-- Automatically formats field names (e.g., `outputScore` → "Output Score")
-- Applies color coding based on score values
-- Pairs metrics with their explanation fields (e.g., `outputScore` + `outputScoreReason`)
+- Reads metrics from `evaluation.evaluation` table with flexible `metric_name` and `metric_value` fields
+- Automatically formats metric names (e.g., `output_score` → "Output Score")
+- Applies color coding based on score values (0-1 scaled metrics only)
+- Displays metric reasons when available
 
 **Example:**
-```json
-{
-  "execution_data": {
-    "outputScore": 0.87,
-    "outputScoreReason": "The output correctly addresses...",
-    "ragRelevancyScore": 0.92,
-    "hallucinationRate": 0.15,
-    "customMetric": 0.78  // ✅ Automatically detected!
-  }
-}
+```sql
+INSERT INTO evaluation.evaluation (test_execution_id, metric_name, metric_value, metric_reason)
+VALUES 
+  (1, 'accuracy', 0.87, 'The output correctly addresses...'),
+  (1, 'relevance', 0.92, 'Highly relevant to the query'),
+  (1, 'custom_metric', 0.78, 'Custom evaluation criteria met');
+  -- ✅ All automatically detected and displayed!
 ```
 
 ### 3. **Color-Coded Scoring**
@@ -266,35 +261,23 @@ All numeric scores are automatically color-coded:
 
 **WorkflowsOverview.jsx** - Workflows within a selected project
 
-**SubWorkflowsView.jsx** - Subworkflows and their runs
+**RunsOverview.jsx** - All runs with filtering, sorting, metrics, and comparison selection
 
-**RunsOverview.jsx** - All runs with filtering, sorting, and metrics
+**RunDetails.jsx** - Detailed view of a single run with all executions and aggregate statistics
 
-**RunDetails.jsx** - Detailed view of a single run with all questions
+**RunComparison.jsx** - Side-by-side comparison of multiple complete runs with percentage differences
 
-**Comparison.jsx** - Side-by-side comparison of multiple runs
-
-**QuestionComparison.jsx** - Compare the same question across different runs
+**QuestionComparison.jsx** - Compare the same execution across different runs with percentage tracking
 
 ### UI Components (`src/components/`)
 
-**NavigationSidebar.jsx** - VS Code-style collapsible navigation
-
-**RunTable.jsx** - Reusable table component for displaying runs
-
-**FilterBar.jsx** - Dynamic filtering controls
-
-**ColumnSettings.jsx** - Show/hide table columns
+**NavigationSidebar.jsx** - Collapsible navigation with dual-mode sub-execution handling (expand vs navigate)
 
 **CollapsibleCell.jsx** - Expandable table cells for long content
 
-**ContentViewer.jsx** - Modal viewer for full content
+**ContentViewer.jsx** - Modal viewer for full content display
 
-**Modal.jsx** - Reusable modal dialog
-
-**AuthWrapper.jsx** - Authentication wrapper
-
-**EvaluationTrigger.jsx** - Trigger evaluation component
+**EvaluationTrigger.jsx** - Trigger evaluation workflows
 
 ---
 
@@ -308,28 +291,31 @@ All numeric scores are automatically color-coded:
 - ✅ Reason/explanation pairing
 
 ### 2. **Powerful Filtering & Sorting**
-- Filter by model, prompt version, run version
-- Search across multiple fields
+- Search with Ctrl+K keyboard shortcut
+- Filter by workflow, run ID, session
 - Sort by any metric (ascending/descending)
-- Filter question IDs and score ranges
+- Dynamic field detection and display
 
 ### 3. **Comparison Tools**
-- Compare same question across runs
-- Compare different runs side-by-side
-- Delta calculations with visual indicators
-- Export comparisons
+- **Run Comparison**: Compare multiple complete runs side-by-side
+- **Question Comparison**: Compare same execution across runs
+- **Percentage Differences**: Shows % change from baseline (green=improvement, red=decline)
+- **Sticky Compare Button**: Floating button when 2+ runs selected
+- **Smart Metric Filtering**: Only applies color coding to 0-1 scaled metrics
 
-### 4. **Data Export**
-- Export to CSV format
-- Export to JSON format
-- Include all metrics dynamically
-- Comparison exports
+### 4. **Sub-Execution Navigation**
+- **Dual Navigation Modes**: Expand in-place or navigate to standalone view
+- **Circle Indicators**: Click circles to expand sub-executions inline
+- **View Workflow Buttons**: Navigate to dedicated sub-execution view
+- **Hierarchical Display**: Parent-child execution tracking
 
 ### 5. **Responsive UI**
 - Collapsible navigation sidebar
-- Resizable sidebar width
+- Orange accent color (#ff900c) throughout
+- Consistent border-radius (12px) and spacing
 - Expandable content cells
 - Modal viewers for long content
+- Smooth animations and transitions
 
 ---
 
@@ -337,22 +323,22 @@ All numeric scores are automatically color-coded:
 
 ### Adding New Metrics
 
-Simply add numeric fields to `execution_data` in your database:
+Simply add rows to the `evaluation.evaluation` table:
 
 ```sql
-INSERT INTO execution_data (test_run_id, output, 
-  outputScore, outputScoreReason,
-  coherenceScore, coherenceScoreReason,  -- ✅ New metric
-  fluencyRating, fluencyRatingReason      -- ✅ New metric
-) VALUES (...);
+INSERT INTO evaluation.evaluation (test_execution_id, metric_name, metric_value, metric_reason)
+VALUES 
+  (1, 'coherence', 0.85, 'Output is coherent and logical'),
+  (1, 'fluency', 0.92, 'Natural language flow');
+  -- ✅ UI automatically detects and displays these
 ```
 
 The UI will automatically:
-- Display the new metrics
-- Add them to sort/filter dropdowns
-- Include them in exports
-- Calculate aggregates
-- Apply color coding
+- Display the new metrics with formatted names
+- Apply color coding for 0-1 scaled values
+- Show metric reasons when available
+- Calculate aggregates across runs
+- Include in comparison views with percentage differences
 
 ### Database Schema
 

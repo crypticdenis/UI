@@ -60,10 +60,6 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
             <span className="stat-item">
               <strong>{sortedWorkflows.length}</strong> {sortedWorkflows.length === 1 ? 'Workflow' : 'Workflows'}
             </span>
-            <span className="stat-divider">|</span>
-            <span className="stat-item">
-              <strong>{sortedWorkflows.reduce((sum, w) => sum + (w.subworkflowCount || 0), 0)}</strong> Total Subworkflows
-            </span>
           </p>
         </div>
       </div>
@@ -107,7 +103,6 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
           <option value="name">Name</option>
           <option value="createdAt">Created Date</option>
           <option value="updatedAt">Last Updated</option>
-          <option value="subworkflowCount">Subworkflow Count</option>
         </select>
         <select 
           value={sortConfig.direction} 
@@ -139,9 +134,8 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
               </div>
               <div className="workflow-icon">
                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                  <line x1="12" y1="22.08" x2="12" y2="12"/>
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6m0 6v6m7.07-13.07l-4.24 4.24m0 5.66l4.24 4.24M1 12h6m6 0h6M4.93 4.93l4.24 4.24m5.66 0l4.24-4.24"/>
                 </svg>
               </div>
             </div>
@@ -154,16 +148,8 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
 
             <div className="run-card-meta">
               <div className="meta-item">
-                <span className="meta-label">Type:</span>
-                <span className="meta-value model-badge">Main Workflow</span>
-              </div>
-              <div className="meta-item">
                 <span className="meta-label">Runs:</span>
                 <span className="meta-value model-badge">{workflow.runCount || 0}</span>
-              </div>
-              <div className="meta-item">
-                <span className="meta-label">Subworkflows:</span>
-                <span className="meta-value prompt-badge">{workflow.subworkflowCount || 0}</span>
               </div>
               {workflow.createdAt && (
                 <div className="meta-item">
@@ -184,7 +170,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
                 className="view-details-btn workflow-runs-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onSelectWorkflow(workflow, 'runs');
+                  onSelectWorkflow(workflow);
                 }}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -192,21 +178,6 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
                   <rect x="9" y="3" width="6" height="4" rx="1"/>
                 </svg>
                 View Runs
-              </button>
-              <button 
-                className="view-details-btn workflow-subworkflows-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectWorkflow(workflow, 'subworkflows');
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="3" width="7" height="7"/>
-                  <rect x="14" y="3" width="7" height="7"/>
-                  <rect x="14" y="14" width="7" height="7"/>
-                  <rect x="3" y="14" width="7" height="7"/>
-                </svg>
-                View Subworkflows
               </button>
             </div>
           </div>

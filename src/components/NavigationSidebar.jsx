@@ -5,7 +5,6 @@ const NavigationSidebar = ({
   currentView, 
   selectedProject, 
   selectedWorkflow, 
-  selectedSubworkflow,
   selectedRunVersion,
   projects,
   onNavigate,
@@ -13,7 +12,6 @@ const NavigationSidebar = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [expandedWorkflows, setExpandedWorkflows] = useState(new Set());
-  const [expandedSubworkflows, setExpandedSubworkflows] = useState(new Set());
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef(null);
@@ -23,10 +21,14 @@ const NavigationSidebar = ({
     if (selectedWorkflow) {
       setExpandedWorkflows(prev => new Set([...prev, selectedWorkflow.id]));
     }
-    if (selectedSubworkflow) {
-      setExpandedSubworkflows(prev => new Set([...prev, selectedSubworkflow.id]));
+  }, [selectedWorkflow]);
+
+  // Update parent when collapse state changes
+  useEffect(() => {
+    if (onWidthChange) {
+      onWidthChange(isCollapsed ? 48 : sidebarWidth);
     }
-  }, [selectedWorkflow, selectedSubworkflow]);
+  }, [isCollapsed, sidebarWidth, onWidthChange]);
 
   const toggleWorkflow = (workflowId, e) => {
     e.stopPropagation();
@@ -41,28 +43,12 @@ const NavigationSidebar = ({
     });
   };
 
-  const toggleSubworkflow = (subworkflowId, e) => {
-    e.stopPropagation();
-    setExpandedSubworkflows(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(subworkflowId)) {
-        newSet.delete(subworkflowId);
-      } else {
-        newSet.add(subworkflowId);
-      }
-      return newSet;
-    });
-  };
-
-  const isActive = (view, workflowId, subworkflowId) => {
+  const isActive = (view, workflowId) => {
     if (view === 'workflows' && currentView === 'workflows') {
       return true;
     }
     if (view === 'workflow' && selectedWorkflow?.id === workflowId && 
-        (currentView === 'workflow-runs' || currentView === 'subworkflows')) {
-      return true;
-    }
-    if (view === 'subworkflow' && selectedSubworkflow?.id === subworkflowId && currentView === 'runs') {
+        (currentView === 'workflow-runs' || currentView === 'runs')) {
       return true;
     }
     return false;
@@ -169,23 +155,20 @@ const NavigationSidebar = ({
                 </div>
               </div>
 
-              {/* Workflow Runs + Subworkflows */}
+              {/* Workflow Runs (no subworkflows) */}
               {expandedWorkflows.has(workflow.id) && (
                 <div className="nav-tree-children">
-                  {/* Direct workflow runs */}
                   {workflow.runs?.map((run) => (
                     <div 
                       key={run.version}
                       className={`nav-item nested-2 ${
                         selectedRunVersion === run.version && 
-                        selectedWorkflow?.id === workflow.id && 
-                        !selectedSubworkflow
+                        selectedWorkflow?.id === workflow.id
                           ? 'active' 
                           : ''
                       }`}
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log('Sidebar run clicked:', run.version);
                         onNavigate('run', project, workflow, null, { version: run.version, runs: run.runs || run.questions || [] });
                       }}
                       style={{ cursor: 'pointer' }}
@@ -197,58 +180,6 @@ const NavigationSidebar = ({
                         </svg>
                         <span className="nav-item-label run-label">{run.version}</span>
                       </div>
-                    </div>
-                  ))}
-
-                  {/* Subworkflows */}
-                  {workflow.subworkflows?.length > 0 && workflow.subworkflows.map(subworkflow => (
-                    <div key={subworkflow.id} className="nav-tree-item">
-                      <div 
-                        className={`nav-item nested-2 ${isActive('subworkflow', null, subworkflow.id) ? 'active' : ''}`}
-                        onClick={() => onNavigate('subworkflow', project, workflow, subworkflow)}
-                      >
-                        <button 
-                          className={`expand-btn ${expandedSubworkflows.has(subworkflow.id) ? 'expanded' : ''}`}
-                          onClick={(e) => toggleSubworkflow(subworkflow.id, e)}
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M9 18l6-6-6-6"/>
-                          </svg>
-                        </button>
-                        <div className="nav-item-content">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                          </svg>
-                          <span className="nav-item-label">{subworkflow.name}</span>
-                          <span className="nav-item-count">{subworkflow.runCount}</span>
-                        </div>
-                      </div>
-
-                      {/* Subworkflow Runs */}
-                      {expandedSubworkflows.has(subworkflow.id) && subworkflow.runs?.length > 0 && (
-                        <div className="nav-tree-children">
-                          {subworkflow.runs.map((run) => (
-                            <div 
-                              key={run.version}
-                              className={`nav-item nested-3 ${
-                                selectedRunVersion === run.version && 
-                                selectedSubworkflow?.id === subworkflow.id 
-                                  ? 'active' 
-                                  : ''
-                              }`}
-                              onClick={() => onNavigate('run', project, workflow, subworkflow, { version: run.version, runs: run.runs || run.questions || [] })}
-                            >
-                              <div className="nav-item-content">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <polyline points="9 11 12 14 22 4"/>
-                                  <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                                </svg>
-                                <span className="nav-item-label run-label">{run.version}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>

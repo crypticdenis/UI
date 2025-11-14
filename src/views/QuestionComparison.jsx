@@ -82,7 +82,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
     return ((currentScore - prevScore) / prevScore * 100).toFixed(1);
   };
 
-  const renderScoreWithDelta = (score, prevScore, label) => {
+  const renderScoreWithDelta = (score, prevScore, label, reason) => {
     const delta = calculateDelta(score, prevScore);
     const isImprovement = delta && parseFloat(delta) > 0;
     const isRegression = delta && parseFloat(delta) < 0;
@@ -108,6 +108,17 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
             <span className="score-bar-value">{formatNumber(score)}</span>
           </div>
         </div>
+        {reason && (
+          <div style={{ 
+            marginTop: '8px', 
+            fontSize: '13px', 
+            color: '#94a3b8', 
+            fontStyle: 'italic',
+            lineHeight: '1.4'
+          }}>
+            {reason}
+          </div>
+        )}
       </div>
     );
   };
@@ -280,8 +291,11 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={() => {}}
-                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            toggleVersion(version);
+                          }}
+                          readOnly={false}
                         />
                       </div>
                       <div className="version-card-title">
@@ -354,40 +368,67 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
 
           {selectedQuestions.length > 0 && (
             <div className="comparison-container">
-              {selectedQuestions.map((question) => (
-                <div key={question.id} className="comparison-card">
-                  <h3>Run: {question.runVersion}</h3>
-                  <div style={{ 
-                    display: 'flex', 
-                    gap: '16px', 
-                    marginBottom: '12px',
-                    paddingBottom: '12px',
-                    borderBottom: '1px solid rgba(96, 165, 250, 0.2)',
-                    flexWrap: 'wrap'
-                  }}>
-                    {question.executionTs && (
-                      <span style={{ fontSize: '13px', color: '#94a3b8' }}>
-                        <strong>⏰ Timestamp:</strong> {new Date(question.executionTs).toLocaleString('de-DE', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                          second: '2-digit'
-                        })}
-                      </span>
-                    )}
-                    {question.duration != null && (
-                      <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '600' }}>
-                        <strong>Duration:</strong> {question.duration}s
-                      </span>
-                    )}
-                    {question.totalTokens != null && (
-                      <span style={{ fontSize: '13px', color: '#fe8f0f', fontWeight: '600' }}>
-                        <strong>Tokens:</strong> {question.totalTokens}
-                      </span>
-                    )}
-                  </div>
+              {selectedQuestions.map((question, index) => {
+                const prevQuestion = index > 0 ? selectedQuestions[0] : null;
+                const durationDelta = prevQuestion && prevQuestion.duration && question.duration 
+                  ? ((question.duration - prevQuestion.duration) / prevQuestion.duration * 100).toFixed(1)
+                  : null;
+                const tokensDelta = prevQuestion && prevQuestion.totalTokens && question.totalTokens
+                  ? ((question.totalTokens - prevQuestion.totalTokens) / prevQuestion.totalTokens * 100).toFixed(1)
+                  : null;
+
+                return (
+                  <div key={question.id} className="comparison-card">
+                    <h3>Run: {question.runVersion}</h3>
+                    <div style={{ 
+                      display: 'flex', 
+                      gap: '16px', 
+                      marginBottom: '12px',
+                      paddingBottom: '12px',
+                      borderBottom: '1px solid rgba(96, 165, 250, 0.2)',
+                      flexWrap: 'wrap'
+                    }}>
+                      {question.executionTs && (
+                        <span style={{ fontSize: '13px', color: '#94a3b8' }}>
+                          <strong>⏰ Timestamp:</strong> {new Date(question.executionTs).toLocaleString('de-DE', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: '2-digit',
+                            hour: '2-digit',
+                            minute: '2-digit',
+                            second: '2-digit'
+                          })}
+                        </span>
+                      )}
+                      {question.duration != null && (
+                        <span style={{ fontSize: '13px', color: '#60a5fa', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <strong>Duration:</strong> {question.duration}s
+                          {durationDelta && (
+                            <span style={{ 
+                              fontSize: '11px',
+                              color: parseFloat(durationDelta) < 0 ? '#10b981' : '#ef4444',
+                              fontWeight: '700'
+                            }}>
+                              ({parseFloat(durationDelta) > 0 ? '+' : ''}{durationDelta}%)
+                            </span>
+                          )}
+                        </span>
+                      )}
+                      {question.totalTokens != null && (
+                        <span style={{ fontSize: '13px', color: '#ff900c', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <strong>Tokens:</strong> {question.totalTokens}
+                          {tokensDelta && (
+                            <span style={{ 
+                              fontSize: '11px',
+                              color: parseFloat(tokensDelta) < 0 ? '#10b981' : '#ef4444',
+                              fontWeight: '700'
+                            }}>
+                              ({parseFloat(tokensDelta) > 0 ? '+' : ''}{tokensDelta}%)
+                            </span>
+                          )}
+                        </span>
+                      )}
+                    </div>
                   
                   <h4 style={{ marginTop: '16px', marginBottom: '8px', color: '#60a5fa' }}>Question Input</h4>
                   <div style={{ marginBottom: '16px' }}>
@@ -466,6 +507,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                     {scoreFields.map(field => {
                       const currentVal = question[field.key];
                       const currentScore = currentVal && typeof currentVal === 'object' && 'value' in currentVal ? currentVal.value : currentVal;
+                      const currentReason = currentVal && typeof currentVal === 'object' && 'reason' in currentVal ? currentVal.reason : null;
                       
                       const prevVal = selectedQuestions[0]?.[field.key];
                       const prevScore = prevVal && typeof prevVal === 'object' && 'value' in prevVal ? prevVal.value : prevVal;
@@ -473,12 +515,14 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                       return renderScoreWithDelta(
                         currentScore,
                         prevScore,
-                        field.label
+                        field.label,
+                        currentReason
                       );
                     })}
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
             </> 

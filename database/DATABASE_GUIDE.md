@@ -2,111 +2,131 @@
 
 ## Overview
 
-RE Butler Evaluation uses a simplified database schema without project or workflow tables, relying on a single hardcoded project ("RE Butler Evaluation") and string-based workflow identifiers. This guide explains how data is structured, queried, filtered, compared, and displayed in the application.
+RE Butler Evaluation uses a simplified 4-table database schema without project or workflow tables. Each workflow is tested independently with its own test runs, and subworkflow calls during execution are tracked via `parent_execution_id` for debugging purposes only. The dashboard displays only direct test runs (where `parent_execution_id IS NULL`).
+
+**Key Principles:**
+- **Separate Testing**: Each workflow (e.g., "RE_Butler", "RAG_Search") has its own independent test runs
+- **No Workflow Hierarchy in Runs**: There is no `parent_run_id` - all runs are top-level
+- **Sub-Executions for Debugging**: When a workflow calls a subworkflow during execution, the spawned execution has `parent_execution_id` set
+- **Dashboard Shows Direct Tests Only**: Sub-executions are hidden from the UI, used only for technical analysis
 
 ---
 
 ## Database Schema
 
+**Namespace**: All tables use the `evaluation` schema namespace for organization.
+
 ### Core Tables
 
-#### 1. `test_run` - Test Run Records
-The central table representing workflow executions.
+#### 1. `evaluation.test_run` - Test Run Records
+The central table representing independent workflow test runs.
 
 ```sql
-CREATE TABLE test_run (
+CREATE TABLE evaluation.test_run (
     id SERIAL PRIMARY KEY,
-    workflow_id VARCHAR(255) NOT NULL,        -- String identifier (e.g., "QA_Evaluation")
-    parent_run_id INTEGER REFERENCES test_run(id),  -- NULL for main workflows, set for subworkflows
+    workflow_id VARCHAR(255),
     start_ts TIMESTAMP,
     finish_ts TIMESTAMP,
-    creation_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    creation_ts TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
 **Key Concepts:**
-- **Main Workflow Run**: `parent_run_id = NULL` (e.g., QA_Evaluation runs)
-- **Subworkflow Run**: `parent_run_id` references a parent run (e.g., Prompt_Tuning linked to QA_Evaluation)
-- **Workflow ID**: Simple string identifier, no separate workflow table needed
+- **Independent Runs**: Each workflow is tested separately with its own dedicated test questions
+- **No Hierarchy**: All runs are top-level; no `parent_run_id` field
+- **Workflow ID**: Simple string identifier (e.g., "RE_Butler", "RAG_Search")
 
 **Example Data:**
 ```
-id | workflow_id      | parent_run_id
----+------------------+--------------
-1  | QA_Evaluation    | NULL          (main workflow run)
-2  | QA_Evaluation    | NULL          (main workflow run)
-3  | QA_Evaluation    | NULL          (main workflow run)
-4  | Prompt_Tuning    | 1             (subworkflow of run 1)
-5  | Prompt_Tuning    | 1             (subworkflow of run 1)
-6  | Model_Comparison | 2             (subworkflow of run 2)
+id | workflow_id  | start_ts             
+---+--------------+----------------------
+1  | RE_Butler    | 2025-11-13 10:00:00  (7 test questions)
+2  | RE_Butler    | 2025-11-13 11:00:00  (7 test questions, different model)
+3  | RAG_Search   | 2025-11-13 14:00:00  (5 test questions)
 ```
+
+**Important**: "RE_Butler" and "RAG_Search" are tested independently. If RE_Butler *calls* RAG_Search during execution, that's tracked in `test_execution.parent_execution_id`, NOT here.
 
 ---
 
-#### 2. `test_execution` - Individual Test Executions
+#### 2. `evaluation.test_execution` - Individual Test Executions
 Represents individual test cases/questions within a run.
 
 ```sql
-CREATE TABLE test_execution (
+CREATE TABLE evaluation.test_execution (
     id SERIAL PRIMARY KEY,
-    run_id INTEGER REFERENCES test_run(id) ON DELETE CASCADE,
+    run_id INTEGER REFERENCES evaluation.test_run(id) ON DELETE CASCADE,
+    workflow_id VARCHAR(255),
     session_id VARCHAR(255),
-    parent_execution_id INTEGER REFERENCES test_execution(id),
-    subworkflow_run_id INTEGER REFERENCES test_run(id),  -- Links to spawned subworkflow
+    parent_execution_id INTEGER REFERENCES evaluation.test_execution(id),  -- For sub-executions (debugging only)
     input TEXT,
     expected_output TEXT,
-    duration NUMERIC,
+    duration NUMERIC(7,2),
     total_tokens INTEGER,
-    execution_ts TIMESTAMP,
-    creation_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    creation_ts TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
 **Key Fields:**
 - **`run_id`**: Which test run this execution belongs to
-- **`subworkflow_run_id`**: If this execution spawned a subworkflow, references the subworkflow's run ID
+- **`parent_execution_id`**: If this execution was triggered by another execution (e.g., RAG call during RE_Butler execution). **NULL for direct tests**
 - **`input`**: The test question/prompt
 - **`expected_output`**: Expected result for comparison
-- **`parent_execution_id`**: For nested/hierarchical executions
 
-**Example:**
+**Example - Run 1 (RE_Butler, 7 direct test questions):**
 ```
-id | run_id | input                   | subworkflow_run_id
----+--------+-------------------------+-------------------
-1  | 1      | What is AI?             | 4    (spawned Prompt_Tuning run 4)
-2  | 1      | Define Machine Learning | NULL
-3  | 1      | Explain Neural Networks | NULL
-4  | 2      | What is AI?             | NULL
-5  | 2      | Define Machine Learning | 6    (spawned Model_Comparison run 6)
+id | run_id | input                          | parent_execution_id
+---+--------+--------------------------------+--------------------
+1  | 1      | What is AI?                    | NULL  (direct test)
+2  | 1      | Explain machine learning       | NULL  (direct test)
+3  | 1      | What are neural networks?      | NULL  (direct test)
+...
+```
+
+**Example - Sub-Execution (triggered during Run 1, hidden from dashboard):**
+```
+id | run_id | input                          | parent_execution_id
+---+--------+--------------------------------+--------------------
+20 | 1      | RAG: Find ML definitions       | 2     (spawned by execution #2, NOT shown in UI)
+```
+
+**Example - Run 3 (RAG_Search, 5 direct test questions):**
+```
+id | run_id | input                          | parent_execution_id
+---+--------+--------------------------------+--------------------
+15 | 3      | Find ML documents              | NULL  (direct test of RAG_Search)
+16 | 3      | Search neural network papers   | NULL  (direct test of RAG_Search)
+...
 ```
 
 ---
 
-#### 3. `test_response` - Execution Outputs
+#### 3. `evaluation.test_response` - Execution Outputs
 Stores the actual output/response from each execution.
 
 ```sql
-CREATE TABLE test_response (
+CREATE TABLE evaluation.test_response (
     id SERIAL PRIMARY KEY,
-    test_execution_id INTEGER REFERENCES test_execution(id) ON DELETE CASCADE,
-    output TEXT
+    test_execution_id INTEGER REFERENCES evaluation.test_execution(id) ON DELETE CASCADE,
+    actual_output TEXT,
+    creation_ts TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
 ---
 
-#### 4. `evaluation` - Evaluation Metrics
+#### 4. `evaluation.evaluation` - Evaluation Metrics
 Stores evaluation results with flexible metric names.
 
 ```sql
-CREATE TABLE evaluation (
+CREATE TABLE evaluation.evaluation (
     id SERIAL PRIMARY KEY,
-    test_execution_id INTEGER REFERENCES test_execution(id) ON DELETE CASCADE,
-    type VARCHAR(255),
-    metric_name VARCHAR(255),      -- e.g., "accuracy", "relevance", "hallucination_rate"
-    metric_value NUMERIC,          -- Numeric score
+    test_execution_id INTEGER REFERENCES evaluation.test_execution(id) ON DELETE CASCADE,
+    workflow_id VARCHAR(32) DEFAULT 'REG_TEST',
+    metric_name VARCHAR(64),       -- e.g., "accuracy", "relevance", "hallucination_rate"
+    metric_value NUMERIC(7,2),     -- Numeric score
     metric_reason TEXT,            -- Explanation/reasoning
-    creation_ts TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    creation_ts TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ```
 
@@ -127,86 +147,80 @@ id | test_execution_id | metric_name | metric_value | metric_reason
 
 ## Hierarchy & Relationships
 
-### Workflow Hierarchy
+### Application Structure
 
 ```
 Project (Hardcoded: "RE Butler Evaluation")
 │
-├── Workflow: QA_Evaluation (main)
-│   ├── run_1 (test_run.id=1, parent_run_id=NULL)
-│   │   ├── execution 1: "What is AI?" → spawned → run_4 (Prompt_Tuning)
-│   │   ├── execution 2: "Define Machine Learning"
-│   │   └── execution 3: "Explain Neural Networks"
+├── Workflow: RE_Butler (Independent Testing)
+│   ├── run_1 (test_run.id=1) - 7 test questions
+│   │   ├── execution 1: "What is AI?" (parent_execution_id=NULL) ← Shown in dashboard
+│   │   ├── execution 2: "Explain ML" (parent_execution_id=NULL) ← Shown in dashboard
+│   │   │   └── execution 20: "RAG: Find ML defs" (parent_execution_id=2) ← Hidden (debugging only)
+│   │   ├── execution 3-7: More questions (parent_execution_id=NULL) ← Shown in dashboard
 │   │
-│   ├── run_2 (test_run.id=2, parent_run_id=NULL)
-│   │   ├── execution 4: "What is AI?"
-│   │   ├── execution 5: "Define Machine Learning" → spawned → run_6 (Model_Comparison)
-│   │   └── execution 6: "Explain Neural Networks"
-│   │
-│   └── run_3 (test_run.id=3, parent_run_id=NULL)
-│       └── executions 7-9: Same questions
+│   ├── run_2 (test_run.id=2) - 7 test questions (different model)
+│       ├── executions 8-13: (parent_execution_id=NULL) ← Shown in dashboard
+│       └── execution 21: "RAG: Search CV" (parent_execution_id=13) ← Hidden (debugging only)
 │
-├── Subworkflow: Prompt_Tuning (linked to run_1)
-│   ├── run_4 (test_run.id=4, parent_run_id=1)
-│   │   └── executions 10-11: Tuned prompt variations
-│   │
-│   └── run_5 (test_run.id=5, parent_run_id=1)
-│       └── executions 12-13: More tuned variations
-│
-└── Subworkflow: Model_Comparison (linked to run_2)
-    └── run_6 (test_run.id=6, parent_run_id=2)
-        └── execution 14: GPT-4 comparison
+└── Workflow: RAG_Search (Separate Independent Testing)
+    └── run_3 (test_run.id=3) - 5 dedicated RAG test questions
+        ├── execution 15: "Find ML documents" (parent_execution_id=NULL) ← Shown in dashboard
+        ├── execution 16: "Search NN papers" (parent_execution_id=NULL) ← Shown in dashboard
+        └── executions 17-19: More RAG tests (parent_execution_id=NULL) ← Shown in dashboard
 ```
+
+**Key Points:**
+1. **RE_Butler** and **RAG_Search** are tested independently with their own test runs
+2. When RE_Butler **execution #2** needs RAG during runtime, it creates **execution #20** with `parent_execution_id=2`
+3. Execution #20 is **NOT shown in the dashboard** - it's for debugging only
+4. RAG_Search is properly tested in **run_3** with 5 dedicated test questions
+5. Dashboard shows only `WHERE parent_execution_id IS NULL`
 
 ---
 
 ## Data Querying & Filtering
 
-### 1. Get All Main Workflows
+### 1. Get All Workflows
 
 ```sql
 SELECT DISTINCT workflow_id 
-FROM test_run 
-WHERE parent_run_id IS NULL 
+FROM evaluation.test_run 
 ORDER BY workflow_id;
 ```
 
-Result: `QA_Evaluation`
+Result: `RAG_Search`, `RE_Butler`
 
 ---
 
 ### 2. Get All Runs for a Workflow
 
-**Main workflow runs:**
 ```sql
-SELECT * FROM test_run 
-WHERE workflow_id = 'QA_Evaluation' 
-AND parent_run_id IS NULL 
+SELECT * FROM evaluation.test_run 
+WHERE workflow_id = 'RE_Butler' 
 ORDER BY start_ts;
 ```
 
-**Subworkflow runs:**
-```sql
-SELECT * FROM test_run 
-WHERE workflow_id = 'Prompt_Tuning' 
-AND parent_run_id IS NOT NULL 
-ORDER BY start_ts;
-```
+Result: All test runs for RE_Butler workflow
 
 ---
 
-### 3. Get Subworkflows for a Main Run
+### 3. Get Direct Test Executions (Shown in Dashboard)
 
 ```sql
-SELECT * FROM test_run 
-WHERE parent_run_id = 1;
+SELECT te.*, tr.output 
+FROM test_execution te
+LEFT JOIN test_response tr ON tr.test_execution_id = te.id
+WHERE te.run_id = 1 
+AND te.parent_execution_id IS NULL
+ORDER BY te.execution_ts;
 ```
 
-Result: All subworkflow runs that were spawned from run_1
+Result: Only the 7 direct test questions for run_1 (execution #20 is excluded)
 
 ---
 
-### 4. Get Complete Run Data (with Executions & Evaluations)
+### 4. Get Complete Run Data (ONLY Direct Tests for Dashboard)
 
 ```sql
 SELECT 
@@ -223,41 +237,51 @@ SELECT
 FROM test_execution te
 LEFT JOIN test_response tr ON tr.test_execution_id = te.id
 LEFT JOIN evaluation e ON e.test_execution_id = te.id
-WHERE te.run_id = 1
+WHERE te.run_id = 1 AND te.parent_execution_id IS NULL
 ORDER BY te.execution_ts, e.metric_name;
 ```
 
----
-
-### 5. Get All Evaluations for a Run and Its Subworkflows
-
-```sql
-SELECT e.*, te.input, tr.workflow_id
-FROM evaluation e
-JOIN test_execution te ON e.test_execution_id = te.id
-JOIN test_run tr ON te.run_id = tr.id
-WHERE tr.id = 1 OR tr.parent_run_id = 1;
-```
-
-This gives you evaluations from both the main run and any spawned subworkflows.
+**Important**: `WHERE te.parent_execution_id IS NULL` excludes sub-executions from dashboard.
 
 ---
 
-### 6. Find Which Execution Spawned a Subworkflow
+### 5. Find Sub-Executions (For Debugging, Not Shown in UI)
 
 ```sql
 SELECT 
     te.id,
     te.input,
     te.run_id,
-    sw.workflow_id as spawned_workflow,
-    sw.id as spawned_run_id
+    parent_te.id as parent_execution_id,
+    parent_te.input as parent_input
 FROM test_execution te
-JOIN test_run sw ON te.subworkflow_run_id = sw.id
-WHERE te.subworkflow_run_id = 4;
+JOIN test_execution parent_te ON te.parent_execution_id = parent_te.id
+WHERE te.parent_execution_id IS NOT NULL;
 ```
 
-Result: Shows execution #1 from run_1 spawned Prompt_Tuning run #4
+Result: Shows which executions were spawned during other executions (e.g., RAG calls)
+
+---
+
+### 6. Count Direct vs Sub-Executions
+
+```sql
+SELECT 
+    run_id,
+    COUNT(*) FILTER (WHERE parent_execution_id IS NULL) as direct_tests,
+    COUNT(*) FILTER (WHERE parent_execution_id IS NOT NULL) as sub_executions
+FROM test_execution
+GROUP BY run_id;
+```
+
+Result: 
+```
+run_id | direct_tests | sub_executions
+-------+--------------+----------------
+1      | 7            | 1              (7 shown in UI, 1 hidden)
+2      | 7            | 1
+3      | 5            | 0              (RAG_Search has no sub-executions)
+```
 
 ---
 
@@ -267,26 +291,30 @@ Result: Shows execution #1 from run_1 spawned Prompt_Tuning run #4
 
 #### Data Transformation Pipeline
 
-1. **Fetch Main Workflows**
+1. **Fetch All Workflows**
    ```javascript
    SELECT DISTINCT workflow_id 
    FROM test_run 
-   WHERE parent_run_id IS NULL
+   ORDER BY workflow_id
    ```
 
-2. **For Each Workflow, Get Runs**
+2. **For Each Workflow, Get All Runs**
    ```javascript
    SELECT * FROM test_run 
-   WHERE workflow_id = ? AND parent_run_id IS NULL
+   WHERE workflow_id = ? 
+   ORDER BY start_ts
    ```
 
-3. **For Each Run, Get Executions with Responses**
+3. **For Each Run, Get ONLY Direct Executions (Dashboard Display)**
    ```javascript
    SELECT te.*, tr.output 
    FROM test_execution te
    LEFT JOIN test_response tr ON tr.test_execution_id = te.id
-   WHERE te.run_id = ?
+   WHERE te.run_id = ? AND te.parent_execution_id IS NULL
+   ORDER BY te.execution_ts
    ```
+   
+   **Critical**: `AND te.parent_execution_id IS NULL` filters out sub-executions
 
 4. **For Each Execution, Get Evaluations**
    ```javascript
@@ -316,22 +344,16 @@ Result: Shows execution #1 from run_1 spawned Prompt_Tuning run #4
 ```
 RE Butler Evaluation (hardcoded)
 ├─ Workflows
-   └─ QA Evaluation (3 runs)
-      ├─ run_1 ←─── Main workflow runs
-      ├─ run_2
-      ├─ run_3
-      ├─ Model Comparison (1 run) ←─── Subworkflows
-      │  └─ run_6
-      └─ Prompt Tuning (2 runs)
-         ├─ run_4
-         └─ run_5
+   ├─ RAG Search (1 run)
+   │  └─ run_3
+   └─ RE Butler (2 runs)
+      ├─ run_1
+      └─ run_2
 ```
 
 **Navigation Logic:**
-- Click workflow → Shows main runs as cards
-- Click main run → Shows execution details table
-- Click subworkflow → Shows subworkflow runs as cards
-- Click subworkflow run → Shows execution details table
+- Click workflow → Shows test runs as cards
+- Click run → Shows execution details table (only executions where parent_execution_id IS NULL)
 
 ---
 

@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import ProjectsLandingPage from './views/ProjectsLandingPage.jsx';
 import WorkflowsOverview from './views/WorkflowsOverview.jsx';
-import SubWorkflowsView from './views/SubWorkflowsView.jsx';
 import RunsOverview from './views/RunsOverview.jsx';
 import RunDetails from './views/RunDetails.jsx';
 import QuestionComparison from './views/QuestionComparison.jsx';
+import RunComparison from './views/RunComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
 import EvaluationTrigger from './components/EvaluationTrigger.jsx';
 import NavigationSidebar from './components/NavigationSidebar.jsx';
@@ -17,17 +17,19 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState('projects'); // 'projects', 'workflows', 'workflow-runs', 'subworkflows', 'runs', 'details', 'workflow-details', 'comparison'
+  const [currentView, setCurrentView] = useState('projects'); // 'projects', 'workflows', 'runs', 'details', 'comparison'
   
   // Navigation state
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
-  const [selectedSubworkflow, setSelectedSubworkflow] = useState(null);
   const [selectedRunVersion, setSelectedRunVersion] = useState(null);
   const [selectedRunQuestions, setSelectedRunQuestions] = useState([]);
+  const [autoExpandExecutionId, setAutoExpandExecutionId] = useState(null);
   
   const [comparisonBaseID, setComparisonBaseID] = useState(null);
   const [comparisonRunVersion, setComparisonRunVersion] = useState(null);
+  const [runComparisonWorkflowId, setRunComparisonWorkflowId] = useState(null);
+  const [runComparisonRunIds, setRunComparisonRunIds] = useState([]);
   const [viewerContent, setViewerContent] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(280);
 
@@ -69,15 +71,11 @@ function App() {
           setViewerContent(null);
         } else if (currentView === 'comparison') {
           handleCloseComparison();
+        } else if (currentView === 'runComparison') {
+          handleCloseRunComparison();
         } else if (currentView === 'details') {
           handleBackToRuns();
-        } else if (currentView === 'workflow-details') {
-          handleBackToWorkflowRuns();
         } else if (currentView === 'runs') {
-          handleBackToSubworkflows();
-        } else if (currentView === 'workflow-runs') {
-          handleBackToWorkflows();
-        } else if (currentView === 'subworkflows') {
           handleBackToWorkflows();
         } else if (currentView === 'workflows') {
           handleBackToProjects();
@@ -94,7 +92,6 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentView, viewerContent]);
 
   const _handleEvaluationComplete = async (config) => {
@@ -104,7 +101,6 @@ function App() {
       // Create new run via API
       const newRun = {
         id: `${Date.now()}-${config.model}-${config.promptVersion}`,
-        subworkflow_id: selectedSubworkflow?.id || null,
         workflow_id: selectedWorkflow?.id || null,
         base_id: Date.now() % 1000,
         version: `${config.model}_${config.promptVersion}`,
@@ -178,22 +174,11 @@ function App() {
     alert(`✓ Project "${projectData.name}" created successfully!`);
   };
 
-  const handleSelectWorkflow = (workflow, viewType) => {
+  const handleSelectWorkflow = (workflow) => {
     setSelectedWorkflow(workflow);
     setSelectedRunVersion(null);
     setSelectedRunQuestions([]);
-    if (viewType === 'runs') {
-      setCurrentView('workflow-runs');
-    } else if (viewType === 'subworkflows') {
-      setCurrentView('subworkflows');
-    }
-  };
-
-  const handleSelectSubworkflow = (subworkflow) => {
-    setSelectedSubworkflow(subworkflow);
     setCurrentView('runs');
-    setSelectedRunVersion(null);
-    setSelectedRunQuestions([]);
   };
 
   const handleViewRunDetails = (version, questions) => {
@@ -204,38 +189,18 @@ function App() {
     }
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
-    // Determine which view we're coming from
-    if (currentView === 'workflow-runs') {
-      setCurrentView('workflow-details');
-    } else {
-      setCurrentView('details');
-    }
+    setCurrentView('details');
   };
 
   const handleBackToProjects = () => {
     setCurrentView('projects');
     setSelectedProject(null);
     setSelectedWorkflow(null);
-    setSelectedSubworkflow(null);
   };
 
   const handleBackToWorkflows = () => {
     setCurrentView('workflows');
     setSelectedWorkflow(null);
-    setSelectedSubworkflow(null);
-    setSelectedRunVersion(null);
-    setSelectedRunQuestions([]);
-  };
-
-  const handleBackToSubworkflows = () => {
-    setCurrentView('subworkflows');
-    setSelectedSubworkflow(null);
-    setSelectedRunVersion(null);
-    setSelectedRunQuestions([]);
-  };
-
-  const handleBackToWorkflowRuns = () => {
-    setCurrentView('workflow-runs');
     setSelectedRunVersion(null);
     setSelectedRunQuestions([]);
   };
@@ -246,18 +211,6 @@ function App() {
     setSelectedRunQuestions([]);
   };
 
-  const handleNavigateBack = (destination) => {
-    if (destination === 'projects') {
-      handleBackToProjects();
-    } else if (destination === 'workflows') {
-      handleBackToWorkflows();
-    } else if (destination === 'subworkflows') {
-      handleBackToSubworkflows();
-    } else if (destination === 'workflow-runs') {
-      handleBackToWorkflowRuns();
-    }
-  };
-
   const handleCompareQuestion = (baseID, runVersion) => {
     setComparisonBaseID(baseID);
     setComparisonRunVersion(runVersion);
@@ -265,58 +218,109 @@ function App() {
   };
 
   const handleCloseComparison = () => {
-    // Determine which view to return to based on what we came from
-    if (selectedSubworkflow) {
-      setCurrentView('details');
-    } else if (selectedWorkflow && currentView === 'comparison') {
-      setCurrentView('workflow-details');
-    } else {
-      setCurrentView('details');
-    }
+    setCurrentView('details');
     setComparisonBaseID(null);
     setComparisonRunVersion(null);
+  };
+
+  const handleCompareRuns = (workflowId, runIds) => {
+    setRunComparisonWorkflowId(workflowId);
+    setRunComparisonRunIds(runIds);
+    setCurrentView('runComparison');
+  };
+
+  const handleCloseRunComparison = () => {
+    setCurrentView('runs');
+    setRunComparisonWorkflowId(null);
+    setRunComparisonRunIds([]);
   };
 
   const handleExpandContent = (content, title, runId, gtId) => {
     setViewerContent({ content, title, runId, gtId });
   };
 
-  const handleNavigate = (destination, project, workflow, subworkflow, run) => {
+  const handleNavigateToSubExecution = (workflowId, runId, executionId, navigateToStandalone = false) => {
+    console.log('🔍 Navigating to sub-execution:', { workflowId, runId, executionId, navigateToStandalone });
+    
+    // If navigateToStandalone is true, navigate to the standalone workflow
+    if (navigateToStandalone) {
+      const targetWorkflow = selectedProject?.workflows?.find(w => w.id === workflowId);
+      if (!targetWorkflow) {
+        console.error('❌ Standalone workflow not found:', workflowId);
+        return;
+      }
+      
+      console.log('✅ Navigating to standalone workflow:', targetWorkflow.id);
+      setSelectedWorkflow(targetWorkflow);
+      setSelectedRunVersion(null);
+      setSelectedRunQuestions([]);
+      setAutoExpandExecutionId(null);
+      setCurrentView('runs');
+      return;
+    }
+    
+    // Sub-executions are nested within their parent run
+    // Find the run that contains this sub-execution
+    let targetWorkflow = null;
+    let targetRun = null;
+    let parentExecutionId = null;
+    
+    // Search all workflows for the run containing this sub-execution
+    for (const workflow of selectedProject?.workflows || []) {
+      const run = workflow.runs?.find(r => r.id === runId);
+      if (run) {
+        targetWorkflow = workflow;
+        targetRun = run;
+        
+        // Find the parent execution that contains this sub-execution
+        const executions = run.runs || run.questions || [];
+        for (const exec of executions) {
+          if (exec.subExecutions && exec.subExecutions.some(sub => sub.id === executionId)) {
+            parentExecutionId = exec.id;
+            break;
+          }
+        }
+        
+        if (parentExecutionId) break;
+      }
+    }
+    
+    if (!targetWorkflow || !targetRun || !parentExecutionId) {
+      console.error('❌ Could not find parent execution for sub-execution:', { workflowId, runId, executionId });
+      return;
+    }
+
+    console.log('✅ Found parent execution:', { 
+      workflow: targetWorkflow.id, 
+      run: targetRun.id, 
+      parentExec: parentExecutionId,
+      subExec: executionId,
+      subWorkflow: workflowId
+    });
+
+    // Navigate to the run and expand the parent execution (which will show the sub-execution)
+    setSelectedWorkflow(targetWorkflow);
+    setSelectedRunVersion(targetRun.version);
+    setSelectedRunQuestions(targetRun.runs || targetRun.questions || []);
+    setAutoExpandExecutionId(parentExecutionId); // Expand the PARENT, not the sub
+    setCurrentView('details');
+  };
+
+  const handleNavigate = (destination, project, workflow, _subworkflow, run) => {
     if (destination === 'projects') {
       handleBackToProjects();
     } else if (destination === 'project' && project) {
       handleSelectProject(project);
     } else if (destination === 'workflow' && project && workflow) {
       setSelectedProject(project);
-      // Always show runs view when clicking on a workflow, regardless of subworkflows
-      handleSelectWorkflow(workflow, 'runs');
-    } else if (destination === 'subworkflow' && project && workflow && subworkflow) {
-      setSelectedProject(project);
-      setSelectedWorkflow(workflow);
-      handleSelectSubworkflow(subworkflow);
+      handleSelectWorkflow(workflow);
     } else if (destination === 'run' && project && workflow && run) {
-      // Handle both main workflow runs (subworkflow = null) and subworkflow runs
       setSelectedProject(project);
       setSelectedWorkflow(workflow);
-      if (subworkflow) {
-        setSelectedSubworkflow(subworkflow);
-      } else {
-        setSelectedSubworkflow(null);
-      }
       // Open run details directly (same behavior as clicking the card)
       const questions = run.runs || run.questions || [];
-      console.log('App.jsx - Navigating to run from sidebar:', { version: run.version, questionsCount: questions.length, hasSubworkflow: !!subworkflow });
+      console.log('App.jsx - Navigating to run from sidebar:', { version: run.version, questionsCount: questions.length });
       handleViewRunDetails(run.version, questions);
-    } else if (destination === 'workflow-run' && project && workflow && run) {
-      setSelectedProject(project);
-      setSelectedWorkflow(workflow);
-      // Open workflow run details directly (same behavior as clicking the card)
-      // Use run.runs for consistency (NavigationSidebar passes this)
-      const questions = run.runs || run.questions || [];
-      console.log('App.jsx - Navigating to workflow-run from sidebar:', { version: run.version, questionsCount: questions.length });
-      setSelectedRunVersion(run.version);
-      setSelectedRunQuestions(questions);
-      setCurrentView('workflow-details');
     }
   };
 
@@ -326,7 +330,6 @@ function App() {
         currentView={currentView}
         selectedProject={selectedProject}
         selectedWorkflow={selectedWorkflow}
-        selectedSubworkflow={selectedSubworkflow}
         selectedRunVersion={selectedRunVersion}
         projects={projects}
         onNavigate={handleNavigate}
@@ -381,37 +384,15 @@ function App() {
           />
         )}
 
-        {currentView === 'workflow-runs' && selectedWorkflow && (
+        {currentView === 'runs' && selectedWorkflow && (
           <RunsOverview 
             runs={selectedWorkflow.runs || []}
             onViewRunDetails={handleViewRunDetails}
+            onCompareRuns={handleCompareRuns}
             breadcrumbs={[
               { label: 'Projects', onClick: () => handleBackToProjects() },
               { label: selectedProject?.name, onClick: () => handleBackToWorkflows() },
               { label: `${selectedWorkflow.name} - Runs` }
-            ]}
-          />
-        )}
-
-        {currentView === 'subworkflows' && selectedWorkflow && (
-          <SubWorkflowsView 
-            subworkflows={selectedWorkflow.subworkflows || []}
-            workflowName={selectedWorkflow.name}
-            projectName={selectedProject?.name}
-            onViewSubworkflowRuns={handleSelectSubworkflow}
-            onBack={handleNavigateBack}
-          />
-        )}
-
-        {currentView === 'runs' && selectedSubworkflow && (
-          <RunsOverview 
-            runs={selectedSubworkflow.runs || []}
-            onViewRunDetails={handleViewRunDetails}
-            breadcrumbs={[
-              { label: 'Projects', onClick: () => handleBackToProjects() },
-              { label: selectedProject?.name, onClick: () => handleBackToWorkflows() },
-              { label: selectedWorkflow?.name, onClick: () => handleBackToSubworkflows() },
-              { label: `${selectedSubworkflow.name} - Runs` }
             ]}
           />
         )}
@@ -423,16 +404,9 @@ function App() {
             onBack={handleBackToRuns}
             onCompareQuestion={handleCompareQuestion}
             onExpandContent={handleExpandContent}
-          />
-        )}
-
-        {currentView === 'workflow-details' && (
-          <RunDetails
-            runVersion={selectedRunVersion}
-            questions={selectedRunQuestions}
-            onBack={handleBackToWorkflowRuns}
-            onCompareQuestion={handleCompareQuestion}
-            onExpandContent={handleExpandContent}
+            onNavigateToSubExecution={handleNavigateToSubExecution}
+            selectedProject={selectedProject}
+            autoExpandExecutionId={autoExpandExecutionId}
           />
         )}
 
@@ -440,8 +414,16 @@ function App() {
           <QuestionComparison
             baseID={comparisonBaseID}
             currentRunVersion={comparisonRunVersion}
-            allRuns={selectedSubworkflow?.runs || selectedWorkflow?.runs || []}
+            allRuns={selectedWorkflow?.runs || []}
             onClose={handleCloseComparison}
+          />
+        )}
+
+        {currentView === 'runComparison' && (
+          <RunComparison
+            workflowId={runComparisonWorkflowId}
+            selectedRunIds={runComparisonRunIds}
+            onClose={handleCloseRunComparison}
           />
         )}
       </div>

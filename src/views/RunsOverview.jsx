@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
-const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
+const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });
   const [filters, setFilters] = useState({
     model: '',
@@ -9,6 +9,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     version: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedRunIds, setSelectedRunIds] = useState([]);
 
   // Extract unique values for dropdowns
   const uniqueVersions = [...new Set(runs.map(r => r.version).filter(Boolean))].sort();
@@ -122,6 +123,23 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const hasActiveFilters = filters.version || searchQuery;
   const activeFilterCount = [filters.version, searchQuery].filter(Boolean).length;
 
+  // Handle run selection for comparison
+  const toggleRunSelection = (runId, e) => {
+    e.stopPropagation();
+    setSelectedRunIds(prev => 
+      prev.includes(runId) 
+        ? prev.filter(id => id !== runId)
+        : [...prev, runId]
+    );
+  };
+
+  const handleCompareRuns = () => {
+    if (selectedRunIds.length >= 2 && onCompareRuns) {
+      const workflowId = runs.find(r => r.id === selectedRunIds[0])?.workflowId;
+      onCompareRuns(workflowId, selectedRunIds);
+    }
+  };
+
   // Sort runs
   const sortedRuns = [...filteredRuns].sort((a, b) => {
     let aValue = a[sortConfig.key];
@@ -196,15 +214,17 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
             )}
           </p>
         </div>
-        {hasActiveFilters && (
-          <button onClick={clearFilters} className="clear-filters-btn" title="Clear all filters">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="18" y1="6" x2="6" y2="18"/>
-              <line x1="6" y1="6" x2="18" y2="18"/>
-            </svg>
-            Clear Filters
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="clear-filters-btn" title="Clear all filters">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
+              </svg>
+              Clear Filters
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="overview-search-bar">
@@ -327,10 +347,12 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
             gradeBgColor = '#dc2626';
           }
           
+          const isSelected = selectedRunIds.includes(run.id);
+          
           return (
             <div 
               key={run.version} 
-              className="run-card clickable" 
+              className={`run-card clickable ${isSelected ? 'selected' : ''}`}
               data-run-version={run.version}
               onClick={() => {
                 console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
@@ -342,6 +364,14 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
               }}
             >
               <div className="run-card-header">
+                <label className="run-select-checkbox" onClick={(e) => e.stopPropagation()}>
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => toggleRunSelection(run.id, e)}
+                  />
+                  <span className="checkbox-custom"></span>
+                </label>
                 <div className="run-card-title">
                   <h3>{run.version}</h3>
                   <span className="question-count-badge">
@@ -477,6 +507,26 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
               Clear All Filters
             </button>
           )}
+        </div>
+      )}
+
+      {/* Sticky Floating Compare Button */}
+      {selectedRunIds.length >= 2 && (
+        <div className="sticky-compare-container">
+          <button 
+            onClick={handleCompareRuns} 
+            className="sticky-compare-btn"
+            title={`Compare ${selectedRunIds.length} selected runs`}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+            <span>Compare {selectedRunIds.length} Runs</span>
+            <div className="selection-badge">{selectedRunIds.length}</div>
+          </button>
         </div>
       )}
     </div>

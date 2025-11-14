@@ -1,184 +1,163 @@
-````markdown
 # Butler Eval - Database Structure Guide
 
 **Database**: `butler_eval`  
-**Purpose**: Store and manage AI evaluation test runs with hierarchical organization  
-**Last Updated**: November 10, 2025
+**Schema Namespace**: `evaluation`  
+**Purpose**: Store and manage AI evaluation test runs with hierarchical execution tracking  
+**Last Updated**: January 2025
 
 ---
 
 ## 📊 Quick Overview
 
-### Current Data
-- **1 Project**: "Butler Evaluation Project"
-- **1 Workflow**: "Main Butler Workflow"
-- **2 Subworkflows**: Question Answering + RAG Performance
-- **15 Runs**: Test executions across subworkflows
-- **85 Questions**: Individual test cases
-- **85 Evaluations**: Scores for each question
+### Current Schema
+- **Schema**: `evaluation` (all tables namespaced)
+- **4 Core Tables**: test_run, test_execution, test_response, evaluation
+- **Dynamic Metrics**: Flexible metric_name/metric_value system
+- **Hierarchical Executions**: Parent-child tracking via parent_execution_id
 
-### Database Size
-- Total: ~600 KB
-- Most data in: `runs`, `run_questions`, `question_evaluations`
+### Key Features
+- **No Project/Workflow Tables**: Simplified flat structure
+- **Independent Testing**: Each workflow tested separately
+- **Sub-Execution Tracking**: For debugging subworkflow calls
+- **Dynamic Metrics**: Add new metrics without schema changes
+- **Timezone Support**: All timestamps use `TIMESTAMP WITH TIME ZONE`
 
 ---
 
 ## 🏗️ Table Structure
 
-### Hierarchy (Top → Bottom)
+### Schema Organization
+
+All tables use the `evaluation` namespace:
+```
+evaluation.test_run           -- Test run metadata
+evaluation.test_execution     -- Individual executions (with hierarchy)
+evaluation.test_response      -- Actual outputs
+evaluation.evaluation         -- Dynamic metrics
+```
+
+### Hierarchy
 
 ```
-projects (1 row)
+evaluation.test_run (workflow test runs)
    ↓ 1:N
-workflows (1 row)
-   ↓ 1:N
-subworkflows (2 rows)
-   ↓ 1:N
-runs (15 rows)
-   ↓ 1:1
-run_questions (85 rows)
-   ↓ 1:1
-question_evaluations (85 rows)
+evaluation.test_execution (questions/tests)
+   ├─→ 1:1 → evaluation.test_response (outputs)
+   ├─→ 1:N → evaluation.evaluation (metrics)
+   └─→ 0:N → evaluation.test_execution (sub-executions via parent_execution_id)
 ```
 
 ---
 
 ## 📋 Table Details
 
-### 1. `projects` - Top Level Organization
-**Purpose**: Group related evaluation workflows (teams, departments, products)
+### 1. `evaluation.test_run` - Test Run Records
+
+**Purpose**: Store test run metadata for workflows
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `id` | varchar(50) | Primary key (e.g., "proj-butler") |
-| `name` | varchar(255) | Display name |
-| `description` | text | Purpose/notes |
-| `created_at` | timestamp | Creation time |
-| `updated_at` | timestamp | Last modification |
+| `id` | SERIAL | Primary key |
+| `workflow_id` | VARCHAR(255) | Workflow identifier (e.g., "RE_Butler", "RAG_Search") |
+| `start_ts` | TIMESTAMP | Run start time |
+| `finish_ts` | TIMESTAMP | Run completion time |
+| `creation_ts` | TIMESTAMP WITH TIME ZONE | Creation timestamp (default NOW()) |
 
-**Current Data**: 1 project ("Butler Evaluation Project")
-
----
-
-### 2. `workflows` - Evaluation Pipelines
-**Purpose**: Different evaluation approaches within a project
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | varchar(50) | Primary key (e.g., "wf-butler-v1") |
-| `project_id` | varchar(50) | FK → projects.id |
-| `name` | varchar(255) | Display name |
-| `description` | text | Pipeline details |
-| `created_at` | timestamp | Creation time |
-| `updated_at` | timestamp | Last modification |
-
-**Current Data**: 1 workflow ("Main Butler Workflow")
-
----
-
-### 3. `subworkflows` - Task Components
-**Purpose**: Break workflows into specific task types
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | varchar(50) | Primary key (e.g., "subwf-qa") |
-| `workflow_id` | varchar(50) | FK → workflows.id |
-| `name` | varchar(255) | Display name |
-| `description` | text | Task details |
-| `created_at` | timestamp | Creation time |
-| `updated_at` | timestamp | Last modification |
-
-**Current Data**: 
-- "Question Answering Subworkflow" (5 runs)
-- "RAG Performance Subworkflow" (4 runs)
-
----
-
-### 4. `runs` ⭐ - Test Executions
-**Purpose**: Store complete test run data (denormalized for performance)
-
-**Key Columns**:
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | varchar(100) | PK: "{base_id}-{version}" |
-| `base_id` | integer | Question/test identifier |
-| `version` | varchar(100) | Run version (e.g., "run_gpt4_v1") |
-| `subworkflow_id` | varchar(50) | FK → subworkflows.id |
-| `model` | varchar(100) | LLM used (gpt-4, claude, etc.) |
-| `prompt_version` | varchar(100) | Prompt version identifier |
-| `timestamp` | timestamp | When run executed |
-
-**Input/Output**:
-| Column | Type | Description |
-|--------|------|-------------|
-| `input_text` | text | Question/prompt |
-| `expected_output` | text | Ground truth answer |
-| `output` | text | Actual model response |
-
-**Evaluation Scores** (All nullable numeric(5,4), range 0-1):
-- `output_score` - Quality of output
-- `rag_relevancy_score` - RAG retrieval quality
-- `hallucination_rate` - Factual accuracy
-- `system_prompt_alignment_score` - Prompt adherence
-- `test_score` - Custom test metric
-
-**Score Reasons** (All text):
-- `output_score_reason`
-- `rag_relevancy_score_reason`
-- `hallucination_rate_reason`
-- `system_prompt_alignment_score_reason`
-
-**Constraint**: 
+**Example Data**:
 ```sql
-CHECK (
-  (workflow_id IS NOT NULL AND subworkflow_id IS NULL) OR 
-  (workflow_id IS NULL AND subworkflow_id IS NOT NULL)
-)
+id | workflow_id  | start_ts             | finish_ts
+---+--------------+----------------------+----------------------
+1  | RE_Butler    | 2025-01-13 10:00:00  | 2025-01-13 10:15:00
+2  | RE_Butler    | 2025-01-13 11:00:00  | 2025-01-13 11:18:00
+3  | RAG_Search   | 2025-01-13 14:00:00  | 2025-01-13 14:10:00
 ```
-*Each run belongs to EITHER workflow OR subworkflow, not both*
 
-**Current Data**: 15 runs across 2 subworkflows
-
----
-
-### 5. `run_questions` - Question Details
-**Purpose**: Store detailed question information per run
-
-| Column | Type | Description |
-|--------|------|-------------|
-| `id` | integer | Primary key |
-| `run_id` | integer | Run identifier |
-| `question_number` | integer | Position in test |
-| `question_text` | text | The actual question |
-| `ground_truth_answer` | text | Expected answer |
-| `expected_sources` | text[] | Expected reference docs |
-| `execution_answer` | text | Model's answer |
-| `execution_sources` | text[] | Model's retrieved docs |
-| `created_at` | timestamp | Creation time |
-
-**Current Data**: 85 questions
+**Key Points**:
+- Each workflow tested independently
+- No parent_run_id - all runs are top-level
+- workflow_id is a simple string identifier
 
 ---
 
-### 6. `question_evaluations` - Evaluation Scores
-**Purpose**: Store individual question evaluation results
+### 2. `evaluation.test_execution` - Test Executions
+
+**Purpose**: Store individual test cases/questions and their execution details
 
 | Column | Type | Description |
 |--------|------|-------------|
-| `id` | integer | Primary key |
-| `question_id` | integer | FK → run_questions.id |
-| `output_score` | numeric(3,2) | 0-1 score |
-| `rag_relevancy_score` | numeric(3,2) | 0-1 score |
-| `hallucination_rate` | numeric(3,2) | 0-1 score |
-| `system_prompt_alignment_score` | numeric(3,2) | 0-1 score |
-| `test_score` | numeric(3,2) | 0-1 score |
-| `reasoning` | text | Evaluation explanation |
-| `evaluation_metadata` | jsonb | Additional data |
-| `created_at` | timestamp | Creation time |
-| `updated_at` | timestamp | Last modification |
+| `id` | SERIAL | Primary key |
+| `run_id` | INTEGER | FK → evaluation.test_run(id) |
+| `workflow_id` | VARCHAR(255) | Workflow identifier |
+| `session_id` | VARCHAR(255) | Session identifier |
+| `parent_execution_id` | INTEGER | FK → evaluation.test_execution(id) (NULL for direct tests) |
+| `input` | TEXT | Test question/prompt |
+| `expected_output` | TEXT | Expected result |
+| `duration` | NUMERIC(7,2) | Execution time (seconds) |
+| `total_tokens` | INTEGER | Token count |
+| `creation_ts` | TIMESTAMP WITH TIME ZONE | Creation timestamp (default NOW()) |
 
-**Current Data**: 85 evaluations (one per question)
+**Key Points**:
+- `parent_execution_id` = NULL for direct test questions (shown in dashboard)
+- `parent_execution_id` = <id> for sub-executions (debugging only, hidden from UI)
+- Supports hierarchical execution tracking
+
+**Example Data**:
+```sql
+id | run_id | input               | parent_execution_id | Notes
+---+--------+---------------------+---------------------+---------------------------
+1  | 1      | What is AI?         | NULL                | Direct test (shown in UI)
+2  | 1      | Explain ML          | NULL                | Direct test (shown in UI)
+20 | 1      | RAG: Find ML defs   | 2                   | Sub-exec (hidden from UI)
+```
+
+---
+
+### 3. `evaluation.test_response` - Execution Outputs
+
+**Purpose**: Store actual outputs/responses from executions
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | SERIAL | Primary key |
+| `test_execution_id` | INTEGER | FK → evaluation.test_execution(id) |
+| `actual_output` | TEXT | The actual response/output |
+| `creation_ts` | TIMESTAMP WITH TIME ZONE | Creation timestamp (default NOW()) |
+
+**Key Points**:
+- One response per execution
+- Separated from execution table for clarity
+- Note field name is `actual_output` not just `output`
+
+---
+
+### 4. `evaluation.evaluation` - Dynamic Metrics
+
+**Purpose**: Store evaluation metrics with flexible naming
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `id` | SERIAL | Primary key |
+| `test_execution_id` | INTEGER | FK → evaluation.test_execution(id) |
+| `workflow_id` | VARCHAR(32) | Workflow identifier (default 'REG_TEST') |
+| `metric_name` | VARCHAR(64) | Metric name (e.g., "accuracy", "relevance") |
+| `metric_value` | NUMERIC(7,2) | Numeric score |
+| `metric_reason` | TEXT | Explanation/reasoning |
+| `creation_ts` | TIMESTAMP WITH TIME ZONE | Creation timestamp (default NOW()) |
+
+**Key Features**:
+- **Multiple metrics per execution**: Unlimited evaluation criteria
+- **Dynamic metric names**: Add new metrics without schema changes
+- **Flexible values**: Supports any numeric range
+
+**Example Data**:
+```sql
+id | test_execution_id | metric_name        | metric_value | metric_reason
+---+-------------------+--------------------+--------------+-------------------------------
+1  | 1                 | accuracy           | 0.85         | Correctly addresses main points
+2  | 1                 | relevance          | 0.90         | Highly relevant to query
+3  | 1                 | hallucination_rate | 0.15         | Minor factual inconsistencies
+4  | 2                 | accuracy           | 0.78         | Covers basics but lacks depth
+```
 
 ---
 
@@ -187,98 +166,73 @@ CHECK (
 ### How Data Flows Through the System
 
 ```
-1. Test Script Runs
+1. Test Execution
    ↓
-2. Creates/Updates runs table
-   (Stores execution + scores)
+2. Creates evaluation.test_run
+   (workflow_id, timestamps)
    ↓
-3. Creates run_questions
-   (Detailed question info)
+3. Creates evaluation.test_execution
+   (input, expected_output, parent_execution_id)
    ↓
-4. Creates question_evaluations
-   (Individual scores + reasoning)
+4. Creates evaluation.test_response
+   (actual_output)
    ↓
-5. Backend queries projects
-   GET /api/projects
+5. Creates evaluation.evaluation (multiple rows)
+   (accuracy, relevance, custom metrics)
    ↓
-6. Backend builds hierarchy
-   buildProjectHierarchy()
-   - Joins projects → workflows
-   - Joins workflows → subworkflows
-   - Joins subworkflows → runs
+6. Backend queries and joins tables
+   GET /api/workflows
+   GET /api/runs/:workflowId
+   GET /api/run-details/:id
    ↓
-7. Returns nested JSON
-   {
-     project: { workflows: [ { subworkflows: [ { runs: [...] } ] } ] }
-   }
-   ↓
-8. Frontend displays hierarchy
-   Projects → Workflows → Runs
+7. Frontend displays with dynamic metrics
 ```
 
 ---
 
 ## 🎯 How Backend Works
 
-### Key API Endpoint
+### Key Query Pattern
 
-**`GET /api/projects`** - Returns full hierarchy
+The backend uses `formatTestRun()` to build hierarchical structures:
 
 ```javascript
-// 1. Query all projects
-SELECT * FROM projects
+// Query execution with all related data
+const execution = await pool.query(`
+  SELECT 
+    te.*,
+    tr.actual_output,
+    COALESCE(
+      json_agg(
+        json_build_object(
+          'metric_name', e.metric_name,
+          'metric_value', e.metric_value,
+          'metric_reason', e.metric_reason
+        )
+      ) FILTER (WHERE e.id IS NOT NULL),
+      '[]'
+    ) as metrics
+  FROM evaluation.test_execution te
+  LEFT JOIN evaluation.test_response tr ON tr.test_execution_id = te.id
+  LEFT JOIN evaluation.evaluation e ON e.test_execution_id = te.id
+  WHERE te.parent_execution_id IS NULL
+  GROUP BY te.id, tr.actual_output
+`);
 
-// 2. For each project, get workflows
-SELECT * FROM workflows WHERE project_id = $1
-
-// 3. For each workflow, get subworkflows  
-SELECT * FROM subworkflows WHERE workflow_id = $1
-
-// 4. For each subworkflow, get runs
-SELECT * FROM runs WHERE subworkflow_id = $1
-
-// 5. Build nested structure
-{
-  id: "proj-butler",
-  name: "Butler Evaluation Project",
-  workflows: [
-    {
-      id: "wf-1",
-      name: "Main Butler Workflow",
-      subworkflows: [
-        {
-          id: "subwf-1",
-          name: "Question Answering",
-          runs: [...]
-        }
-      ]
-    }
-  ]
+// Build nested subExecutions
+for (const execution of executions) {
+  execution.subExecutions = await getSubExecutions(execution.id);
 }
 ```
 
-### Dynamic Metric Extraction
+### Dashboard Filtering
 
-The backend automatically extracts **any** column matching these patterns:
-
-```javascript
-// Pattern matching in extractExecutionData()
-const patterns = [
-  '_score',      // output_score, coherence_score
-  '_rate',       // hallucination_rate, error_rate
-  '_rating',     // quality_rating
-  '_accuracy',   // answer_accuracy
-  '_precision',  // rag_precision
-  '_recall',     // rag_recall
-  '_f1',         // f1_score
-  '_metric'      // custom_metric
-];
-
-// Converts: hallucination_rate → hallucinationRate
-// Returns: { hallucinationRate: 0.15 }
+**Critical**: Only direct tests shown in UI:
+```sql
+WHERE parent_execution_id IS NULL
 ```
 
-**This means**: Add any column with these suffixes → it automatically appears in UI!
+Sub-executions (where `parent_execution_id` is set) are used for debugging only.
 
 ---
 
@@ -286,222 +240,202 @@ const patterns = [
 
 ### Step-by-Step Process
 
-1. **Add column to runs table**:
+1. **Insert new metric rows**:
 ```sql
-ALTER TABLE runs 
-ADD COLUMN coherence_score numeric(5,4);
+INSERT INTO evaluation.evaluation (test_execution_id, metric_name, metric_value, metric_reason)
+VALUES 
+  (1, 'coherence', 0.92, 'Logical flow and consistency'),
+  (1, 'fluency', 0.88, 'Natural language quality');
 ```
 
-2. **Populate with data**:
-```sql
-UPDATE runs 
-SET coherence_score = 0.92 
-WHERE id = '1-run_gpt4_v1';
-```
+2. **Frontend automatically detects**:
+- No code changes needed
+- UI reads metrics dynamically
+- Formats names (e.g., `coherence` → "Coherence")
+- Applies color coding for 0-1 scaled values
 
-3. **Restart backend**:
-```bash
-cd server && node server.js
-```
-
-4. **Refresh frontend** - New metric appears automatically!
-
-### Why It Works
-
-- Backend uses `SELECT * FROM runs`
-- `extractExecutionData()` finds `coherence_score`
-- Matches `_score` pattern → extracts as numeric
-- Converts to camelCase → `coherenceScore`
-- Frontend's `metricUtils.js` detects it
-- Displays as "Coherence Score" with color coding
-
-**No React code changes needed!**
+3. **Refresh frontend** - New metrics appear automatically!
 
 ---
 
 ## 🔍 Useful Queries
 
-### View Your Hierarchy
+### View All Workflows
 ```sql
-SELECT 
-    p.name as project,
-    w.name as workflow,
-    sw.name as subworkflow,
-    COUNT(r.id) as run_count
-FROM projects p
-LEFT JOIN workflows w ON w.project_id = p.id
-LEFT JOIN subworkflows sw ON sw.workflow_id = w.id
-LEFT JOIN runs r ON r.subworkflow_id = sw.id
-GROUP BY p.name, w.name, sw.name;
+SELECT DISTINCT workflow_id 
+FROM evaluation.test_run 
+ORDER BY workflow_id;
 ```
 
-### Check Table Row Counts
+### Get Runs for Workflow
 ```sql
-SELECT 
-    'projects' as table_name, COUNT(*) FROM projects
-UNION ALL SELECT 'workflows', COUNT(*) FROM workflows
-UNION ALL SELECT 'subworkflows', COUNT(*) FROM subworkflows
-UNION ALL SELECT 'runs', COUNT(*) FROM runs
-UNION ALL SELECT 'run_questions', COUNT(*) FROM run_questions
-UNION ALL SELECT 'question_evaluations', COUNT(*) FROM question_evaluations;
+SELECT * 
+FROM evaluation.test_run 
+WHERE workflow_id = 'RE_Butler' 
+ORDER BY start_ts DESC;
 ```
 
-### View Average Scores
+### Get Executions with Metrics
 ```sql
 SELECT 
-    version,
-    ROUND(AVG(output_score)::numeric, 2) as avg_output,
-    ROUND(AVG(rag_relevancy_score)::numeric, 2) as avg_rag,
-    ROUND(AVG(hallucination_rate)::numeric, 2) as avg_hallucination,
-    ROUND(AVG(test_score)::numeric, 2) as avg_test,
-    COUNT(*) as question_count
-FROM runs
-WHERE output_score IS NOT NULL
-GROUP BY version
-ORDER BY version;
+    te.id,
+    te.input,
+    tr.actual_output,
+    e.metric_name,
+    e.metric_value,
+    e.metric_reason
+FROM evaluation.test_execution te
+LEFT JOIN evaluation.test_response tr ON tr.test_execution_id = te.id
+LEFT JOIN evaluation.evaluation e ON e.test_execution_id = te.id
+WHERE te.run_id = 1 
+  AND te.parent_execution_id IS NULL
+ORDER BY te.id, e.metric_name;
 ```
 
-### Find Runs by Model
+### Average Metrics by Run
 ```sql
 SELECT 
-    model,
-    version,
-    COUNT(*) as run_count,
-    ROUND(AVG(output_score)::numeric, 2) as avg_score
-FROM runs
-GROUP BY model, version
-ORDER BY model, version;
+    tr.id as run_id,
+    tr.workflow_id,
+    e.metric_name,
+    ROUND(AVG(e.metric_value)::numeric, 3) as avg_value,
+    COUNT(*) as execution_count
+FROM evaluation.test_run tr
+JOIN evaluation.test_execution te ON te.run_id = tr.id
+JOIN evaluation.evaluation e ON e.test_execution_id = te.id
+WHERE te.parent_execution_id IS NULL
+GROUP BY tr.id, tr.workflow_id, e.metric_name
+ORDER BY tr.id, e.metric_name;
+```
+
+### Find Sub-Executions
+```sql
+SELECT 
+    parent.id as parent_id,
+    parent.input as parent_input,
+    child.id as child_id,
+    child.input as child_input,
+    child.workflow_id as called_workflow
+FROM evaluation.test_execution parent
+JOIN evaluation.test_execution child ON child.parent_execution_id = parent.id
+WHERE parent.run_id = 1;
 ```
 
 ---
 
 ## 🔐 Foreign Key Relationships
 
-All relationships use **CASCADE DELETE** - deleting parent deletes children:
+All relationships use **CASCADE DELETE**:
 
 ```
-projects.id ← workflows.project_id
-workflows.id ← subworkflows.workflow_id  
-subworkflows.id ← runs.subworkflow_id
-run_questions.id ← question_evaluations.question_id
+evaluation.test_run.id 
+  ← evaluation.test_execution.run_id
+     ← evaluation.test_response.test_execution_id
+     ← evaluation.evaluation.test_execution_id
+
+evaluation.test_execution.id 
+  ← evaluation.test_execution.parent_execution_id (self-referencing)
 ```
 
 **Example**:
 ```sql
-DELETE FROM projects WHERE id = 'proj-butler';
+DELETE FROM evaluation.test_run WHERE id = 1;
 -- Also deletes:
---   - All workflows in that project
---   - All subworkflows in those workflows
---   - All runs in those subworkflows
+--   - All test_execution rows with run_id = 1
+--   - All test_response rows for those executions
+--   - All evaluation rows for those executions
+--   - All child executions (via parent_execution_id)
 ```
 
 ---
 
-## 📦 Backup & Restore
+## 📦 Indexes
 
-### Quick Backup
-```bash
-pg_dump -U postgres -d butler_eval -f backup.sql
-```
+Optimized for common query patterns:
 
-**Restore**:
-```bash
-psql -U postgres -d butler_eval -f backup.sql
-```
-
-**Export to CSV**:
-```bash
-psql -U postgres -d butler_eval -c "COPY runs TO STDOUT CSV HEADER" > runs.csv
-```
-
-### Restore
-```bash
-psql -U postgres -d butler_eval -f backup.sql
-```
-
-### Export to CSV
-```bash
-psql -U postgres -d butler_eval -c "COPY runs TO STDOUT CSV HEADER" > runs.csv
+```sql
+CREATE INDEX idx_test_run_workflow ON evaluation.test_run(workflow_id);
+CREATE INDEX idx_test_execution_run ON evaluation.test_execution(run_id);
+CREATE INDEX idx_test_execution_workflow ON evaluation.test_execution(workflow_id);
+CREATE INDEX idx_test_execution_parent ON evaluation.test_execution(parent_execution_id);
+CREATE INDEX idx_test_response_execution ON evaluation.test_response(test_execution_id);
+CREATE INDEX idx_evaluation_execution ON evaluation.evaluation(test_execution_id);
+CREATE INDEX idx_evaluation_metric ON evaluation.evaluation(metric_name);
 ```
 
 ---
 
-## 🎨 Color Coding (Frontend)
+## 🎨 Frontend Integration
 
-Scores are color-coded in UI:
+### Dynamic Metric Detection
 
-| Score Range | Color | Meaning |
-|-------------|-------|---------|
-| 0.90 - 1.00 | Dark Green | Excellent |
-| 0.80 - 0.89 | Medium Green | Good |
-| 0.70 - 0.79 | Light Green | Satisfactory |
-| 0.60 - 0.69 | Yellow-Green | Acceptable |
-| 0.50 - 0.59 | Yellow | Warning |
-| 0.40 - 0.49 | Orange | Poor |
-| 0.30 - 0.39 | Red-Orange | Bad |
-| 0.00 - 0.29 | Dark Red | Critical |
+The frontend uses `metricUtils.js` to:
+- Detect numeric fields (excluding IDs, duration, tokens)
+- Format metric names (snake_case → Title Case)
+- Apply color coding to 0-1 scaled metrics
+- Display metric reasons when available
+
+### Color Coding
+
+| Score Range | Color | CSS Class |
+|-------------|-------|-----------|
+| 0.90 - 1.00 | Dark Green | `.metric-excellent` |
+| 0.80 - 0.89 | Green | `.metric-good` |
+| 0.70 - 0.79 | Light Green | `.metric-satisfactory` |
+| 0.60 - 0.69 | Yellow | `.metric-acceptable` |
+| 0.50 - 0.59 | Orange | `.metric-warning` |
+| < 0.50 | Red | `.metric-poor` |
+
+### Comparison Features
+
+1. **Run Comparison** (`RunComparison.jsx`):
+   - Compare multiple complete runs
+   - Shows aggregate metrics
+   - Percentage differences from baseline
+
+2. **Question Comparison** (`QuestionComparison.jsx`):
+   - Compare same execution across runs
+   - Percentage differences for duration, tokens, metrics
+   - Green = improvement, Red = decline
 
 ---
 
 ## 🛠️ Maintenance
 
-### Clean Up Old Runs
+### Clean Up Old Data
 ```sql
-DELETE FROM runs 
-WHERE timestamp < NOW() - INTERVAL '90 days';
+DELETE FROM evaluation.test_run 
+WHERE creation_ts < NOW() - INTERVAL '90 days';
 ```
 
 ### Vacuum Database
 ```sql
-VACUUM ANALYZE;
+VACUUM ANALYZE evaluation.test_run;
+VACUUM ANALYZE evaluation.test_execution;
+VACUUM ANALYZE evaluation.test_response;
+VACUUM ANALYZE evaluation.evaluation;
 ```
 
-### Check Database Size
+### Check Schema Size
 ```sql
 SELECT 
-    pg_database.datname,
-    pg_size_pretty(pg_database_size(pg_database.datname)) AS size
-FROM pg_database
-WHERE datname = 'butler_eval';
-```
-
----
-
-## 🚀 Quick Reference
-
-### Connection
-**Example query**:
-```bash
-psql -U postgres -d butler_eval
-```
-
-### Backend
-```bash
-cd server && node server.js
-# Runs on: http://localhost:3001
-```
-
-### Frontend
-```bash
-npm run dev
-# Runs on: http://localhost:5174
-```
-
-### API Endpoint
-```
-GET http://localhost:3001/api/projects
+    schemaname,
+    tablename,
+    pg_size_pretty(pg_total_relation_size(schemaname||'.'||tablename)) AS size
+FROM pg_tables
+WHERE schemaname = 'evaluation'
+ORDER BY pg_total_relation_size(schemaname||'.'||tablename) DESC;
 ```
 
 ---
 
 ## 📝 Summary
 
-**Architecture**: Hierarchical (Projects → Workflows → Subworkflows → Runs)  
-**Design Pattern**: Denormalized `runs` table for performance  
-**Dynamic System**: Any `*_score` or `*_rate` column auto-displays in UI  
-**Current State**: Fully populated and operational  
-**Maintenance**: Delete unused tables, keep hierarchy clean
+**Architecture**: Flat workflow structure with hierarchical execution tracking  
+**Schema Namespace**: All tables in `evaluation` schema  
+**Design Pattern**: Normalized tables with dynamic metrics  
+**Key Feature**: Flexible metric system - add metrics without code changes  
+**Sub-Executions**: Track subworkflow calls for debugging (hidden from UI)  
+**Current State**: Production-ready with comprehensive documentation
 
-**Key Insight**: The `runs` table stores everything needed for display (denormalized), while `run_questions` and `question_evaluations` provide detailed drill-down data.
-
-````
+**Key Insight**: The `evaluation.evaluation` table with flexible `metric_name`/`metric_value` allows unlimited evaluation criteria without schema migrations.

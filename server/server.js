@@ -42,20 +42,20 @@ app.use((req, res, next) => {
 
 // Helper function to format test run data
 async function formatTestRun(testRun) {
-  // Get all executions for this run with their responses
+  // Get ALL executions for this run (including sub-executions)
   const executionsResult = await pool.query(
-    `SELECT te.*, tr.output 
-     FROM test_execution te
-     LEFT JOIN test_response tr ON tr.test_execution_id = te.id
+    `SELECT te.*, tr.actual_output as output 
+     FROM evaluation.test_execution te
+     LEFT JOIN evaluation.test_response tr ON tr.test_execution_id = te.id
      WHERE te.run_id = $1
-     ORDER BY te.execution_ts`,
+     ORDER BY te.creation_ts`,
     [testRun.id]
   );
   
   // For each execution, get its evaluations
   const executionsWithEvaluations = await Promise.all(executionsResult.rows.map(async (execution) => {
     const evaluationsResult = await pool.query(
-      'SELECT * FROM evaluation WHERE test_execution_id = $1',
+      'SELECT * FROM evaluation.evaluation WHERE test_execution_id = $1',
       [execution.id]
     );
     
@@ -70,98 +70,89 @@ async function formatTestRun(testRun) {
       }
     });
     
-    // Return execution data
+    // Return execution data with parent_execution_id for hierarchy
     return {
       id: execution.id,
       runId: execution.run_id,
+      workflowId: execution.workflow_id,
       sessionId: execution.session_id,
       parentExecutionId: execution.parent_execution_id,
-      subworkflowRunId: execution.subworkflow_run_id,
       input: execution.input,
       expectedOutput: execution.expected_output,
       output: execution.output,
       duration: parseFloat(execution.duration) || 0,
       totalTokens: execution.total_tokens || 0,
-      executionTs: execution.execution_ts,
       creationTs: execution.creation_ts,
       ...metrics  // Add all evaluation metrics as top-level properties
     };
   }));
   
+  // Build hierarchical structure: nest sub-executions under their parents
+  const executionMap = new Map();
+  const rootExecutions = [];
+  
+  // First pass: create map and initialize children arrays
+  executionsWithEvaluations.forEach(execution => {
+    execution.subExecutions = [];
+    executionMap.set(execution.id, execution);
+  });
+  
+  // Second pass: build hierarchy
+  executionsWithEvaluations.forEach(execution => {
+    if (execution.parentExecutionId) {
+      // This is a sub-execution, add it to parent's subExecutions
+      const parent = executionMap.get(execution.parentExecutionId);
+      if (parent) {
+        parent.subExecutions.push(execution);
+      }
+    } else {
+      // This is a root execution
+      rootExecutions.push(execution);
+    }
+  });
+  
   return {
     id: testRun.id,
     workflowId: testRun.workflow_id,
-    parentRunId: testRun.parent_run_id,
     startTs: testRun.start_ts,
     finishTs: testRun.finish_ts,
     creationTs: testRun.creation_ts,
     version: `run_${testRun.id}`,
-    questionCount: executionsWithEvaluations.length,
-    runs: executionsWithEvaluations,
-    questions: executionsWithEvaluations  // Keep both for backwards compatibility
+    questionCount: rootExecutions.length,  // Count only root executions
+    runs: rootExecutions,  // Return only root executions (sub-executions nested inside)
+    questions: rootExecutions  // Keep both for backwards compatibility
   };
 }
 
-// Helper function to build workflow hierarchy
-async function buildWorkflowHierarchy(workflowId) {
-  // Get all runs for this workflow (where parent_run_id is NULL for main runs)
-  const mainRunsResult = await pool.query(
-    'SELECT * FROM test_run WHERE workflow_id = $1 AND parent_run_id IS NULL ORDER BY start_ts',
+// Helper function to build workflow structure (no subworkflow hierarchy)
+async function buildWorkflowStructure(workflowId) {
+  // Get all runs for this workflow
+  const runsResult = await pool.query(
+    'SELECT * FROM evaluation.test_run WHERE workflow_id = $1 ORDER BY start_ts',
     [workflowId]
   );
   
-  // Format each run with its executions
-  const runsWithExecutions = await Promise.all(mainRunsResult.rows.map(run => formatTestRun(run)));
-  
-  // Get subworkflow runs (runs where parent_run_id points to any of the main runs)
-  const mainRunIds = mainRunsResult.rows.map(r => r.id);
-  
-  let subworkflows = [];
-  if (mainRunIds.length > 0) {
-    const subRunsResult = await pool.query(
-      'SELECT DISTINCT workflow_id FROM test_run WHERE parent_run_id = ANY($1::int[])',
-      [mainRunIds]
-    );
-    
-    // For each unique subworkflow_id, get its runs
-    subworkflows = await Promise.all(subRunsResult.rows.map(async (subRow) => {
-      const subworkflowId = subRow.workflow_id;
-      const subRunsForWorkflow = await pool.query(
-        'SELECT * FROM test_run WHERE workflow_id = $1 AND parent_run_id = ANY($2::int[]) ORDER BY start_ts',
-        [subworkflowId, mainRunIds]
-      );
-      
-      const subRunsFormatted = await Promise.all(subRunsForWorkflow.rows.map(run => formatTestRun(run)));
-      
-      return {
-        id: subworkflowId,
-        name: subworkflowId.replace(/_/g, ' '),  // Format workflow name
-        runCount: subRunsFormatted.length,
-        runs: subRunsFormatted
-      };
-    }));
-  }
+  // Format each run with its direct executions only
+  const runsWithExecutions = await Promise.all(runsResult.rows.map(run => formatTestRun(run)));
   
   return {
     id: workflowId,
     name: workflowId.replace(/_/g, ' '),  // Format workflow name
     runCount: runsWithExecutions.length,
-    subworkflowCount: subworkflows.length,
-    runs: runsWithExecutions,
-    subworkflows: subworkflows
+    runs: runsWithExecutions
   };
 }
 
 // Helper function to build full project structure
 async function buildProjectStructure() {
-  // Get all unique main workflow IDs (runs with no parent)
+  // Get all unique workflow IDs
   const workflowsResult = await pool.query(
-    'SELECT DISTINCT workflow_id FROM test_run WHERE parent_run_id IS NULL ORDER BY workflow_id'
+    'SELECT DISTINCT workflow_id FROM evaluation.test_run ORDER BY workflow_id'
   );
   
-  // Build each workflow with its hierarchy
+  // Build each workflow with its runs
   const workflows = await Promise.all(
-    workflowsResult.rows.map(row => buildWorkflowHierarchy(row.workflow_id))
+    workflowsResult.rows.map(row => buildWorkflowStructure(row.workflow_id))
   );
   
   return {
@@ -220,7 +211,7 @@ app.get('/api/projects/:projectId', async (req, res) => {
 app.get('/api/workflows/:workflowId/runs', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM test_run WHERE workflow_id = $1 AND parent_run_id IS NULL ORDER BY start_ts',
+      'SELECT * FROM evaluation.test_run WHERE workflow_id = $1 ORDER BY start_ts',
       [req.params.workflowId]
     );
     const runs = await Promise.all(result.rows.map(run => formatTestRun(run)));
@@ -231,26 +222,11 @@ app.get('/api/workflows/:workflowId/runs', async (req, res) => {
   }
 });
 
-// Get all runs for a specific subworkflow (filtered by parent_run_id)
-app.get('/api/subworkflows/:subworkflowId/runs', async (req, res) => {
-  try {
-    const result = await pool.query(
-      'SELECT * FROM test_run WHERE workflow_id = $1 AND parent_run_id IS NOT NULL ORDER BY start_ts',
-      [req.params.subworkflowId]
-    );
-    const runs = await Promise.all(result.rows.map(run => formatTestRun(run)));
-    res.json(runs);
-  } catch (error) {
-    console.error('Error fetching subworkflow runs:', error);
-    res.status(500).json({ error: 'Failed to fetch subworkflow runs' });
-  }
-});
-
 // Get a specific run by ID
 app.get('/api/runs/:runId', async (req, res) => {
   try {
     const result = await pool.query(
-      'SELECT * FROM test_run WHERE id = $1',
+      'SELECT * FROM evaluation.test_run WHERE id = $1',
       [req.params.runId]
     );
     if (result.rows.length === 0) {
@@ -264,18 +240,18 @@ app.get('/api/runs/:runId', async (req, res) => {
   }
 });
 
-// Create a new run (with optional parent_run_id for subworkflows)
+// Create a new run
 app.post('/api/runs', async (req, res) => {
   try {
     const {
-      workflow_id, parent_run_id, start_ts, finish_ts, executions
+      workflow_id, start_ts, finish_ts, executions
     } = req.body;
     
     // Create test_run
     const runResult = await pool.query(
-      `INSERT INTO test_run (workflow_id, parent_run_id, start_ts, finish_ts) 
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [workflow_id, parent_run_id || null, start_ts || new Date(), finish_ts]
+      `INSERT INTO evaluation.test_run (workflow_id, start_ts, finish_ts) 
+       VALUES ($1, $2, $3) RETURNING *`,
+      [workflow_id, start_ts || new Date(), finish_ts]
     );
     
     const runId = runResult.rows[0].id;
@@ -284,14 +260,13 @@ app.post('/api/runs', async (req, res) => {
     if (executions && executions.length > 0) {
       for (const exec of executions) {
         const execResult = await pool.query(
-          `INSERT INTO test_execution (
-            run_id, session_id, parent_execution_id, subworkflow_run_id,
-            input, expected_output, duration, total_tokens, execution_ts
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
+          `INSERT INTO evaluation.test_execution (
+            run_id, workflow_id, session_id, parent_execution_id,
+            input, expected_output, duration, total_tokens
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
           [
-            runId, exec.session_id, exec.parent_execution_id, exec.subworkflow_run_id,
-            exec.input, exec.expected_output, exec.duration, exec.total_tokens,
-            exec.execution_ts || new Date()
+            runId, exec.workflow_id || workflow_id, exec.session_id, exec.parent_execution_id,
+            exec.input, exec.expected_output, exec.duration, exec.total_tokens
           ]
         );
         
@@ -300,7 +275,7 @@ app.post('/api/runs', async (req, res) => {
         // Create test_response if output provided
         if (exec.output) {
           await pool.query(
-            'INSERT INTO test_response (test_execution_id, output) VALUES ($1, $2)',
+            'INSERT INTO evaluation.test_response (test_execution_id, actual_output) VALUES ($1, $2)',
             [execId, exec.output]
           );
         }
@@ -309,10 +284,10 @@ app.post('/api/runs', async (req, res) => {
         if (exec.evaluations) {
           for (const evalData of exec.evaluations) {
             await pool.query(
-              `INSERT INTO evaluation (
-                test_execution_id, type, metric_name, metric_value, metric_reason
+              `INSERT INTO evaluation.evaluation (
+                test_execution_id, workflow_id, metric_name, metric_value, metric_reason
               ) VALUES ($1, $2, $3, $4, $5)`,
-              [execId, evalData.type, evalData.metric_name, evalData.metric_value, evalData.metric_reason]
+              [execId, evalData.workflow_id || 'REG_TEST', evalData.metric_name, evalData.metric_value, evalData.metric_reason]
             );
           }
         }
@@ -327,65 +302,7 @@ app.post('/api/runs', async (req, res) => {
   }
 });
 
-// Create a subworkflow run (convenience endpoint)
-app.post('/api/runs/:parentRunId/subworkflow', async (req, res) => {
-  try {
-    const { parentRunId } = req.params;
-    const { workflow_id, start_ts, finish_ts, executions } = req.body;
-    
-    // Create test_run with parent_run_id set
-    const runResult = await pool.query(
-      `INSERT INTO test_run (workflow_id, parent_run_id, start_ts, finish_ts) 
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [workflow_id, parentRunId, start_ts || new Date(), finish_ts]
-    );
-    
-    const runId = runResult.rows[0].id;
-    
-    // Create executions if provided (same logic as above)
-    if (executions && executions.length > 0) {
-      for (const exec of executions) {
-        const execResult = await pool.query(
-          `INSERT INTO test_execution (
-            run_id, session_id, parent_execution_id, subworkflow_run_id,
-            input, expected_output, duration, total_tokens, execution_ts
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
-          [
-            runId, exec.session_id, exec.parent_execution_id, exec.subworkflow_run_id,
-            exec.input, exec.expected_output, exec.duration, exec.total_tokens,
-            exec.execution_ts || new Date()
-          ]
-        );
-        
-        const execId = execResult.rows[0].id;
-        
-        if (exec.output) {
-          await pool.query(
-            'INSERT INTO test_response (test_execution_id, output) VALUES ($1, $2)',
-            [execId, exec.output]
-          );
-        }
-        
-        if (exec.evaluations) {
-          for (const evalData of exec.evaluations) {
-            await pool.query(
-              `INSERT INTO evaluation (
-                test_execution_id, type, metric_name, metric_value, metric_reason
-              ) VALUES ($1, $2, $3, $4, $5)`,
-              [execId, evalData.type, evalData.metric_name, evalData.metric_value, evalData.metric_reason]
-            );
-          }
-        }
-      }
-    }
-    
-    const formattedRun = await formatTestRun(runResult.rows[0]);
-    res.status(201).json(formattedRun);
-  } catch (error) {
-    console.error('Error creating subworkflow run:', error);
-    res.status(500).json({ error: 'Failed to create subworkflow run', details: error.message });
-  }
-});
+
 
 // Start server
 app.listen(PORT, () => {
