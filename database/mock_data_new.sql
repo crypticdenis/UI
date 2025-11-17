@@ -226,6 +226,203 @@ VALUES
 (26, 'RAG_Search', 'retrieval_speed', 0.97, 'Very fast'),
 (26, 'RAG_Search', 'precision', 0.92, 'Relevant resources');
 
+-- ========================================
+-- ADDITIONAL TEST RUNS FOR TREND VISUALIZATION
+-- More runs with varying performance over time
+-- ========================================
+
+-- Run 4: Performance improvement
+INSERT INTO evaluation.test_run (id, workflow_id, start_ts, finish_ts, creation_ts)
+VALUES (4, 'RE_Butler', '2025-11-13 14:00:00', '2025-11-13 14:12:00', '2025-11-13 13:55:00');
+
+INSERT INTO evaluation.test_execution (id, run_id, workflow_id, session_id, parent_execution_id, input, expected_output, duration, total_tokens, creation_ts)
+VALUES 
+(27, 4, 'RE_Butler', 'session_027', NULL, 'What is artificial intelligence?', 'AI is the simulation...', 2.1, 140, '2025-11-13 14:00:00'),
+(28, 4, 'RE_Butler', 'session_028', NULL, 'Explain machine learning', 'ML is a subset...', 2.8, 165, '2025-11-13 14:02:00'),
+(29, 4, 'RE_Butler', 'session_029', NULL, 'What are neural networks?', 'NNs are computing...', 2.5, 155, '2025-11-13 14:04:00'),
+(30, 4, 'RE_Butler', 'session_030', NULL, 'Define deep learning', 'DL is a subset...', 2.7, 160, '2025-11-13 14:06:00'),
+(31, 4, 'RE_Butler', 'session_031', NULL, 'What is natural language processing?', 'NLP is a branch...', 2.4, 150, '2025-11-13 14:08:00'),
+(32, 4, 'RE_Butler', 'session_032', NULL, 'Explain computer vision', 'CV enables...', 2.6, 158, '2025-11-13 14:10:00'),
+(33, 4, 'RE_Butler', 'session_033', NULL, 'What is reinforcement learning?', 'RL is a type...', 2.9, 170, '2025-11-13 14:11:00');
+
+INSERT INTO evaluation.test_response (test_execution_id, actual_output)
+VALUES 
+(27, 'AI is the capability of machines to imitate intelligent human behavior through advanced algorithms and neural networks.'),
+(28, 'Machine Learning enables systems to automatically improve through experience and data analysis without explicit programming.'),
+(29, 'Neural networks are interconnected computing systems inspired by biological neurons that process information in layers.'),
+(30, 'Deep Learning utilizes multiple layers of neural networks to extract increasingly abstract features from raw data.'),
+(31, 'Natural Language Processing empowers machines to understand, interpret, and generate human language meaningfully.'),
+(32, 'Computer vision allows computers to derive meaningful information from visual inputs using deep learning techniques.'),
+(33, 'Reinforcement learning trains intelligent agents through trial-and-error interactions with environments to maximize rewards.');
+
+INSERT INTO evaluation.evaluation (test_execution_id, workflow_id, metric_name, metric_value, metric_reason)
+VALUES 
+(27, 'RE_Butler', 'accuracy', 0.94, 'Excellent comprehensive definition'),
+(27, 'RE_Butler', 'relevance', 0.96, 'Highly relevant with good detail'),
+(27, 'RE_Butler', 'completeness', 0.91, 'Comprehensive with examples'),
+(28, 'RE_Butler', 'accuracy', 0.92, 'Strong explanation with clarity'),
+(28, 'RE_Butler', 'relevance', 0.95, 'Very relevant answer'),
+(28, 'RE_Butler', 'completeness', 0.89, 'Good coverage of concepts'),
+(29, 'RE_Butler', 'accuracy', 0.93, 'Excellent technical detail'),
+(29, 'RE_Butler', 'relevance', 0.94, 'Highly relevant'),
+(29, 'RE_Butler', 'completeness', 0.90, 'Well-rounded explanation'),
+(30, 'RE_Butler', 'accuracy', 0.95, 'Outstanding accuracy'),
+(30, 'RE_Butler', 'relevance', 0.97, 'Extremely relevant'),
+(30, 'RE_Butler', 'completeness', 0.93, 'Comprehensive coverage'),
+(31, 'RE_Butler', 'accuracy', 0.91, 'Accurate and clear'),
+(31, 'RE_Butler', 'relevance', 0.95, 'Very relevant'),
+(31, 'RE_Butler', 'completeness', 0.88, 'Good explanation'),
+(32, 'RE_Butler', 'accuracy', 0.94, 'Excellent definition'),
+(32, 'RE_Butler', 'relevance', 0.96, 'Highly relevant with context'),
+(32, 'RE_Butler', 'completeness', 0.92, 'Comprehensive answer'),
+(33, 'RE_Butler', 'accuracy', 0.96, 'Outstanding technical accuracy'),
+(33, 'RE_Butler', 'relevance', 0.97, 'Extremely relevant'),
+(33, 'RE_Butler', 'completeness', 0.94, 'Very comprehensive');
+
+-- Run 5: Slight performance dip
+INSERT INTO evaluation.test_run (id, workflow_id, start_ts, finish_ts, creation_ts)
+VALUES (5, 'RE_Butler', '2025-11-13 16:00:00', '2025-11-13 16:13:00', '2025-11-13 15:55:00');
+
+INSERT INTO evaluation.test_execution (id, run_id, workflow_id, session_id, parent_execution_id, input, expected_output, duration, total_tokens, creation_ts)
+VALUES 
+(34, 5, 'RE_Butler', 'session_034', NULL, 'What is artificial intelligence?', 'AI is the simulation...', 2.4, 148, '2025-11-13 16:00:00'),
+(35, 5, 'RE_Butler', 'session_035', NULL, 'Explain machine learning', 'ML is a subset...', 3.1, 175, '2025-11-13 16:02:00'),
+(36, 5, 'RE_Butler', 'session_036', NULL, 'What are neural networks?', 'NNs are computing...', 2.8, 162, '2025-11-13 16:04:00'),
+(37, 5, 'RE_Butler', 'session_037', NULL, 'Define deep learning', 'DL is a subset...', 2.9, 168, '2025-11-13 16:06:00'),
+(38, 5, 'RE_Butler', 'session_038', NULL, 'What is natural language processing?', 'NLP is a branch...', 2.6, 157, '2025-11-13 16:08:00'),
+(39, 5, 'RE_Butler', 'session_039', NULL, 'Explain computer vision', 'CV enables...', 2.7, 163, '2025-11-13 16:10:00'),
+(40, 5, 'RE_Butler', 'session_040', NULL, 'What is reinforcement learning?', 'RL is a type...', 3.0, 178, '2025-11-13 16:12:00');
+
+INSERT INTO evaluation.test_response (test_execution_id, actual_output)
+VALUES 
+(34, 'AI simulates human intelligence in machines for learning and problem-solving tasks.'),
+(35, 'Machine Learning allows systems to learn from data patterns automatically.'),
+(36, 'Neural networks process information through interconnected nodes similar to brain neurons.'),
+(37, 'Deep Learning uses layered networks to analyze complex data patterns.'),
+(38, 'NLP enables computers to work with human language data effectively.'),
+(39, 'Computer vision helps machines interpret visual information from images and videos.'),
+(40, 'Reinforcement learning uses rewards to train decision-making systems.');
+
+INSERT INTO evaluation.evaluation (test_execution_id, workflow_id, metric_name, metric_value, metric_reason)
+VALUES 
+(34, 'RE_Butler', 'accuracy', 0.89, 'Good but somewhat simplified'),
+(34, 'RE_Butler', 'relevance', 0.92, 'Relevant answer'),
+(34, 'RE_Butler', 'completeness', 0.84, 'Lacks some depth'),
+(35, 'RE_Butler', 'accuracy', 0.87, 'Accurate but brief'),
+(35, 'RE_Butler', 'relevance', 0.91, 'Relevant'),
+(35, 'RE_Butler', 'completeness', 0.81, 'Could be more detailed'),
+(36, 'RE_Butler', 'accuracy', 0.90, 'Good technical accuracy'),
+(36, 'RE_Butler', 'relevance', 0.93, 'Very relevant'),
+(36, 'RE_Butler', 'completeness', 0.86, 'Decent coverage'),
+(37, 'RE_Butler', 'accuracy', 0.91, 'Strong explanation'),
+(37, 'RE_Butler', 'relevance', 0.94, 'Highly relevant'),
+(37, 'RE_Butler', 'completeness', 0.88, 'Good detail level'),
+(38, 'RE_Butler', 'accuracy', 0.88, 'Accurate but concise'),
+(38, 'RE_Butler', 'relevance', 0.92, 'Relevant answer'),
+(38, 'RE_Butler', 'completeness', 0.83, 'Basic coverage'),
+(39, 'RE_Butler', 'accuracy', 0.90, 'Good definition'),
+(39, 'RE_Butler', 'relevance', 0.93, 'Very relevant'),
+(39, 'RE_Butler', 'completeness', 0.87, 'Solid explanation'),
+(40, 'RE_Butler', 'accuracy', 0.92, 'Strong definition'),
+(40, 'RE_Butler', 'relevance', 0.94, 'Highly relevant'),
+(40, 'RE_Butler', 'completeness', 0.89, 'Good coverage');
+
+-- Run 6: Recovery and improvement
+INSERT INTO evaluation.test_run (id, workflow_id, start_ts, finish_ts, creation_ts)
+VALUES (6, 'RE_Butler', '2025-11-14 09:00:00', '2025-11-14 09:11:00', '2025-11-14 08:55:00');
+
+INSERT INTO evaluation.test_execution (id, run_id, workflow_id, session_id, parent_execution_id, input, expected_output, duration, total_tokens, creation_ts)
+VALUES 
+(41, 6, 'RE_Butler', 'session_041', NULL, 'What is artificial intelligence?', 'AI is the simulation...', 2.0, 138, '2025-11-14 09:00:00'),
+(42, 6, 'RE_Butler', 'session_042', NULL, 'Explain machine learning', 'ML is a subset...', 2.7, 162, '2025-11-14 09:02:00'),
+(43, 6, 'RE_Butler', 'session_043', NULL, 'What are neural networks?', 'NNs are computing...', 2.4, 152, '2025-11-14 09:04:00'),
+(44, 6, 'RE_Butler', 'session_044', NULL, 'Define deep learning', 'DL is a subset...', 2.6, 158, '2025-11-14 09:06:00'),
+(45, 6, 'RE_Butler', 'session_045', NULL, 'What is natural language processing?', 'NLP is a branch...', 2.2, 147, '2025-11-14 09:08:00'),
+(46, 6, 'RE_Butler', 'session_046', NULL, 'Explain computer vision', 'CV enables...', 2.5, 156, '2025-11-14 09:09:00'),
+(47, 6, 'RE_Butler', 'session_047', NULL, 'What is reinforcement learning?', 'RL is a type...', 2.8, 167, '2025-11-14 09:10:00');
+
+INSERT INTO evaluation.test_response (test_execution_id, actual_output)
+VALUES 
+(41, 'Artificial Intelligence represents sophisticated algorithms enabling machines to perform cognitive tasks typically requiring human intelligence.'),
+(42, 'Machine Learning empowers systems to identify patterns, make predictions, and improve performance through data-driven learning.'),
+(43, 'Neural networks are computational architectures consisting of interconnected processing nodes that work collectively to solve complex problems.'),
+(44, 'Deep Learning leverages multi-layered neural architectures to automatically discover hierarchical feature representations in data.'),
+(45, 'Natural Language Processing combines computational linguistics and machine learning to enable intelligent human-computer language interaction.'),
+(46, 'Computer vision integrates image processing, pattern recognition, and deep learning to extract semantic understanding from visual data.'),
+(47, 'Reinforcement learning optimizes agent behavior through environmental interaction, learning optimal strategies via reward signals.');
+
+INSERT INTO evaluation.evaluation (test_execution_id, workflow_id, metric_name, metric_value, metric_reason)
+VALUES 
+(41, 'RE_Butler', 'accuracy', 0.97, 'Exceptional technical precision'),
+(41, 'RE_Butler', 'relevance', 0.98, 'Extremely relevant and detailed'),
+(41, 'RE_Butler', 'completeness', 0.95, 'Outstanding comprehensiveness'),
+(42, 'RE_Butler', 'accuracy', 0.96, 'Excellent accuracy'),
+(42, 'RE_Butler', 'relevance', 0.97, 'Highly relevant'),
+(42, 'RE_Butler', 'completeness', 0.94, 'Very comprehensive'),
+(43, 'RE_Butler', 'accuracy', 0.95, 'Strong technical detail'),
+(43, 'RE_Butler', 'relevance', 0.96, 'Very relevant'),
+(43, 'RE_Butler', 'completeness', 0.93, 'Comprehensive explanation'),
+(44, 'RE_Butler', 'accuracy', 0.98, 'Outstanding accuracy'),
+(44, 'RE_Butler', 'relevance', 0.99, 'Perfectly relevant'),
+(44, 'RE_Butler', 'completeness', 0.96, 'Exceptional coverage'),
+(45, 'RE_Butler', 'accuracy', 0.94, 'Excellent definition'),
+(45, 'RE_Butler', 'relevance', 0.97, 'Highly relevant'),
+(45, 'RE_Butler', 'completeness', 0.92, 'Very good coverage'),
+(46, 'RE_Butler', 'accuracy', 0.96, 'Outstanding accuracy'),
+(46, 'RE_Butler', 'relevance', 0.98, 'Extremely relevant'),
+(46, 'RE_Butler', 'completeness', 0.95, 'Comprehensive answer'),
+(47, 'RE_Butler', 'accuracy', 0.97, 'Exceptional precision'),
+(47, 'RE_Butler', 'relevance', 0.98, 'Highly relevant'),
+(47, 'RE_Butler', 'completeness', 0.96, 'Outstanding detail');
+
+-- Run 7: Continued strong performance
+INSERT INTO evaluation.test_run (id, workflow_id, start_ts, finish_ts, creation_ts)
+VALUES (7, 'RE_Butler', '2025-11-14 13:00:00', '2025-11-14 13:10:00', '2025-11-14 12:55:00');
+
+INSERT INTO evaluation.test_execution (id, run_id, workflow_id, session_id, parent_execution_id, input, expected_output, duration, total_tokens, creation_ts)
+VALUES 
+(48, 7, 'RE_Butler', 'session_048', NULL, 'What is artificial intelligence?', 'AI is the simulation...', 1.9, 135, '2025-11-14 13:00:00'),
+(49, 7, 'RE_Butler', 'session_049', NULL, 'Explain machine learning', 'ML is a subset...', 2.6, 160, '2025-11-14 13:02:00'),
+(50, 7, 'RE_Butler', 'session_050', NULL, 'What are neural networks?', 'NNs are computing...', 2.3, 150, '2025-11-14 13:04:00'),
+(51, 7, 'RE_Butler', 'session_051', NULL, 'Define deep learning', 'DL is a subset...', 2.5, 156, '2025-11-14 13:06:00'),
+(52, 7, 'RE_Butler', 'session_052', NULL, 'What is natural language processing?', 'NLP is a branch...', 2.1, 145, '2025-11-14 13:07:00'),
+(53, 7, 'RE_Butler', 'session_053', NULL, 'Explain computer vision', 'CV enables...', 2.4, 154, '2025-11-14 13:08:00'),
+(54, 7, 'RE_Butler', 'session_054', NULL, 'What is reinforcement learning?', 'RL is a type...', 2.7, 165, '2025-11-14 13:09:00');
+
+INSERT INTO evaluation.test_response (test_execution_id, actual_output)
+VALUES 
+(48, 'AI encompasses advanced computational systems designed to replicate human cognitive abilities including reasoning, learning, and adaptation.'),
+(49, 'Machine Learning utilizes statistical algorithms and computational models to enable systems to improve task performance through experience.'),
+(50, 'Neural networks employ interconnected computational units organized in layers to process information and recognize complex patterns.'),
+(51, 'Deep Learning applies multiple processing layers to extract progressively abstract features, enabling sophisticated pattern recognition.'),
+(52, 'Natural Language Processing integrates linguistic theory, statistical methods, and neural networks to facilitate human-machine communication.'),
+(53, 'Computer vision synthesizes techniques from image processing, machine learning, and artificial intelligence to interpret visual information.'),
+(54, 'Reinforcement learning employs reward-based training paradigms where agents learn optimal decision policies through environmental feedback.');
+
+INSERT INTO evaluation.evaluation (test_execution_id, workflow_id, metric_name, metric_value, metric_reason)
+VALUES 
+(48, 'RE_Butler', 'accuracy', 0.98, 'Exceptional precision and depth'),
+(48, 'RE_Butler', 'relevance', 0.99, 'Perfectly relevant'),
+(48, 'RE_Butler', 'completeness', 0.96, 'Outstanding comprehensiveness'),
+(49, 'RE_Butler', 'accuracy', 0.97, 'Excellent technical accuracy'),
+(49, 'RE_Butler', 'relevance', 0.98, 'Highly relevant'),
+(49, 'RE_Butler', 'completeness', 0.95, 'Very comprehensive'),
+(50, 'RE_Butler', 'accuracy', 0.96, 'Strong accuracy'),
+(50, 'RE_Butler', 'relevance', 0.97, 'Very relevant'),
+(50, 'RE_Butler', 'completeness', 0.94, 'Comprehensive'),
+(51, 'RE_Butler', 'accuracy', 0.99, 'Nearly perfect accuracy'),
+(51, 'RE_Butler', 'relevance', 0.99, 'Extremely relevant'),
+(51, 'RE_Butler', 'completeness', 0.97, 'Exceptional detail'),
+(52, 'RE_Butler', 'accuracy', 0.95, 'Excellent accuracy'),
+(52, 'RE_Butler', 'relevance', 0.98, 'Highly relevant'),
+(52, 'RE_Butler', 'completeness', 0.93, 'Very good coverage'),
+(53, 'RE_Butler', 'accuracy', 0.97, 'Outstanding accuracy'),
+(53, 'RE_Butler', 'relevance', 0.98, 'Extremely relevant'),
+(53, 'RE_Butler', 'completeness', 0.96, 'Comprehensive explanation'),
+(54, 'RE_Butler', 'accuracy', 0.98, 'Exceptional precision'),
+(54, 'RE_Butler', 'relevance', 0.99, 'Perfectly relevant'),
+(54, 'RE_Butler', 'completeness', 0.97, 'Outstanding detail');
+
 -- Reset sequence to continue from max ID
 SELECT setval('evaluation.test_run_id_seq', (SELECT MAX(id) FROM evaluation.test_run));
 SELECT setval('evaluation.test_execution_id_seq', (SELECT MAX(id) FROM evaluation.test_execution));

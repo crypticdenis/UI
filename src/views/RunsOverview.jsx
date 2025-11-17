@@ -1,6 +1,171 @@
 import React, { useState, useMemo } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
+// Performance Trends Chart Component
+const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
+  const [selectedMetric, setSelectedMetric] = useState('combined');
+  const [hoveredPoint, setHoveredPoint] = useState(null);
+  
+  // Sort runs chronologically by start time
+  const chronologicalRuns = useMemo(() => {
+    return [...runs]
+      .filter(run => run.startTs) // Only include runs with timestamps
+      .sort((a, b) => new Date(a.startTs) - new Date(b.startTs));
+  }, [runs]);
+
+  // Get data for selected metric
+  const chartData = useMemo(() => {
+    if (!selectedMetric) return [];
+    return chronologicalRuns.map(run => {
+      let value;
+      if (selectedMetric === 'combined') {
+        // Calculate average across all metrics
+        const scores = scoreFields
+          .map(f => parseFloat(run[`avg_${f.key}`]))
+          .filter(v => !isNaN(v));
+        value = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+      } else {
+        value = parseFloat(run[`avg_${selectedMetric}`]) || 0;
+      }
+      
+      return {
+        version: run.version,
+        id: run.id,
+        runs: run.runs,
+        value,
+        timestamp: run.startTs,
+        date: new Date(run.startTs).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        time: new Date(run.startTs).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      };
+    });
+  }, [chronologicalRuns, selectedMetric, scoreFields]);
+
+  // Calculate chart dimensions and scaling
+  const maxValue = Math.max(...chartData.map(d => d.value), 1);
+  const minValue = Math.min(...chartData.map(d => d.value), 0);
+  const valueRange = maxValue - minValue || 1;
+  
+  // Chart dimensions
+  const chartWidth = 100; // percentage
+  const chartHeight = 120; // pixels
+  const padding = { left: 5, right: 5, top: 10, bottom: 30 };
+  
+  // Calculate points for the line
+  const points = chartData.map((d, i) => {
+    const usableWidth = chartWidth - padding.left - padding.right;
+    const x = padding.left + (i / (chartData.length - 1 || 1)) * usableWidth;
+    const y = chartHeight - padding.bottom - ((d.value - minValue) / valueRange) * (chartHeight - padding.top - padding.bottom);
+    return { x, y, ...d };
+  });
+
+  // Create SVG path
+  const linePath = points.map((p, i) => 
+    `${i === 0 ? 'M' : 'L'} ${p.x}% ${p.y}`
+  ).join(' ');
+
+  if (chartData.length === 0) return null;
+
+  return (
+    <div className="performance-trends-chart">
+      <div className="chart-header">
+        <h3>Performance Trends Over Time</h3>
+        <div className="chart-controls">
+          <label>Metric:</label>
+          <select 
+            value={selectedMetric} 
+            onChange={(e) => setSelectedMetric(e.target.value)}
+            className="metric-select"
+          >
+            <option value="combined">Combined Score</option>
+            {scoreFields.map(field => (
+              <option key={field.key} value={field.key}>
+                {field.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+      
+      <div className="chart-container">
+        <svg width="100%" height={chartHeight} className="trends-svg">
+          {/* Grid lines */}
+          {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
+            const y = chartHeight - padding.bottom - (ratio * (chartHeight - padding.top - padding.bottom));
+            const value = minValue + (ratio * valueRange);
+            return (
+              <g key={i}>
+                <line 
+                  x1="0%" 
+                  y1={y} 
+                  x2="100%" 
+                  y2={y} 
+                  stroke="rgba(96, 165, 250, 0.1)" 
+                  strokeWidth="1"
+                />
+                <text 
+                  x="0" 
+                  y={y - 4} 
+                  fill="rgba(148, 163, 184, 0.6)" 
+                  fontSize="10"
+                  className="chart-label"
+                >
+                  {value.toFixed(2)}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Line path */}
+          <path 
+            d={linePath} 
+            fill="none" 
+            stroke="#ff900c" 
+            strokeWidth="2" 
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Data points */}
+          {points.map((point, i) => (
+            <g key={i}>
+              <circle 
+                cx={`${point.x}%`}
+                cy={point.y}
+                r="6"
+                fill="#ff900c"
+                stroke="#0f172a"
+                strokeWidth="2"
+                className="data-point"
+                onMouseEnter={() => setHoveredPoint(point)}
+                onMouseLeave={() => setHoveredPoint(null)}
+                onClick={() => onViewRunDetails(point.version, point.runs)}
+                style={{ cursor: 'pointer' }}
+              />
+            </g>
+          ))}
+        </svg>
+
+        {/* Tooltip */}
+        {hoveredPoint && (
+          <div 
+            className="chart-tooltip"
+            style={{
+              left: `${hoveredPoint.x}%`,
+              top: `${hoveredPoint.y - 10}px`,
+              transform: 'translate(-50%, -100%)'
+            }}
+          >
+            <div className="tooltip-title">{hoveredPoint.version}</div>
+            <div className="tooltip-value">{hoveredPoint.value.toFixed(3)}</div>
+            <div className="tooltip-date">{hoveredPoint.date} at {hoveredPoint.time}</div>
+            <div className="tooltip-hint">Click to view details</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });
   const [filters, setFilters] = useState({
@@ -10,9 +175,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
   });
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedRunIds, setSelectedRunIds] = useState([]);
-
-  // Extract unique values for dropdowns
-  const uniqueVersions = [...new Set(runs.map(r => r.version).filter(Boolean))].sort();
+  const [viewMode, setViewMode] = useState('list'); // 'grid' or 'list'
   
   // Get all unique score fields dynamically from executions within runs
   const scoreFields = useMemo(() => {
@@ -257,28 +420,38 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
         </div>
       </div>
 
-      <div className="overview-filters">
-        <label>
-          <span className="filter-label">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-            </svg>
-            Version
-          </span>
-          <select
-            value={filters.version}
-            onChange={(e) => setFilters({ ...filters, version: e.target.value })}
-            className="filter-select"
-          >
-            <option value="">All Versions</option>
-            {uniqueVersions.map(version => (
-              <option key={version} value={version}>{version}</option>
-            ))}
-          </select>
-        </label>
-      </div>
+      {/* Performance Trends Chart */}
+      {sortedRuns.length > 1 && <PerformanceTrendsChart runs={sortedRuns} scoreFields={scoreFields} onViewRunDetails={onViewRunDetails} />}
 
       <div className="overview-controls">
+        <div className="view-mode-toggle">
+          <button 
+            className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
+            onClick={() => setViewMode('grid')}
+            title="Grid view"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="3" width="7" height="7"/>
+              <rect x="14" y="3" width="7" height="7"/>
+              <rect x="14" y="14" width="7" height="7"/>
+              <rect x="3" y="14" width="7" height="7"/>
+            </svg>
+          </button>
+          <button 
+            className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
+            onClick={() => setViewMode('list')}
+            title="List view"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="8" y1="6" x2="21" y2="6"/>
+              <line x1="8" y1="12" x2="21" y2="12"/>
+              <line x1="8" y1="18" x2="21" y2="18"/>
+              <line x1="3" y1="6" x2="3.01" y2="6"/>
+              <line x1="3" y1="12" x2="3.01" y2="12"/>
+              <line x1="3" y1="18" x2="3.01" y2="18"/>
+            </svg>
+          </button>
+        </div>
         <label>Sort By:</label>
         <select 
           value={sortConfig.key} 
@@ -307,7 +480,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
         </select>
       </div>
 
-      <div className="runs-grid">
+      <div className={viewMode === 'grid' ? 'runs-grid' : 'runs-list'}>
         {sortedRuns.map((run) => {
           // Calculate average score dynamically from all score fields
           const scores = scoreFields
@@ -352,7 +525,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
           return (
             <div 
               key={run.version} 
-              className={`run-card clickable ${isSelected ? 'selected' : ''}`}
+              className={`run-card ${viewMode === 'list' ? 'run-card-list' : ''} clickable ${isSelected ? 'selected' : ''}`}
               data-run-version={run.version}
               onClick={() => {
                 console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
@@ -364,34 +537,59 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
               }}
             >
               <div className="run-card-header">
-                <label className="run-select-checkbox" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={isSelected}
-                    onChange={(e) => toggleRunSelection(run.id, e)}
-                  />
-                  <span className="checkbox-custom"></span>
-                </label>
                 <div className="run-card-title">
                   <h3>{run.version}</h3>
-                  <span className="question-count-badge">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                      <rect x="9" y="3" width="6" height="4" rx="1"/>
-                    </svg>
-                    {run.questionCount}
-                  </span>
-                </div>
-                <div className="overall-grade" style={{ 
-                  color: gradeColor, 
-                  backgroundColor: gradeBgColor,
-                  borderColor: gradeBgColor
-                }}>
-                  {overallGrade}
                 </div>
               </div>
 
               <div className="run-card-meta">
+                {run.startTs && (
+                  <div className="meta-item">
+                    <span className="meta-value timestamp">
+                      {new Date(run.startTs).toLocaleString('de-DE', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <span className="question-count-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                  <rect x="9" y="3" width="6" height="4" rx="1"/>
+                </svg>
+                {run.questionCount}
+              </span>
+
+              {viewMode === 'list' && (
+                <span className="meta-value prompt-badge">
+                  {run.workflowId}
+                </span>
+              )}
+
+              <div className="overall-grade" style={{ 
+                color: gradeColor, 
+                backgroundColor: gradeBgColor,
+                borderColor: gradeBgColor
+              }}>
+                {overallGrade}
+              </div>
+
+              <label className="run-select-checkbox" onClick={(e) => e.stopPropagation()}>
+                <input
+                  type="checkbox"
+                  checked={isSelected}
+                  onChange={(e) => toggleRunSelection(run.id, e)}
+                />
+                <span className="checkbox-custom"></span>
+              </label>
+
+              <div className="run-card-meta" style={{ display: 'none' }}>
                 <div className="meta-item">
                   <span className="meta-label">Run ID:</span>
                   <span className="meta-value model-badge">{run.id}</span>
