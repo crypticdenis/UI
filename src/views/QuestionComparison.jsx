@@ -277,9 +277,23 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
               {/* LEFT SIDEBAR: Run Selector */}
               <div className="question-comparison-sidebar">
                 <div className="sidebar-header">
-                  <h3>Select Runs (Max 2)</h3>
-                  <div className="selection-count">
-                    {selectedVersions.length}/2 selected
+                  <h3>Select Runs</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <div className="selection-count">
+                      {selectedVersions.length}/2 selected
+                    </div>
+                    {selectedVersions.length > 0 && (
+                      <button
+                        onClick={() => setSelectedVersions([])}
+                        className="clear-selection-btn"
+                        title="Clear selection"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
 

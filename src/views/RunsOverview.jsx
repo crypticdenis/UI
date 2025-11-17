@@ -1,17 +1,50 @@
 import React, { useState, useMemo } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
+// Helper function to get grade and colors based on score
+const getGradeInfo = (score) => {
+  if (score >= 0.9) {
+    return { grade: 'Excellent', color: '#ffffff', bgColor: '#059669' };
+  } else if (score >= 0.8) {
+    return { grade: 'Very Good', color: '#ffffff', bgColor: '#10b981' };
+  } else if (score >= 0.7) {
+    return { grade: 'Good', color: '#ffffff', bgColor: '#34d399' };
+  } else if (score >= 0.6) {
+    return { grade: 'Fair', color: '#0f172a', bgColor: '#fbbf24' };
+  } else if (score >= 0.5) {
+    return { grade: 'Below Avg', color: '#ffffff', bgColor: '#f59e0b' };
+  } else if (score >= 0.4) {
+    return { grade: 'Poor', color: '#ffffff', bgColor: '#f97316' };
+  } else {
+    return { grade: 'Very Poor', color: '#ffffff', bgColor: '#dc2626' };
+  }
+};
+
 // Performance Trends Chart Component
 const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
   const [selectedMetric, setSelectedMetric] = useState('combined');
   const [hoveredPoint, setHoveredPoint] = useState(null);
-  
+  const [timeRange, setTimeRange] = useState('all'); // '7d', '14d', '30d', 'all'
+  const svgRef = React.useRef(null);
+
   // Sort runs chronologically by start time
   const chronologicalRuns = useMemo(() => {
-    return [...runs]
+    const sorted = [...runs]
       .filter(run => run.startTs) // Only include runs with timestamps
       .sort((a, b) => new Date(a.startTs) - new Date(b.startTs));
-  }, [runs]);
+
+    // Filter by time range
+    if (timeRange === 'all') {
+      return sorted;
+    }
+
+    const now = new Date();
+    const daysMap = { '7d': 7, '14d': 14, '30d': 30 };
+    const days = daysMap[timeRange];
+    const cutoffDate = new Date(now.getTime() - (days * 24 * 60 * 60 * 1000));
+
+    return sorted.filter(run => new Date(run.startTs) >= cutoffDate);
+  }, [runs, timeRange]);
 
   // Get data for selected metric
   const chartData = useMemo(() => {
@@ -46,33 +79,63 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
   const valueRange = maxValue - minValue || 1;
   
   // Chart dimensions
-  const chartWidth = 100; // percentage
-  const chartHeight = 120; // pixels
-  const padding = { left: 5, right: 5, top: 10, bottom: 30 };
+  const chartWidth = 1000; // viewBox width
+  const chartHeight = 250; // viewBox height
+  const padding = { left: 50, right: 50, top: 20, bottom: 40 };
   
   // Calculate points for the line
   const points = chartData.map((d, i) => {
     const usableWidth = chartWidth - padding.left - padding.right;
-    const x = padding.left + (i / (chartData.length - 1 || 1)) * usableWidth;
+    const x = chartData.length === 1 
+      ? chartWidth / 2 
+      : padding.left + (i / (chartData.length - 1)) * usableWidth;
     const y = chartHeight - padding.bottom - ((d.value - minValue) / valueRange) * (chartHeight - padding.top - padding.bottom);
     return { x, y, ...d };
   });
 
   // Create SVG path
-  const linePath = points.map((p, i) => 
-    `${i === 0 ? 'M' : 'L'} ${p.x}% ${p.y}`
-  ).join(' ');
+  const linePath = points.length > 0
+    ? points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
+    : '';
 
   if (chartData.length === 0) return null;
 
   return (
     <div className="performance-trends-chart">
       <div className="chart-header">
-        <h3>Performance Trends Over Time</h3>
+        <div>
+          <h3>Performance Trends Over Time</h3>
+          <div className="time-range-chips">
+            <button
+              className={`time-chip ${timeRange === '7d' ? 'active' : ''}`}
+              onClick={() => setTimeRange('7d')}
+            >
+              7D
+            </button>
+            <button
+              className={`time-chip ${timeRange === '14d' ? 'active' : ''}`}
+              onClick={() => setTimeRange('14d')}
+            >
+              14D
+            </button>
+            <button
+              className={`time-chip ${timeRange === '30d' ? 'active' : ''}`}
+              onClick={() => setTimeRange('30d')}
+            >
+              30D
+            </button>
+            <button
+              className={`time-chip ${timeRange === 'all' ? 'active' : ''}`}
+              onClick={() => setTimeRange('all')}
+            >
+              ALL
+            </button>
+          </div>
+        </div>
         <div className="chart-controls">
           <label>Metric:</label>
-          <select 
-            value={selectedMetric} 
+          <select
+            value={selectedMetric}
             onChange={(e) => setSelectedMetric(e.target.value)}
             className="metric-select"
           >
@@ -87,25 +150,25 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
       </div>
       
       <div className="chart-container">
-        <svg width="100%" height={chartHeight} className="trends-svg">
+        <svg ref={svgRef} width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" className="trends-svg">
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
             const y = chartHeight - padding.bottom - (ratio * (chartHeight - padding.top - padding.bottom));
             const value = minValue + (ratio * valueRange);
             return (
               <g key={i}>
-                <line 
-                  x1="0%" 
-                  y1={y} 
-                  x2="100%" 
-                  y2={y} 
-                  stroke="rgba(96, 165, 250, 0.1)" 
+                <line
+                  x1={0}
+                  y1={y}
+                  x2={chartWidth}
+                  y2={y}
+                  stroke="rgba(96, 165, 250, 0.1)"
                   strokeWidth="1"
                 />
-                <text 
-                  x="0" 
-                  y={y - 4} 
-                  fill="rgba(148, 163, 184, 0.6)" 
+                <text
+                  x="0"
+                  y={y - 4}
+                  fill="rgba(148, 163, 184, 0.6)"
                   fontSize="10"
                   className="chart-label"
                 >
@@ -128,13 +191,13 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
           {/* Data points */}
           {points.map((point, i) => (
             <g key={i}>
-              <circle 
-                cx={`${point.x}%`}
+              <circle
+                cx={point.x}
                 cy={point.y}
-                r="6"
+                r="3"
                 fill="#ff900c"
                 stroke="#0f172a"
-                strokeWidth="2"
+                strokeWidth="1"
                 className="data-point"
                 onMouseEnter={() => setHoveredPoint(point)}
                 onMouseLeave={() => setHoveredPoint(null)}
@@ -143,24 +206,49 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
               />
             </g>
           ))}
+
         </svg>
 
         {/* Tooltip */}
-        {hoveredPoint && (
-          <div 
-            className="chart-tooltip"
-            style={{
-              left: `${hoveredPoint.x}%`,
-              top: `${hoveredPoint.y - 10}px`,
-              transform: 'translate(-50%, -100%)'
-            }}
-          >
-            <div className="tooltip-title">{hoveredPoint.version}</div>
-            <div className="tooltip-value">{hoveredPoint.value.toFixed(3)}</div>
-            <div className="tooltip-date">{hoveredPoint.date} at {hoveredPoint.time}</div>
-            <div className="tooltip-hint">Click to view details</div>
-          </div>
-        )}
+        {hoveredPoint && svgRef.current && (() => {
+          const gradeInfo = getGradeInfo(hoveredPoint.value);
+          const svgRect = svgRef.current.getBoundingClientRect();
+
+          // Calculate position relative to the container
+          const xPercent = (hoveredPoint.x / chartWidth) * 100;
+          const yPixel = (hoveredPoint.y / chartHeight) * svgRect.height;
+
+          return (
+            <div
+              className="chart-tooltip"
+              style={{
+                left: `${xPercent}%`,
+                top: `${yPixel}px`,
+                transform: 'translate(-50%, calc(-100% - 12px))'
+              }}
+            >
+              <div className="tooltip-title">{hoveredPoint.version}</div>
+              <div className="tooltip-value">{hoveredPoint.value.toFixed(3)}</div>
+              <div
+                className="tooltip-grade"
+                style={{
+                  backgroundColor: gradeInfo.bgColor,
+                  color: gradeInfo.color,
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  fontSize: '11px',
+                  marginTop: '4px',
+                  textAlign: 'center'
+                }}
+              >
+                {gradeInfo.grade}
+              </div>
+              <div className="tooltip-date">{hoveredPoint.date} at {hoveredPoint.time}</div>
+              <div className="tooltip-hint">Click to view details</div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
@@ -390,6 +478,9 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
         </div>
       </div>
 
+      {/* Performance Trends Chart */}
+      {sortedRuns.length > 1 && <PerformanceTrendsChart runs={sortedRuns} scoreFields={scoreFields} onViewRunDetails={onViewRunDetails} />}
+
       <div className="overview-search-bar">
         <div className="search-input-wrapper">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="search-icon">
@@ -405,7 +496,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
             title="Use Ctrl+K or Cmd+K to focus"
           />
           {searchQuery && (
-            <button 
+            <button
               onClick={() => setSearchQuery('')}
               className="clear-search-btn"
               title="Clear search"
@@ -419,9 +510,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
           )}
         </div>
       </div>
-
-      {/* Performance Trends Chart */}
-      {sortedRuns.length > 1 && <PerformanceTrendsChart runs={sortedRuns} scoreFields={scoreFields} onViewRunDetails={onViewRunDetails} />}
 
       <div className="overview-controls">
         <div className="view-mode-toggle">
