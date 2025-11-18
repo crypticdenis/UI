@@ -43,3 +43,9 @@ src/legacy/
 docker/.env.prod
 docker/.env.test
 docker/.env
+
+# Database files
+database/
+
+# Claude settings
+.claude/
