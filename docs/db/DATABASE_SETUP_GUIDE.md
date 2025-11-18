@@ -1,4 +1,3 @@
-````markdown
 # Butler Eval - Database Setup Guide
 
 **Prerequisites**: PostgreSQL 14+ installed
@@ -31,10 +30,10 @@ EOF
 ### Step 3: Load Schema
 ```bash
 # From project root directory
-psql -U postgres -d butler_eval -f database/schema.sql
+psql -U postgres -d butler_eval -f database/schema_new.sql
 
 # Or if using butler_user:
-psql -U butler_user -d butler_eval -f database/schema.sql
+psql -U butler_user -d butler_eval -f database/schema_new.sql
 ```
 
 **That's it!** Your database structure is ready.
@@ -45,61 +44,59 @@ psql -U butler_user -d butler_eval -f database/schema.sql
 
 ### Check Tables Created
 ```bash
-psql -U postgres -d butler_eval -c "\dt"
+psql -U postgres -d butler_eval -c "\dt evaluation.*"
 ```
 
-**Expected Output** (6 tables):
+**Expected Output** (tables in evaluation schema):
 ```
- projects
- workflows
- subworkflows
- runs
- run_questions
- question_evaluations
+ evaluation.test_run
+ evaluation.test_execution
+ evaluation.test_response
+ evaluation.evaluation
 ```
 
 ### View Schema Details
 ```bash
-psql -U postgres -d butler_eval -c "\d+ runs"
+psql -U postgres -d butler_eval -c "\d+ evaluation.test_run"
 ```
 
 ---
 
 ## 📊 Load Sample Data (Optional)
 
-If `database/mock_data.sql` is provided:
+Load the provided mock data:
 ```bash
-psql -U postgres -d butler_eval -f database/mock_data.sql
+psql -U postgres -d butler_eval -f database/mock_data_new.sql
 ```
 
-Otherwise, create a minimal example:
+Or create a minimal example manually:
 ```sql
 -- Connect to database
 psql -U postgres -d butler_eval
 
--- Create sample project
-INSERT INTO projects (id, name, description, created_at, updated_at) VALUES
-('proj-demo', 'Demo Project', 'Sample evaluation project', NOW(), NOW());
+-- Create a test run
+INSERT INTO evaluation.test_run (workflow_id, start_ts)
+VALUES ('RE_Butler', NOW())
+RETURNING id;
 
--- Create sample workflow
-INSERT INTO workflows (id, project_id, name, description, created_at, updated_at) VALUES
-('wf-demo', 'proj-demo', 'Demo Workflow', 'Sample workflow', NOW(), NOW());
-
--- Create sample subworkflow
-INSERT INTO subworkflows (id, workflow_id, name, description, created_at, updated_at) VALUES
-('subwf-demo', 'wf-demo', 'Demo Subworkflow', 'Sample subworkflow', NOW(), NOW());
-
--- Create sample run
-INSERT INTO runs (
-    id, subworkflow_id, base_id, version, model, prompt_version, timestamp,
-    input_text, expected_output, output,
-    output_score, rag_relevancy_score, hallucination_rate, 
-    system_prompt_alignment_score, test_score
+-- Create a test execution (use the returned run id)
+INSERT INTO evaluation.test_execution (
+    run_id, workflow_id, session_id,
+    input, expected_output, duration, total_tokens
 ) VALUES (
-    '1-demo_v1', 'subwf-demo', 1, 'demo_v1', 'gpt-4', 'v1.0', NOW(),
-    'What is 2+2?', '4', 'The answer is 4',
-    0.95, 0.90, 0.05, 0.92, 0.88
-);
+    1, 'RE_Butler', 'session-demo',
+    'What is 2+2?', '4', 1.5, 150
+) RETURNING id;
+
+-- Create test response (use the returned execution id)
+INSERT INTO evaluation.test_response (test_execution_id, actual_output)
+VALUES (1, 'The answer is 4');
+
+-- Create evaluations (use the returned execution id)
+INSERT INTO evaluation.evaluation (test_execution_id, workflow_id, metric_name, metric_value, metric_reason)
+VALUES
+    (1, 'REG_TEST', 'output_score', 0.95, 'Correct answer provided'),
+    (1, 'REG_TEST', 'relevancy_score', 0.90, 'Highly relevant to question');
 ```
 
 ---

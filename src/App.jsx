@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import ProjectsLandingPage from './views/ProjectsLandingPage.jsx';
 import WorkflowsOverview from './views/WorkflowsOverview.jsx';
 import RunsOverview from './views/RunsOverview.jsx';
@@ -6,7 +6,6 @@ import RunDetails from './views/RunDetails.jsx';
 import QuestionComparison from './views/QuestionComparison.jsx';
 import RunComparison from './views/RunComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
-import EvaluationTrigger from './components/EvaluationTrigger.jsx';
 import NavigationSidebar from './components/NavigationSidebar.jsx';
 import './styles/App.css';
 
@@ -94,63 +93,6 @@ function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentView, viewerContent]);
 
-  const _handleEvaluationComplete = async (config) => {
-    console.log('Creating new evaluation run with config:', config);
-    
-    try {
-      // Create new run via API
-      const newRun = {
-        id: `${Date.now()}-${config.model}-${config.promptVersion}`,
-        workflow_id: selectedWorkflow?.id || null,
-        base_id: Date.now() % 1000,
-        version: `${config.model}_${config.promptVersion}`,
-        active: false,
-        is_running: false,
-        model: config.model,
-        prompt_version: config.promptVersion,
-        timestamp: new Date().toISOString(),
-        ground_truth_id: `GT-${Date.now()}`,
-        input_text: config.input || 'Evaluation input',
-        expected_output: config.expectedOutput || 'Expected output',
-        execution_id: `EX-${Date.now()}`,
-        output: 'Evaluation in progress...',
-        output_score: 0,
-        output_score_reason: 'Pending evaluation',
-        rag_relevancy_score: 0,
-        rag_relevancy_score_reason: 'Pending evaluation',
-        hallucination_rate: 0,
-        hallucination_rate_reason: 'Pending evaluation',
-        system_prompt_alignment_score: 0,
-        system_prompt_alignment_score_reason: 'Pending evaluation'
-      };
-
-      const response = await fetch(`${API_BASE_URL}/runs`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(newRun)
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to create run: ${response.statusText}`);
-      }
-
-      // Refresh projects to get updated data
-      const projectsResponse = await fetch(`${API_BASE_URL}/projects`);
-      if (!projectsResponse.ok) {
-        throw new Error(`Failed to refresh projects: ${projectsResponse.statusText}`);
-      }
-      const updatedProjects = await projectsResponse.json();
-      setProjects(updatedProjects);
-      
-      console.log('Successfully created new evaluation run');
-      alert(`✓ Evaluation run created successfully!`);
-    } catch (error) {
-      console.error('Failed to load evaluation results:', error);
-      alert('❌ Failed to load evaluation results. Check console for details.');
-    }
-  };
 
   // Navigation handlers
   const handleSelectProject = (project) => {

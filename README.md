@@ -111,9 +111,7 @@ UI/
 │   ├── main.jsx                  # Application entry point
 │   │
 │   ├── components/               # Reusable UI components
-│   │   ├── CollapsibleCell.jsx
 │   │   ├── ContentViewer.jsx
-│   │   ├── EvaluationTrigger.jsx
 │   │   └── NavigationSidebar.jsx
 │   │
 │   ├── views/                    # Page-level components
@@ -273,11 +271,7 @@ All numeric scores are automatically color-coded:
 
 **NavigationSidebar.jsx** - Collapsible navigation with dual-mode sub-execution handling (expand vs navigate)
 
-**CollapsibleCell.jsx** - Expandable table cells for long content
-
 **ContentViewer.jsx** - Modal viewer for full content display
-
-**EvaluationTrigger.jsx** - Trigger evaluation workflows
 
 ---
 

@@ -9,8 +9,7 @@ This folder contains all Docker-related files for deploying the Butler Evaluatio
 - `Dockerfile.backend` - Backend (Node.js + Express) container  
 - `nginx.conf` - Nginx configuration for frontend
 - `.env.example` - Environment variables template
-- `.env.test` - Test environment configuration
-- `.env.prod` - Production environment configuration
+- `.env` - Active environment configuration (create from .env.example)
 - `start.sh` - Quick start script
 - `DEPLOYMENT.md` - English deployment guide
 - `DEPLOYMENT_DE.md` - German deployment guide (Deutsche Anleitung)

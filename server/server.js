@@ -35,7 +35,7 @@ app.use(cors());
 app.use(express.json());
 
 // Logging middleware
-app.use((req, res, next) => {
+app.use((req, _res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
 });
@@ -186,7 +186,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Get all projects (returns single hardcoded project with all workflows)
-app.get('/api/projects', async (req, res) => {
+app.get('/api/projects', async (_req, res) => {
   try {
     const project = await buildProjectStructure();
     res.json([project]);  // Return as array for compatibility
@@ -197,7 +197,7 @@ app.get('/api/projects', async (req, res) => {
 });
 
 // Get single project (always returns the hardcoded project)
-app.get('/api/projects/:projectId', async (req, res) => {
+app.get('/api/projects/:projectId', async (_req, res) => {
   try {
     const project = await buildProjectStructure();
     res.json(project);

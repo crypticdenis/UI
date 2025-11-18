@@ -1,5 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
-import CollapsibleCell from '../components/CollapsibleCell';
+import { useState, useMemo, useEffect } from 'react';
 
 const getScoreColor = (score) => {
   if (score >= 0.9) return '#10b981';
@@ -15,7 +14,7 @@ const formatNumber = (value) => {
   return Number(value).toFixed(2);
 };
 
-const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onExpandContent, onNavigateToSubExecution, selectedProject, autoExpandExecutionId }) => {
+const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());

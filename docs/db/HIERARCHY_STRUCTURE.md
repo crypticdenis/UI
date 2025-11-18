@@ -1,137 +1,126 @@
-````markdown
-# Hierarchical Navigation Structure
+# Data Hierarchy Structure
 
 ## Overview
 
-The Butler Evaluation Dashboard now has a hierarchical structure that organizes evaluation data into the following levels:
+The Butler Evaluation Dashboard uses a simplified, flat hierarchical structure optimized for workflow-based evaluations:
 
 ```
-Projects
-  └─ Main Workflows
-      ├─ Workflow Runs (main workflow has its own runs to evaluate)
-      │   └─ Run Details (individual questions)
-      │       └─ Comparison View (compare questions across workflow runs)
-      └─ Subworkflows (called within the main workflow)
-          └─ Subworkflow Runs (each subworkflow has its own runs)
-              └─ Run Details (individual questions)
-                  └─ Comparison View (compare questions across subworkflow runs)
+Single Project (Hardcoded: "RE Butler Evaluation")
+  └─ Workflows (e.g., RE_Butler, RAG_Search, etc.)
+      └─ Test Runs (independent test executions)
+          └─ Test Executions (individual questions/tests)
+              └─ Sub-Executions (optional, for subworkflow calls)
 ```
 
-## Correct Structure
+## Current Structure
 
-**Important:** Each level can have its own runs to evaluate:
-- **Main Workflows** have runs that test the entire workflow end-to-end
-- **Subworkflows** have runs that test specific components called by the main workflow
+**Key Simplifications:**
+- **No Projects Table**: Single hardcoded project ("RE Butler Evaluation")
+- **No Subworkflows Table**: Workflows are flat, not hierarchical
+- **Workflow IDs**: Used as identifiers (e.g., "RE_Butler", "RAG_Search")
+- **Sub-executions**: Tracked via parent_execution_id for debugging only
 
 ## Navigation Flow
 
-### 1. **Projects Landing Page** (`ProjectsLandingPage.jsx`)
-- **Purpose**: Select an existing project or create a new one
+### 1. **Workflows Overview** (`WorkflowsOverview.jsx`)
+- **Purpose**: View all workflows in the project
 - **Features**:
-  - List all available projects with descriptions
-  - Search and filter projects
-  - Create new projects with name and description
-  - View project metadata (created date, workflow count)
-
-### 2. **Workflows Overview** (`WorkflowsOverview.jsx`)
-- **Purpose**: View all main workflows within a selected project
-- **Features**:
-  - Display workflows with run counts AND subworkflow counts
-  - Two action buttons per workflow:
-    - **"View Runs"** - See the main workflow's own evaluation runs
-    - **"View Subworkflows"** - See the subworkflows called by this workflow
-  - Breadcrumb navigation back to projects
+  - Auto-loaded on app start (single project)
+  - Display workflows with run counts
   - Search and sort workflows
+  - Click workflow to view its runs
 
-### 3A. **Workflow Runs** (`RunsOverview.jsx` with breadcrumbs)
-- **Purpose**: View all runs for the main workflow itself
+### 2. **Runs Overview** (`RunsOverview.jsx`)
+- **Purpose**: View all test runs for a specific workflow
 - **Features**:
-  - Same run overview interface
-  - Groups runs by version
-  - Shows aggregate scores and metrics
-  - Filter by model, prompt version, etc.
-  - Breadcrumb: `Projects > [Project Name] > [Workflow Name] - Runs`
+  - Display runs grouped by version
+  - Aggregate metrics and performance trends
+  - Filter and sort capabilities
+  - Compare multiple runs
+  - Breadcrumb: `Projects > [Workflow Name] - Runs`
 
-### 3B. **Subworkflows View** (`SubWorkflowsView.jsx`)
-- **Purpose**: View all subworkflows called from the main workflow
+### 3. **Run Details** (`RunDetails.jsx`)
+- **Purpose**: View individual test executions within a run
 - **Features**:
-  - List subworkflows with their run counts
-  - Breadcrumb navigation (Projects > Workflow > Current)
-  - Search and sort subworkflows
-  - Each subworkflow can have multiple runs
+  - Dynamic table showing all executions
+  - Expandable rows for detailed metrics
+  - Sub-execution navigation (if applicable)
+  - Compare specific questions across runs
+  - Aggregate statistics at the top
+  - Search and sort by any metric
 
-### 4A. **Workflow Run Details** (`RunDetails.jsx`)
-- **Purpose**: View individual questions within a main workflow run
-- **Features**: 
-  - Shows all questions with scores
-  - Can compare specific questions across workflow runs
-  - Navigate back to workflow runs
-
-### 4B. **Subworkflow Runs** (`RunsOverview.jsx` with breadcrumbs)
-- **Purpose**: View all runs for a specific subworkflow
+### 4. **Question Comparison** (`QuestionComparison.jsx`)
+- **Purpose**: Compare the same execution position across different runs
 - **Features**:
-  - Same as workflow runs
-  - Breadcrumb: `Projects > [Project] > [Workflow] > [Subworkflow] - Runs`
+  - Side-by-side comparison (up to 2 runs)
+  - Percentage deltas from baseline
+  - All dynamic metrics included
+  - Export to JSON/CSV
 
-### 5. **Run Details** (`RunDetails.jsx`)
-- **Purpose**: View individual questions within a subworkflow run
-- **Features**: 
-  - Unchanged from previous version
-  - Shows all questions with scores
-  - Can compare specific questions across runs
-
-### 6. **Question Comparison** (`QuestionComparison.jsx`)
-- **Purpose**: Compare how different runs answered the same question
+### 5. **Run Comparison** (`RunComparison.jsx`)
+- **Purpose**: Compare complete runs side-by-side
 - **Features**:
-  - Unchanged from previous version
-  - Side-by-side comparison of outputs and scores
-  - Works for both workflow runs and subworkflow runs
+  - Detailed metrics comparison
+  - Performance trends
+  - Percentage improvements/regressions
 
 ## Data Structure
 
-### Project Object
-```json
+### Project Object (Hardcoded)
+```javascript
 {
-  "id": "proj-1",
-  "name": "Butler Evaluation Project",
-  "description": "Main evaluation project description",
-  "createdAt": "2025-10-15T10:00:00",
-  "updatedAt": "2025-11-06T14:30:00",
-  "workflowCount": 1,
-  "workflows": [...]
+  id: 1,
+  name: "RE Butler Evaluation",
+  description: "Evaluation results and testing workflows",
+  workflowCount: workflows.length,
+  workflows: [...] // Array of workflows
 }
 ```
 
-### Workflow Object
-```json
+### Workflow Object (Built from database)
+```javascript
 {
-  "id": "wf-1",
-  "name": "Main Butler Workflow",
-  "description": "Primary workflow description",
-  "createdAt": "2025-10-15T10:30:00",
-  "updatedAt": "2025-11-06T14:30:00",
-  "runCount": 3,
-  "subworkflowCount": 2,
-  "runs": [...],  // Main workflow's own runs
-  "subworkflows": [...]  // Subworkflows called by this workflow
+  id: "RE_Butler",  // workflow_id from database
+  name: "RE Butler", // Formatted from workflow_id
+  runCount: runs.length,
+  runs: [...] // Array of test runs
 }
 ```
 
-### Subworkflow Object
-```json
+### Run Object (Formatted from test_run)
+```javascript
 {
-  "id": "subwf-1",
-  "name": "Question Answering Subworkflow",
-  "description": "Evaluates Butler's question answering",
-  "createdAt": "2025-10-15T11:00:00",
-  "updatedAt": "2025-11-06T14:30:00",
-  "runCount": 2,
-  "runs": [...]
+  id: 123,  // test_run.id
+  workflowId: "RE_Butler",
+  startTs: "2025-11-15T10:00:00",
+  finishTs: "2025-11-15T10:05:00",
+  version: "run_123",
+  questionCount: 5,  // Count of root executions
+  runs: [...],  // Root-level test executions
+  questions: [...] // Same as runs (for compatibility)
 }
 ```
 
-### Run Object
-Same structure as before - unchanged from `runs.json`
+### Execution Object (From test_execution)
+```javascript
+{
+  id: "exec-uuid",
+  runId: 123,
+  workflowId: "RE_Butler",
+  sessionId: "session-abc",
+  parentExecutionId: null,  // or parent ID if sub-execution
+  input: "Question text",
+  expectedOutput: "Expected answer",
+  output: "Actual answer",
+  duration: 1.5,
+  totalTokens: 150,
+  // Dynamic metrics from evaluation table
+  output_score: { value: 0.95, reason: "Correct answer" },
+  relevancy_score: { value: 0.90, reason: "Highly relevant" },
+  // ... other metrics
+  subExecutions: [...] // Nested sub-executions if any
+}
+```
 
 ## Key Features
 
@@ -155,15 +144,17 @@ All levels use the same design patterns:
 
 ## Database Schema
 
-The PostgreSQL database implements this hierarchy with the following tables:
+The PostgreSQL database uses the `evaluation` schema with these tables:
 
-1. **projects** - Project metadata
-2. **workflows** - Workflows linked to projects
-3. **subworkflows** - Subworkflows linked to workflows
-4. **runs** - Individual test runs linked to subworkflows
-5. **run_questions** - Questions in each run
-6. **question_evaluations** - Evaluation results and metrics
+1. **evaluation.test_run** - Test run metadata per workflow
+2. **evaluation.test_execution** - Individual test executions with hierarchical tracking
+3. **evaluation.test_response** - Actual output/responses
+4. **evaluation.evaluation** - Dynamic evaluation metrics (metric_name, metric_value)
+
+**Key Features:**
+- No projects or subworkflows tables needed
+- Dynamic metrics via flexible evaluation table
+- Hierarchical executions via parent_execution_id
+- Workflow identification via workflow_id string field
 
 See `DATABASE_STRUCTURE.md` for complete schema details.
-
-````

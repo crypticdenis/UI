@@ -1,4 +1,3 @@
-````markdown
 # Dynamic Metrics Implementation
 
 ## Overview
@@ -135,5 +134,3 @@ These continue to work exactly as before, but are now handled dynamically.
 4. Test CSV/JSON exports with various metrics
 5. Verify UI responsiveness with many metrics (10+)
 6. Test with missing or null metric values
-
-````

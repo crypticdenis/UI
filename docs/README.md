@@ -15,8 +15,7 @@ Complete documentation for the Butler Evaluation UI project.
 
 - **[Database Setup Guide](db/DATABASE_SETUP_GUIDE.md)** - Quick database setup (3 steps)
 - **[Database Structure](db/DATABASE_STRUCTURE.md)** - Complete schema documentation with examples
-- **[Database Architecture](../database/ARCHITECTURE_DIAGRAM.md)** - Visual schema diagrams
-- **[Visual Schema](../database/VISUAL_SCHEMA.md)** - ERD visualizations
+- **[Database Guide](../database/DATABASE_GUIDE.md)** - Comprehensive database documentation
 
 ## 📈 Features & Concepts
 
@@ -51,8 +50,8 @@ Complete documentation for the Butler Evaluation UI project.
 
 ### For Understanding
 1. [Data Hierarchy](db/HIERARCHY_STRUCTURE.md) - How data is organized
-2. [Architecture Diagram](../database/ARCHITECTURE_DIAGRAM.md) - Database relationships
-3. [Visual Schema](../database/VISUAL_SCHEMA.md) - ERD diagrams
+2. [Database Guide](../database/DATABASE_GUIDE.md) - Database documentation and examples
+3. [Dynamic Metrics](db/DYNAMIC_METRICS.md) - How the metrics system works
 
 ## 📦 What's Included
 
@@ -82,7 +81,7 @@ Complete documentation for the Butler Evaluation UI project.
 ```bash
 # 1. Set up database
 createdb butler_eval
-psql -U postgres -d butler_eval -f database/schema.sql
+psql -U postgres -d butler_eval -f database/schema_new.sql
 
 # 2. Deploy with Docker
 cd docker
