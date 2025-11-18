@@ -9,6 +9,12 @@ Complete documentation for the Butler Evaluation UI project.
 - **[Docker Deployment Guide](../docker/README.md)** - Quick start with Docker Compose (Recommended)
 - **[Docker Deployment (German)](../docker/DEPLOYMENT_DE.md)** - Detaillierte Anleitung auf Deutsch
 
+## 🧪 Testing
+
+**Test suite and documentation:**
+
+- **[Testing Guide](TESTING.md)** - Comprehensive testing documentation
+
 ## 📊 Database
 
 **Database setup and schema documentation:**

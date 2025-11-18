@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Fragment } from 'react';
 
 const getScoreColor = (score) => {
   if (score >= 0.9) return '#10b981';
@@ -388,7 +388,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                 const isExpanded = expandedRows.has(question.id);
                 const hasSubExecutions = question.subExecutions && question.subExecutions.length > 0;
                 return (
-                  <React.Fragment key={question.id}>
+                  <Fragment key={question.id}>
                     <tr>
                       <td style={{ width: '60px', textAlign: 'center', padding: '8px' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
@@ -680,7 +680,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                         </td>
                       </tr>
                     )}
-                  </React.Fragment>
+                  </Fragment>
                 );
               })
             )}

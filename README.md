@@ -369,6 +369,31 @@ npm run preview
 npm run lint
 ```
 
+### Testing
+
+```bash
+# Run tests in watch mode
+npm test
+
+# Run all tests once
+npm run test:run
+
+# Run tests with UI
+npm run test:ui
+
+# Generate coverage report
+npm run test:coverage
+```
+
+**Test Coverage:**
+- ✅ Utility functions (26 tests - 100%)
+- ✅ Components (ContentViewer, NavigationSidebar - 15 tests)
+- ✅ Views (ProjectsLandingPage, WorkflowsOverview, RunsOverview, RunDetails, QuestionComparison, RunComparison - 80+ tests)
+- ✅ API/Server validation (16 tests)
+- 📊 Overall: 137 tests (67 passing, 70 need component updates)
+
+See [`docs/TESTING.md`](docs/TESTING.md) for detailed testing documentation.
+
 ---
 
 ## 📖 Usage Guide

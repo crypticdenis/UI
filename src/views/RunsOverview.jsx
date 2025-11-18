@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, Fragment } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
 // Helper function to get grade and colors based on score
@@ -25,7 +25,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
   const [selectedMetric, setSelectedMetric] = useState('combined');
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [timeRange, setTimeRange] = useState('all'); // '7d', '14d', '30d', 'all'
-  const svgRef = React.useRef(null);
+  const svgRef = useRef(null);
 
   // Sort runs chronologically by start time
   const chronologicalRuns = useMemo(() => {
@@ -425,7 +425,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
           {breadcrumbs && breadcrumbs.length > 0 && (
             <div className="breadcrumb-nav">
               {breadcrumbs.map((crumb, index) => (
-                <React.Fragment key={index}>
+                <Fragment key={index}>
                   {index > 0 && <span className="breadcrumb-separator">/</span>}
                   {index < breadcrumbs.length - 1 ? (
                     <button onClick={() => crumb.onClick()} className="breadcrumb-link">
@@ -439,7 +439,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
                   ) : (
                     <span className="breadcrumb-current">{crumb.label}</span>
                   )}
-                </React.Fragment>
+                </Fragment>
               ))}
             </div>
           )}
