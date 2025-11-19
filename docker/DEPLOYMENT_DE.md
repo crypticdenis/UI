@@ -13,11 +13,19 @@ cp .env.example .env
 Bearbeite die `.env` Datei und trage deine Datenbankverbindung ein:
 
 ```bash
+# Environment
+ENV=prod
+
 # Backend Port
 BACKEND_PORT=3001
+NODE_ENV=production
 
 # Frontend Port  
 FRONTEND_PORT=5174
+
+# WICHTIG: Für Production verwende /api (Nginx proxied zu Backend Container)
+# Nicht http://localhost:3001/api verwenden!
+VITE_API_URL=/api
 
 # Datenbank-Verbindung
 DB_HOST=dein_db_server
@@ -25,20 +33,39 @@ DB_PORT=5432
 DB_NAME=butler_eval
 DB_USER=dein_db_benutzer
 DB_PASSWORD=dein_db_passwort
-
-# API URL für Frontend
-VITE_API_URL=http://localhost:3001/api
 ```
+
+**WICHTIG:** `VITE_API_URL=/api` verwendet einen relativen Pfad. Nginx leitet dann `/api/*` Anfragen automatisch an den Backend-Container weiter. Dies funktioniert sowohl lokal als auch auf dem Server!
 
 ### 3. Anwendung starten
 
 ```bash
-docker-compose up -d
+docker-compose up -d --build
 ```
+
+**Hinweis:** Das `--build` Flag ist wichtig, um sicherzustellen, dass die Images mit den neuen Umgebungsvariablen neu gebaut werden!
 
 Die Anwendung ist dann erreichbar unter:
 - **Frontend:** http://localhost:5174
 - **Backend API:** http://localhost:3001/api
+
+### 4. Bei bestehender Deployment aktualisieren
+
+Wenn die App bereits läuft und du die Konfiguration änderst:
+
+```bash
+# Container stoppen
+docker-compose down
+
+# .env Datei aktualisieren
+nano .env
+
+# Neu bauen OHNE Cache (wichtig!)
+docker-compose build --no-cache
+
+# Starten
+docker-compose up -d
+```
 
 ## Test- und Produktionsumgebung
 
