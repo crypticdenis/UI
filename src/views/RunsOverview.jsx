@@ -254,7 +254,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
   );
 };
 
-const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) => {
+const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });
   const [filters, setFilters] = useState({
     model: '',
@@ -262,7 +262,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
     version: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedRunIds, setSelectedRunIds] = useState([]);
   const [viewMode, setViewMode] = useState('list'); // 'grid' or 'list'
   
   // Get all unique score fields dynamically from executions within runs
@@ -374,22 +373,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
   const hasActiveFilters = filters.version || searchQuery;
   const activeFilterCount = [filters.version, searchQuery].filter(Boolean).length;
 
-  // Handle run selection for comparison
-  const toggleRunSelection = (runId, e) => {
-    e.stopPropagation();
-    setSelectedRunIds(prev => 
-      prev.includes(runId) 
-        ? prev.filter(id => id !== runId)
-        : [...prev, runId]
-    );
-  };
 
-  const handleCompareRuns = () => {
-    if (selectedRunIds.length >= 2 && onCompareRuns) {
-      const workflowId = runs.find(r => r.id === selectedRunIds[0])?.workflowId;
-      onCompareRuns(workflowId, selectedRunIds);
-    }
-  };
 
   // Sort runs
   const sortedRuns = [...filteredRuns].sort((a, b) => {
@@ -608,12 +592,12 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
             gradeBgColor = '#dc2626';
           }
           
-          const isSelected = selectedRunIds.includes(run.id);
+
           
           return (
             <div 
               key={run.version} 
-              className={`run-card ${viewMode === 'list' ? 'run-card-list' : ''} clickable ${isSelected ? 'selected' : ''}`}
+              className={`run-card ${viewMode === 'list' ? 'run-card-list' : ''} clickable`}
               data-run-version={run.version}
               onClick={() => {
                 console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
@@ -667,15 +651,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
               }}>
                 {overallGrade}
               </div>
-
-              <label className="run-select-checkbox" onClick={(e) => e.stopPropagation()}>
-                <input
-                  type="checkbox"
-                  checked={isSelected}
-                  onChange={(e) => toggleRunSelection(run.id, e)}
-                />
-                <span className="checkbox-custom"></span>
-              </label>
 
               <div className="run-card-meta" style={{ display: 'none' }}>
                 <div className="meta-item">
@@ -796,25 +771,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, onCompareRuns }) =>
         </div>
       )}
 
-      {/* Sticky Floating Compare Button */}
-      {selectedRunIds.length >= 2 && (
-        <div className="sticky-compare-container">
-          <button 
-            onClick={handleCompareRuns} 
-            className="sticky-compare-btn"
-            title={`Compare ${selectedRunIds.length} selected runs`}
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <rect x="3" y="3" width="7" height="7"/>
-              <rect x="14" y="3" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/>
-              <rect x="3" y="14" width="7" height="7"/>
-            </svg>
-            <span>Compare {selectedRunIds.length} Runs</span>
-            <div className="selection-badge">{selectedRunIds.length}</div>
-          </button>
-        </div>
-      )}
+
     </div>
   );
 };

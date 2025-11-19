@@ -14,7 +14,7 @@ const formatNumber = (value) => {
   return Number(value).toFixed(2);
 };
 
-const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId }) => {
+const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, viewMode }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -99,7 +99,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
     if (!questions || questions.length === 0) return [];
     
     const fieldMap = new Map();
-    const skipFields = new Set(['runId', 'workflowId', 'parentExecutionId', 'creationTs', 'subExecutions']);
+    const skipFields = new Set(['id', 'runId', 'workflowId', 'parentExecutionId', 'creationTs', 'subExecutions', 'sessionId']);
     
     questions.forEach(q => {
       Object.keys(q).forEach(key => {
@@ -225,19 +225,23 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
 
     const stats = {
       totalExecutions: sortedQuestions.length,
-      metrics: {}
+      metrics: {},
+      nonScaledMetrics: {}
     };
 
     // Fields to exclude from aggregates (non-metric fields)
     const excludedFields = [
       'id', 'input', 'expected_output', 'actual_output', 'timestamp', 
       'subExecutions', 'workflowId', 'parentExecutionId', 'runId',
-      'duration', 'total_tokens', 'execution_ts', 'created_at', 'updated_at'
+      'execution_ts', 'created_at', 'updated_at', 'creationTs', 'SessionId',
+      'expectedOutput', 'output', 'executionTs'
     ];
 
     // Collect all metrics dynamically
     const metricSums = {};
     const metricCounts = {};
+    const nonScaledSums = {};
+    const nonScaledCounts = {};
 
     sortedQuestions.forEach(question => {
       Object.keys(question).forEach(key => {
@@ -248,29 +252,62 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
         const value = question[key];
         let numValue = null;
         
+        // Extract numeric value from metric objects or direct numbers
         if (value && typeof value === 'object' && 'value' in value) {
           numValue = parseFloat(value.value);
         } else if (typeof value === 'number' || !isNaN(parseFloat(value))) {
           numValue = parseFloat(value);
         }
 
-        // Only include metrics that are likely 0-1 scaled (scores, rates, accuracy)
-        if (numValue !== null && !isNaN(numValue) && numValue >= 0 && numValue <= 1) {
-          if (!metricSums[key]) {
-            metricSums[key] = 0;
-            metricCounts[key] = 0;
+        // Only process valid numeric values that are likely metrics
+        if (numValue !== null && !isNaN(numValue) && numValue >= 0) {
+          // Additional check: Skip if this looks like an ID field
+          // IDs are typically integers and the key name suggests it's an identifier
+          const lowerKey = key.toLowerCase();
+          const isLikelyId = (lowerKey === 'id' || lowerKey.endsWith('_id') || lowerKey.endsWith('id')) && 
+                             Number.isInteger(numValue);
+          
+          if (isLikelyId) {
+            return; // Skip ID-like fields
           }
-          metricSums[key] += numValue;
-          metricCounts[key]++;
+          
+          // Separate scaled (0-1) metrics from non-scaled metrics (duration, tokens, etc.)
+          const isScaled = numValue <= 1;
+          
+          if (isScaled) {
+            // Scaled metrics (0-1): scores, rates, accuracy
+            if (!metricSums[key]) {
+              metricSums[key] = 0;
+              metricCounts[key] = 0;
+            }
+            metricSums[key] += numValue;
+            metricCounts[key]++;
+          } else {
+            // Non-scaled metrics: duration, totalTokens, etc.
+            if (!nonScaledSums[key]) {
+              nonScaledSums[key] = 0;
+              nonScaledCounts[key] = 0;
+            }
+            nonScaledSums[key] += numValue;
+            nonScaledCounts[key]++;
+          }
         }
       });
     });
 
-    // Calculate averages
+    // Calculate averages for scaled metrics
     Object.keys(metricSums).forEach(key => {
       stats.metrics[key] = {
         avg: metricSums[key] / metricCounts[key],
         count: metricCounts[key]
+      };
+    });
+
+    // Calculate averages for non-scaled metrics
+    Object.keys(nonScaledSums).forEach(key => {
+      stats.nonScaledMetrics[key] = {
+        avg: nonScaledSums[key] / nonScaledCounts[key],
+        count: nonScaledCounts[key]
       };
     });
 
@@ -289,6 +326,14 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
             </svg>
             Back to Runs
           </button>
+          {onToggleViewMode && (
+            <button className="view-mode-toggle" onClick={onToggleViewMode} title="Switch to conversation view">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              {viewMode === 'table' ? 'Conversation View' : 'Table View'}
+            </button>
+          )}
         </div>
         <div className="details-header-main">
           <div className="details-title-section">
@@ -301,13 +346,14 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
       </div>
 
       {/* Aggregate Statistics */}
-      {aggregates && Object.keys(aggregates.metrics).length > 0 && (
+      {aggregates && (Object.keys(aggregates.metrics).length > 0 || Object.keys(aggregates.nonScaledMetrics).length > 0) && (
         <div className="aggregate-stats-container">
           <div className="aggregate-stats-header">
             <h3>Average Metrics</h3>
             <span className="stats-count">{aggregates.totalExecutions} executions</span>
           </div>
           <div className="aggregate-stats-grid">
+            {/* Scaled metrics (0-1) with color coding */}
             {Object.entries(aggregates.metrics)
               .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
               .map(([key, data]) => {
@@ -322,6 +368,36 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                       style={{ backgroundColor: color }}
                     >
                       {formatNumber(data.avg)}
+                    </div>
+                  </div>
+                );
+              })}
+            
+            {/* Non-scaled metrics (duration, tokens, etc.) without color coding */}
+            {Object.entries(aggregates.nonScaledMetrics)
+              .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+              .map(([key, data]) => {
+                const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                const isDuration = key.toLowerCase().includes('duration');
+                const isTokens = key.toLowerCase().includes('token');
+                
+                let displayValue;
+                if (isDuration) {
+                  displayValue = `${data.avg.toFixed(2)}s`;
+                } else if (isTokens) {
+                  displayValue = Math.round(data.avg).toLocaleString();
+                } else {
+                  displayValue = formatNumber(data.avg);
+                }
+                
+                return (
+                  <div key={key} className="aggregate-stat-card">
+                    <div className="stat-label">{label}</div>
+                    <div 
+                      className="stat-value"
+                      style={{ backgroundColor: '#475569' }}
+                    >
+                      {displayValue}
                     </div>
                   </div>
                 );
@@ -462,7 +538,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                           return (
                             <td key={field.key} className="question-cell" style={{ maxWidth: '300px' }}>
                               <div style={{ wordBreak: 'break-word' }}>
-                                {isExpanded ? cellValue : (cellValue.length > 100 ? cellValue.substring(0, 100) + '...' : cellValue)}
+                                {cellValue.length > 100 ? cellValue.substring(0, 100) + '...' : cellValue}
                               </div>
                             </td>
                           );
@@ -481,7 +557,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                                 fontWeight: '700',
                                 fontSize: '16px'
                               }}
-                              title={reason && !isExpanded ? reason : ''}
+                              title={reason || ''}
                             >
                               {cellValue.toFixed(2)}
                             </td>
@@ -498,7 +574,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                     
                         // Default text rendering
                         const textValue = String(cellValue);
-                        const displayValue = isExpanded || textValue.length <= 100 ? textValue : textValue.substring(0, 100) + '...';
+                        const displayValue = textValue.length <= 100 ? textValue : textValue.substring(0, 100) + '...';
                         
                         return (
                           <td key={field.key} style={{ maxWidth: '300px' }}>
@@ -509,15 +585,26 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                         );
                       })}
                       <td>
-                        {onCompareQuestion && (
-                          <button 
-                            className="compare-question-btn"
-                            onClick={() => onCompareQuestion(question.id, runVersion)}
-                            title="Compare this execution across all runs"
-                          >
-                            Compare
-                          </button>
-                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          {onCompareQuestion && (
+                            <button 
+                              className="compare-question-btn"
+                              onClick={() => onCompareQuestion(question.id, runVersion)}
+                              title="Compare this execution across all runs"
+                            >
+                              Compare
+                            </button>
+                          )}
+                          {onToggleViewMode && (
+                            <button 
+                              className="chat-view-btn"
+                              onClick={() => onToggleViewMode(question.id)}
+                              title="View in conversation mode"
+                            >
+                              Chat View
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                     {isExpanded && (

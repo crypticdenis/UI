@@ -3,6 +3,7 @@ import ProjectsLandingPage from './views/ProjectsLandingPage.jsx';
 import WorkflowsOverview from './views/WorkflowsOverview.jsx';
 import RunsOverview from './views/RunsOverview.jsx';
 import RunDetails from './views/RunDetails.jsx';
+import SessionConversationView from './views/SessionConversationView.jsx';
 import QuestionComparison from './views/QuestionComparison.jsx';
 import RunComparison from './views/RunComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
@@ -16,7 +17,9 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState('projects'); // 'projects', 'workflows', 'runs', 'details', 'comparison'
+  const [currentView, setCurrentView] = useState('projects'); // 'projects', 'workflows', 'runs', 'details', 'conversation', 'comparison'
+  const [viewMode, setViewMode] = useState('table'); // 'table' or 'conversation'
+  const [highlightExecutionId, setHighlightExecutionId] = useState(null);
   
   // Navigation state
   const [selectedProject, setSelectedProject] = useState(null);
@@ -131,7 +134,13 @@ function App() {
     }
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
+    setViewMode('table'); // Reset to table view
     setCurrentView('details');
+  };
+
+  const handleToggleViewMode = (executionId = null) => {
+    setHighlightExecutionId(executionId);
+    setViewMode(prev => prev === 'table' ? 'conversation' : 'table');
   };
 
   const handleBackToProjects = () => {
@@ -339,7 +348,7 @@ function App() {
           />
         )}
 
-        {currentView === 'details' && (
+        {currentView === 'details' && viewMode === 'table' && (
           <RunDetails
             runVersion={selectedRunVersion}
             questions={selectedRunQuestions}
@@ -349,6 +358,18 @@ function App() {
             onNavigateToSubExecution={handleNavigateToSubExecution}
             selectedProject={selectedProject}
             autoExpandExecutionId={autoExpandExecutionId}
+            onToggleViewMode={handleToggleViewMode}
+            viewMode={viewMode}
+          />
+        )}
+
+        {currentView === 'details' && viewMode === 'conversation' && (
+          <SessionConversationView
+            runVersion={selectedRunVersion}
+            executions={selectedRunQuestions}
+            onBack={() => setViewMode('table')}
+            onToggleViewMode={handleToggleViewMode}
+            highlightExecutionId={highlightExecutionId}
           />
         )}
 
