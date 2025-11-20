@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
-import ProjectsLandingPage from './views/ProjectsLandingPage.jsx';
 import WorkflowsOverview from './views/WorkflowsOverview.jsx';
 import RunsOverview from './views/RunsOverview.jsx';
 import RunDetails from './views/RunDetails.jsx';
 import SessionConversationView from './views/SessionConversationView.jsx';
 import QuestionComparison from './views/QuestionComparison.jsx';
 import RunComparison from './views/RunComparison.jsx';
+import ConversationComparison from './views/ConversationComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
 import NavigationSidebar from './components/NavigationSidebar.jsx';
 import './styles/App.css';
@@ -17,7 +17,7 @@ function App() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState('projects'); // 'projects', 'workflows', 'runs', 'details', 'conversation', 'comparison'
+  const [currentView, setCurrentView] = useState('workflows'); // 'workflows', 'runs', 'details', 'conversation', 'comparison'
   const [viewMode, setViewMode] = useState('table'); // 'table' or 'conversation'
   const [highlightExecutionId, setHighlightExecutionId] = useState(null);
   
@@ -32,8 +32,11 @@ function App() {
   const [comparisonRunVersion, setComparisonRunVersion] = useState(null);
   const [runComparisonWorkflowId, setRunComparisonWorkflowId] = useState(null);
   const [runComparisonRunIds, setRunComparisonRunIds] = useState([]);
+  const [conversationComparisonSessionId, setConversationComparisonSessionId] = useState(null);
+  const [conversationComparisonRunVersion, setConversationComparisonRunVersion] = useState(null);
   const [viewerContent, setViewerContent] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [navSidebarCollapsed, setNavSidebarCollapsed] = useState(false);
 
   // Fetch projects from API and auto-select the single project
   useEffect(() => {
@@ -79,8 +82,6 @@ function App() {
           handleBackToRuns();
         } else if (currentView === 'runs') {
           handleBackToWorkflows();
-        } else if (currentView === 'workflows') {
-          handleBackToProjects();
         }
       }
       
@@ -98,27 +99,6 @@ function App() {
 
 
   // Navigation handlers
-  const handleSelectProject = (project) => {
-    setSelectedProject(project);
-    setCurrentView('workflows');
-    setSelectedRunVersion(null);
-    setSelectedRunQuestions([]);
-  };
-
-  const handleCreateProject = (projectData) => {
-    const newProject = {
-      id: `proj-${Date.now()}`,
-      name: projectData.name,
-      description: projectData.description,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      workflowCount: 0,
-      workflows: []
-    };
-    setProjects([...projects, newProject]);
-    alert(`✓ Project "${projectData.name}" created successfully!`);
-  };
-
   const handleSelectWorkflow = (workflow) => {
     setSelectedWorkflow(workflow);
     setSelectedRunVersion(null);
@@ -134,19 +114,13 @@ function App() {
     }
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
-    setViewMode('table'); // Reset to table view
+    setViewMode('conversation'); // Default to conversation view
     setCurrentView('details');
   };
 
   const handleToggleViewMode = (executionId = null) => {
     setHighlightExecutionId(executionId);
     setViewMode(prev => prev === 'table' ? 'conversation' : 'table');
-  };
-
-  const handleBackToProjects = () => {
-    setCurrentView('projects');
-    setSelectedProject(null);
-    setSelectedWorkflow(null);
   };
 
   const handleBackToWorkflows = () => {
@@ -184,6 +158,19 @@ function App() {
     setCurrentView('runs');
     setRunComparisonWorkflowId(null);
     setRunComparisonRunIds([]);
+  };
+
+  const handleCompareSession = (sessionId) => {
+    setConversationComparisonSessionId(sessionId);
+    setConversationComparisonRunVersion(selectedRunVersion);
+    setCurrentView('conversationComparison');
+  };
+
+  const handleCloseConversationComparison = () => {
+    setCurrentView('details');
+    setViewMode('conversation');
+    setConversationComparisonSessionId(null);
+    setConversationComparisonRunVersion(null);
   };
 
   const handleExpandContent = (content, title, runId, gtId) => {
@@ -258,15 +245,9 @@ function App() {
   };
 
   const handleNavigate = (destination, project, workflow, _subworkflow, run) => {
-    if (destination === 'projects') {
-      handleBackToProjects();
-    } else if (destination === 'project' && project) {
-      handleSelectProject(project);
-    } else if (destination === 'workflow' && project && workflow) {
-      setSelectedProject(project);
+    if (destination === 'workflow' && workflow) {
       handleSelectWorkflow(workflow);
-    } else if (destination === 'run' && project && workflow && run) {
-      setSelectedProject(project);
+    } else if (destination === 'run' && workflow && run) {
       setSelectedWorkflow(workflow);
       // Open run details directly (same behavior as clicking the card)
       const questions = run.runs || run.questions || [];
@@ -285,45 +266,23 @@ function App() {
         projects={projects}
         onNavigate={handleNavigate}
         onWidthChange={setSidebarWidth}
+        isCollapsed={navSidebarCollapsed}
+        onCollapseChange={setNavSidebarCollapsed}
       />
       <div className="main-content" style={{ marginLeft: `${sidebarWidth}px` }}>
         {loading && (
-          <div style={{ 
-            display: 'flex', 
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '100vh',
-            fontSize: '1.5rem',
-            color: '#888'
-          }}>
+          <div className="loading-container font-size-15rem color-muted-888">
             Loading projects...
           </div>
         )}
 
         {error && (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            justifyContent: 'center', 
-            alignItems: 'center', 
-            height: '100vh',
-            fontSize: '1.2rem',
-            color: '#ff4444',
-            gap: '1rem'
-          }}>
+          <div className="error-container font-size-12rem color-error">
             <div>Error loading projects: {error}</div>
-            <div style={{ fontSize: '0.9rem', color: '#888' }}>
+            <div className="font-size-09rem color-muted-888">
               Make sure the backend server is running on http://localhost:3001
             </div>
           </div>
-        )}
-
-        {!loading && !error && currentView === 'projects' && (
-          <ProjectsLandingPage 
-            projects={projects}
-            onSelectProject={handleSelectProject}
-            onCreateProject={handleCreateProject}
-          />
         )}
 
         {!loading && !error && currentView === 'workflows' && selectedProject && (
@@ -331,7 +290,6 @@ function App() {
             workflows={selectedProject.workflows || []}
             projectName={selectedProject.name}
             onSelectWorkflow={handleSelectWorkflow}
-            onBack={handleBackToProjects}
           />
         )}
 
@@ -341,7 +299,6 @@ function App() {
             onViewRunDetails={handleViewRunDetails}
             onCompareRuns={handleCompareRuns}
             breadcrumbs={[
-              { label: 'Projects', onClick: () => handleBackToProjects() },
               { label: selectedProject?.name, onClick: () => handleBackToWorkflows() },
               { label: `${selectedWorkflow.name} - Runs` }
             ]}
@@ -367,9 +324,21 @@ function App() {
           <SessionConversationView
             runVersion={selectedRunVersion}
             executions={selectedRunQuestions}
-            onBack={() => setViewMode('table')}
+            onBack={handleBackToRuns}
             onToggleViewMode={handleToggleViewMode}
             highlightExecutionId={highlightExecutionId}
+            onCompareSession={handleCompareSession}
+            allRuns={selectedWorkflow?.runs || []}
+            onNavCollapse={setNavSidebarCollapsed}
+          />
+        )}
+
+        {currentView === 'conversationComparison' && (
+          <ConversationComparison
+            sessionId={conversationComparisonSessionId}
+            baseRunVersion={conversationComparisonRunVersion}
+            allRuns={selectedWorkflow?.runs || []}
+            onClose={handleCloseConversationComparison}
           />
         )}
 

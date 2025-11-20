@@ -320,14 +320,14 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
     <div className="run-details">
       <div className="details-header">
         <div className="details-header-top">
-          <button className="back-button" onClick={onBack}>
+          <button className="btn btn-secondary" onClick={onBack}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
             Back to Runs
           </button>
           {onToggleViewMode && (
-            <button className="view-mode-toggle" onClick={onToggleViewMode} title="Switch to conversation view">
+            <button className="btn btn-secondary" onClick={onToggleViewMode} title="Switch to conversation view">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
@@ -342,69 +342,60 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
               {sortedQuestions.length} execution{sortedQuestions.length !== 1 ? 's' : ''}
             </span>
           </div>
+
+          {/* Aggregate Statistics - Inline */}
+          {aggregates && (Object.keys(aggregates.metrics).length > 0 || Object.keys(aggregates.nonScaledMetrics).length > 0) && (
+            <div className="aggregate-stats-inline">
+              {/* Scaled metrics (0-1) with color coding */}
+              {Object.entries(aggregates.metrics)
+                .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                .map(([key, data]) => {
+                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                  const color = getScoreColor(data.avg);
+
+                  return (
+                    <div key={key} className="aggregate-stat-card-inline">
+                      <div className="stat-label-inline">{label}</div>
+                      <div
+                        className="stat-value-inline"
+                        style={{ backgroundColor: color }}
+                      >
+                        {formatNumber(data.avg)}
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {/* Non-scaled metrics (duration, tokens, etc.) without color coding */}
+              {Object.entries(aggregates.nonScaledMetrics)
+                .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
+                .map(([key, data]) => {
+                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                  const isDuration = key.toLowerCase().includes('duration');
+                  const isTokens = key.toLowerCase().includes('token');
+
+                  let displayValue;
+                  if (isDuration) {
+                    displayValue = `${data.avg.toFixed(2)}s`;
+                  } else if (isTokens) {
+                    displayValue = Math.round(data.avg).toLocaleString();
+                  } else {
+                    displayValue = formatNumber(data.avg);
+                  }
+
+                  return (
+                    <div key={key} className="aggregate-stat-card-inline">
+                      <div className="stat-label-inline">{label}</div>
+                      <div className="stat-value-inline bg-slate">
+                        {displayValue}
+                      </div>
+                    </div>
+                  );
+                })}
+            </div>
+          )}
         </div>
       </div>
-
-      {/* Aggregate Statistics */}
-      {aggregates && (Object.keys(aggregates.metrics).length > 0 || Object.keys(aggregates.nonScaledMetrics).length > 0) && (
-        <div className="aggregate-stats-container">
-          <div className="aggregate-stats-header">
-            <h3>Average Metrics</h3>
-            <span className="stats-count">{aggregates.totalExecutions} executions</span>
-          </div>
-          <div className="aggregate-stats-grid">
-            {/* Scaled metrics (0-1) with color coding */}
-            {Object.entries(aggregates.metrics)
-              .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-              .map(([key, data]) => {
-                const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const color = getScoreColor(data.avg);
-                
-                return (
-                  <div key={key} className="aggregate-stat-card">
-                    <div className="stat-label">{label}</div>
-                    <div 
-                      className="stat-value"
-                      style={{ backgroundColor: color }}
-                    >
-                      {formatNumber(data.avg)}
-                    </div>
-                  </div>
-                );
-              })}
-            
-            {/* Non-scaled metrics (duration, tokens, etc.) without color coding */}
-            {Object.entries(aggregates.nonScaledMetrics)
-              .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-              .map(([key, data]) => {
-                const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const isDuration = key.toLowerCase().includes('duration');
-                const isTokens = key.toLowerCase().includes('token');
-                
-                let displayValue;
-                if (isDuration) {
-                  displayValue = `${data.avg.toFixed(2)}s`;
-                } else if (isTokens) {
-                  displayValue = Math.round(data.avg).toLocaleString();
-                } else {
-                  displayValue = formatNumber(data.avg);
-                }
-                
-                return (
-                  <div key={key} className="aggregate-stat-card">
-                    <div className="stat-label">{label}</div>
-                    <div 
-                      className="stat-value"
-                      style={{ backgroundColor: '#475569' }}
-                    >
-                      {displayValue}
-                    </div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      )}
 
       <div className="details-search-bar">
         <div className="search-input-wrapper">
@@ -455,7 +446,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
           <tbody>
             {sortedQuestions.length === 0 ? (
               <tr>
-                <td colSpan={allFields.length + 1} style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
+                <td colSpan={allFields.length + 1} className="text-center p-20 text-muted-color">
                   No executions found
                 </td>
               </tr>
@@ -466,24 +457,14 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                 return (
                   <Fragment key={question.id}>
                     <tr>
-                      <td style={{ width: '60px', textAlign: 'center', padding: '8px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
+                      <td className="cell-icon">
+                        <div className="cell-icon-inner">
                           <button
                             onClick={() => toggleRowExpansion(question.id)}
-                            style={{
-                              background: 'transparent',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: '#3b82f6',
-                              fontSize: '18px',
-                              padding: '4px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center'
-                            }}
+                            className="btn-expand"
                             title={isExpanded ? "Collapse details" : "Expand details"}
                           >
-                            {isExpanded ? '▼' : '▶'}
+                            {isExpanded ? '−' : '+'}
                           </button>
                           {hasSubExecutions && (
                             <button
@@ -491,32 +472,8 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                                 e.stopPropagation();
                                 handleSubExecutionClick(question);
                               }}
-                              style={{
-                                background: '#1e293b',
-                                border: '2px solid #3b82f6',
-                                borderRadius: '50%',
-                                width: '28px',
-                                height: '28px',
-                                cursor: 'pointer',
-                                color: '#3b82f6',
-                                fontSize: '11px',
-                                fontWeight: '700',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                transition: 'all 0.2s'
-                              }}
+                              className="btn-sub-exec"
                               title={`View ${Array.isArray(question.subExecutions) ? question.subExecutions.length : 0} ${question.subExecutions[0]?.workflowId || 'sub-workflow'} execution(s)`}
-                              onMouseOver={(e) => {
-                                e.currentTarget.style.background = '#3b82f6';
-                                e.currentTarget.style.color = 'white';
-                                e.currentTarget.style.transform = 'scale(1.1)';
-                              }}
-                              onMouseOut={(e) => {
-                                e.currentTarget.style.background = '#1e293b';
-                                e.currentTarget.style.color = '#3b82f6';
-                                e.currentTarget.style.transform = 'scale(1)';
-                              }}
                             >
                               {(() => {
                                 if (Array.isArray(question.subExecutions)) {
@@ -536,8 +493,8 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                         // Handle different field types
                         if (field.type === 'longtext' && typeof cellValue === 'string') {
                           return (
-                            <td key={field.key} className="question-cell" style={{ maxWidth: '300px' }}>
-                              <div style={{ wordBreak: 'break-word' }}>
+                            <td key={field.key} className="question-cell cell-medium">
+                              <div className="word-break">
                                 {cellValue.length > 100 ? cellValue.substring(0, 100) + '...' : cellValue}
                               </div>
                             </td>
@@ -566,7 +523,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                     
                     if (field.type === 'number' && typeof cellValue === 'number') {
                       return (
-                        <td key={field.key} style={{ textAlign: 'right', fontFamily: 'monospace' }}>
+                        <td key={field.key} className="text-right font-mono">
                           {cellValue.toFixed(2)}
                         </td>
                       );
@@ -577,15 +534,15 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                         const displayValue = textValue.length <= 100 ? textValue : textValue.substring(0, 100) + '...';
                         
                         return (
-                          <td key={field.key} style={{ maxWidth: '300px' }}>
-                            <div style={{ wordBreak: 'break-word' }}>
+                          <td key={field.key} className="cell-medium">
+                            <div className="word-break">
                               {displayValue}
                             </div>
                           </td>
                         );
                       })}
                       <td>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        <div className="flex flex-col gap-8">
                           {onCompareQuestion && (
                             <button 
                               className="compare-question-btn"
@@ -599,42 +556,37 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                             <button 
                               className="chat-view-btn"
                               onClick={() => onToggleViewMode(question.id)}
-                              title="View in conversation mode"
+                              title="Jump to this message in conversation view"
                             >
-                              Chat View
+                              View
                             </button>
                           )}
                         </div>
                       </td>
                     </tr>
                     {isExpanded && (
-                      <tr style={{ backgroundColor: '#1e293b' }}>
-                        <td colSpan={allFields.length + 2} style={{ padding: '16px' }}>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+                      <tr className="expanded-row">
+                        <td colSpan={allFields.length + 2} className="expanded-row-cell">
+                          <div className="expanded-content-grid">
                             {allFields.map(field => {
                               const cellValue = getCellValue(question, field);
                               const reason = getCellReason(question, field);
                               
                               return (
-                                <div key={field.key} style={{ borderBottom: '1px solid #334155', paddingBottom: '12px' }}>
-                                  <div style={{ fontWeight: '600', color: '#60a5fa', marginBottom: '8px', fontSize: '13px' }}>
+                                <div key={field.key} className="expanded-field">
+                                  <div className="expanded-field-label">
                                     {field.label}
                                   </div>
-                                  <div style={{ color: '#e2e8f0', whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '14px', lineHeight: '1.6' }}>
+                                  <div className="expanded-field-value">
                                     {field.type === 'metric' && typeof cellValue === 'number' ? (
                                       <div>
-                                        <span style={{ 
-                                          padding: '4px 12px',
-                                          borderRadius: '4px',
-                                          backgroundColor: getScoreColor(cellValue),
-                                          color: 'white',
-                                          fontWeight: '700',
-                                          fontSize: '16px'
+                                        <span className="metric-score-badge" style={{ 
+                                          backgroundColor: getScoreColor(cellValue)
                                         }}>
                                           {cellValue.toFixed(2)}
                                         </span>
                                         {reason && (
-                                          <div style={{ marginTop: '8px', fontStyle: 'italic', color: '#cbd5e1' }}>
+                                          <div className="metric-reason">
                                             {reason}
                                           </div>
                                         )}
@@ -647,8 +599,8 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                             
                             {/* Display Sub-Executions */}
                             {question.subExecutions && question.subExecutions.length > 0 && (
-                              <div style={{ marginTop: '24px', borderTop: '2px solid #3b82f6', paddingTop: '16px' }}>
-                                <div style={{ fontWeight: '700', color: '#3b82f6', marginBottom: '16px', fontSize: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <div className="sub-executions-section">
+                                <div className="sub-executions-title">
                                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <circle cx="12" cy="12" r="3"/>
                                     <path d="M12 1v6m0 6v6m7.07-13.07l-4.24 4.24m0 5.66l4.24 4.24M1 12h6m6 0h6M4.93 4.93l4.24 4.24m5.66 0l4.24-4.24"/>
@@ -656,26 +608,15 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                                   Sub-Workflow Executions ({question.subExecutions.length})
                                 </div>
                                 {question.subExecutions.map((subExec, idx) => (
-                                  <div key={subExec.id} style={{ 
-                                    marginBottom: idx < question.subExecutions.length - 1 ? '16px' : '0',
-                                    padding: '16px', 
-                                    backgroundColor: '#0f172a', 
-                                    borderRadius: '8px',
-                                    border: '1px solid #334155'
+                                  <div key={subExec.id} className="sub-exec-card" style={{ 
+                                    marginBottom: idx < question.subExecutions.length - 1 ? '16px' : '0'
                                   }}>
-                                    <div style={{ marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                        <span style={{ 
-                                          padding: '4px 12px',
-                                          borderRadius: '4px',
-                                          backgroundColor: '#1e40af',
-                                          color: 'white',
-                                          fontWeight: '600',
-                                          fontSize: '13px'
-                                        }}>
+                                    <div className="sub-exec-header">
+                                      <div className="sub-exec-header-left">
+                                        <span className="sub-exec-id">
                                           {subExec.workflowId || 'Sub-Workflow'}
                                         </span>
-                                        <span style={{ color: '#94a3b8', fontSize: '13px' }}>
+                                        <span className="sub-exec-meta">
                                           Execution ID: {subExec.id}
                                         </span>
                                       </div>
@@ -688,28 +629,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                                               onNavigateToSubExecution(subExec.workflowId, null, null, true);
                                             }
                                           }}
-                                          style={{
-                                            padding: '6px 12px',
-                                            borderRadius: '4px',
-                                            border: '1px solid #3b82f6',
-                                            backgroundColor: 'transparent',
-                                            color: '#3b82f6',
-                                            cursor: 'pointer',
-                                            fontSize: '12px',
-                                            fontWeight: '600',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            gap: '6px',
-                                            transition: 'all 0.2s'
-                                          }}
-                                          onMouseOver={(e) => {
-                                            e.currentTarget.style.backgroundColor = '#3b82f6';
-                                            e.currentTarget.style.color = 'white';
-                                          }}
-                                          onMouseOut={(e) => {
-                                            e.currentTarget.style.backgroundColor = 'transparent';
-                                            e.currentTarget.style.color = '#3b82f6';
-                                          }}
+                                          className="btn btn-secondary"
                                           title={`View standalone ${subExec.workflowId} workflow`}
                                         >
                                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -727,25 +647,20 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
                                       const isMetric = val && typeof val === 'object' && 'value' in val;
                                       
                                       return (
-                                        <div key={key} style={{ marginBottom: '12px' }}>
-                                          <div style={{ fontWeight: '600', color: '#60a5fa', marginBottom: '4px', fontSize: '12px' }}>
+                                        <div key={key} className="sub-exec-metric">
+                                          <div className="sub-exec-metric-label">
                                             {key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim().replace(/\b\w/g, l => l.toUpperCase())}
                                           </div>
-                                          <div style={{ color: '#e2e8f0', fontSize: '13px', lineHeight: '1.5' }}>
+                                          <div className="sub-exec-metric-value">
                                             {isMetric && typeof displayValue === 'number' ? (
                                               <div>
-                                                <span style={{ 
-                                                  padding: '2px 8px',
-                                                  borderRadius: '4px',
-                                                  backgroundColor: getScoreColor(displayValue),
-                                                  color: 'white',
-                                                  fontWeight: '600',
-                                                  fontSize: '14px'
+                                                <span className="metric-score-badge" style={{ 
+                                                  backgroundColor: getScoreColor(displayValue)
                                                 }}>
                                                   {displayValue.toFixed(2)}
                                                 </span>
                                                 {reason && (
-                                                  <div style={{ marginTop: '4px', fontStyle: 'italic', color: '#94a3b8', fontSize: '12px' }}>
+                                                  <div className="sub-exec-metric-reason">
                                                     {reason}
                                                   </div>
                                                 )}

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack }) => {
+const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -45,16 +45,6 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
     <div className="workflows-overview">
       <div className="overview-header">
         <div>
-          <div className="breadcrumb-nav">
-            <button onClick={onBack} className="breadcrumb-link">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 18l-6-6 6-6"/>
-              </svg>
-              Projects
-            </button>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">{projectName}</span>
-          </div>
           <h2>Workflows in {projectName}</h2>
           <p className="overview-subtitle">
             <span className="stat-item">
@@ -146,7 +136,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, onBack })
               </div>
             )}
 
-            <div className="run-card-meta">
+            <div className="">
               <div className="meta-item">
                 <span className="meta-label">Runs:</span>
                 <span className="meta-value model-badge">{workflow.runCount || 0}</span>

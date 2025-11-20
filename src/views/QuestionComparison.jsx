@@ -220,7 +220,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
           <div>
             <h2>Compare Question Across Runs</h2>
             {baseExecution && (
-              <div style={{ fontSize: '14px', color: '#94a3b8', marginTop: '8px', fontStyle: 'italic' }}>
+              <div className="font-size-14 text-muted-color mt-8 font-italic">
                 Position {baseIndex + 1}: "{baseExecution.input?.length > 80 ? baseExecution.input.substring(0, 80) + '...' : baseExecution.input}"
               </div>
             )}
@@ -265,10 +265,9 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
 
         <div className="comparison-modal-body question-comparison-body">
           {availableVersions.length === 0 ? (
-            <div style={{ padding: '40px', textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚠️</div>
-              <h3 style={{ color: '#94a3b8', marginBottom: '12px' }}>No Matching Executions Found</h3>
-              <p style={{ color: '#64748b', marginBottom: '8px' }}>
+            <div className="p-40 text-center">
+              <h3 className="text-muted-color mb-12">No Matching Executions Found</h3>
+              <p className="text-muted-color mb-8">
                 Could not find other runs with execution at position {baseIndex + 1}
               </p>
             </div>
@@ -278,7 +277,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
               <div className="question-comparison-sidebar">
                 <div className="sidebar-header">
                   <h3>Select Runs</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div className="flex items-center gap-8">
                     <div className="selection-count">
                       {selectedVersions.length}/2 selected
                     </div>
@@ -539,7 +538,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                 <button className="modal-close" onClick={() => setExpandedContent(null)}>✕</button>
               </div>
               <div className="modal-body">
-                <pre style={{ whiteSpace: 'pre-wrap', wordWrap: 'break-word' }}>
+                <pre className="pre-wrap word-break">
                   {expandedContent.content}
                 </pre>
               </div>

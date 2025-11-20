@@ -198,11 +198,10 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
                 fill="#ff900c"
                 stroke="#0f172a"
                 strokeWidth="1"
-                className="data-point"
+                className="data-point cursor-pointer"
                 onMouseEnter={() => setHoveredPoint(point)}
                 onMouseLeave={() => setHoveredPoint(null)}
                 onClick={() => onViewRunDetails(point.version, point.runs)}
-                style={{ cursor: 'pointer' }}
               />
             </g>
           ))}
@@ -233,13 +232,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
                 className="tooltip-grade"
                 style={{
                   backgroundColor: gradeInfo.bgColor,
-                  color: gradeInfo.color,
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  fontWeight: 'bold',
-                  fontSize: '11px',
-                  marginTop: '4px',
-                  textAlign: 'center'
+                  color: gradeInfo.color
                 }}
               >
                 {gradeInfo.grade}
@@ -262,7 +255,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     version: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState('list'); // 'grid' or 'list'
   
   // Get all unique score fields dynamically from executions within runs
   const scoreFields = useMemo(() => {
@@ -440,7 +432,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
               <>
                 <span className="stat-divider">|</span>
                 <span className="stat-item active-filters">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginRight: '4px' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="inline-svg">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
                   </svg>
                   {activeFilterCount} {activeFilterCount === 1 ? 'Filter' : 'Filters'} Active
@@ -449,7 +441,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
             )}
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="flex gap-12">
           {hasActiveFilters && (
             <button onClick={clearFilters} className="clear-filters-btn" title="Clear all filters">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -496,34 +488,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       </div>
 
       <div className="overview-controls">
-        <div className="view-mode-toggle">
-          <button 
-            className={`view-mode-btn ${viewMode === 'grid' ? 'active' : ''}`}
-            onClick={() => setViewMode('grid')}
-            title="Grid view"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <rect x="3" y="3" width="7" height="7"/>
-              <rect x="14" y="3" width="7" height="7"/>
-              <rect x="14" y="14" width="7" height="7"/>
-              <rect x="3" y="14" width="7" height="7"/>
-            </svg>
-          </button>
-          <button 
-            className={`view-mode-btn ${viewMode === 'list' ? 'active' : ''}`}
-            onClick={() => setViewMode('list')}
-            title="List view"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <line x1="8" y1="6" x2="21" y2="6"/>
-              <line x1="8" y1="12" x2="21" y2="12"/>
-              <line x1="8" y1="18" x2="21" y2="18"/>
-              <line x1="3" y1="6" x2="3.01" y2="6"/>
-              <line x1="3" y1="12" x2="3.01" y2="12"/>
-              <line x1="3" y1="18" x2="3.01" y2="18"/>
-            </svg>
-          </button>
-        </div>
         <label>Sort By:</label>
         <select 
           value={sortConfig.key} 
@@ -552,7 +516,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
         </select>
       </div>
 
-      <div className={viewMode === 'grid' ? 'runs-grid' : 'runs-list'}>
+      <div className="runs-list">
         {sortedRuns.map((run) => {
           // Calculate average score dynamically from all score fields
           const scores = scoreFields
@@ -597,7 +561,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
           return (
             <div 
               key={run.version} 
-              className={`run-card ${viewMode === 'list' ? 'run-card-list' : ''} clickable`}
+              className="run-card run-card-list clickable"
               data-run-version={run.version}
               onClick={() => {
                 console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
@@ -638,11 +602,9 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
                 {run.questionCount}
               </span>
 
-              {viewMode === 'list' && (
-                <span className="meta-value prompt-badge">
-                  {run.workflowId}
-                </span>
-              )}
+              <span className="meta-value prompt-badge">
+                {run.workflowId}
+              </span>
 
               <div className="overall-grade" style={{ 
                 color: gradeColor, 
@@ -652,60 +614,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
                 {overallGrade}
               </div>
 
-              <div className="run-card-meta" style={{ display: 'none' }}>
-                <div className="meta-item">
-                  <span className="meta-label">Run ID:</span>
-                  <span className="meta-value model-badge">{run.id}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="meta-label">Workflow:</span>
-                  <span className="meta-value prompt-badge">{run.workflowId}</span>
-                </div>
-                <div className="meta-item">
-                  <span className="meta-label">Executions:</span>
-                  <span className="meta-value">{run.questionCount}</span>
-                </div>
-                {run.durationMinutes && (
-                  <div className="meta-item">
-                    <span className="meta-label">Duration:</span>
-                    <span className="meta-value timestamp">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{verticalAlign: 'middle', marginRight: '4px'}}>
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                      </svg>
-                      {run.durationMinutes} min
-                    </span>
-                  </div>
-                )}
-                {run.startTs && (
-                  <div className="meta-item">
-                    <span className="meta-label">Started:</span>
-                    <span className="meta-value timestamp">
-                      {new Date(run.startTs).toLocaleString('de-DE', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </div>
-                )}
-                {run.finishTs && (
-                  <div className="meta-item">
-                    <span className="meta-label">Finished:</span>
-                    <span className="meta-value timestamp">
-                      {new Date(run.finishTs).toLocaleString('de-DE', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </div>
-                )}
-              </div>
 
               <div className="run-card-scores">
                 {scoreFields.map(field => {

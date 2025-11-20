@@ -1,16 +1,25 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/NavigationSidebar.css';
 
-const NavigationSidebar = ({ 
-  currentView, 
-  selectedProject, 
-  selectedWorkflow, 
+const NavigationSidebar = ({
+  currentView,
+  selectedProject,
+  selectedWorkflow,
   selectedRunVersion,
   projects,
   onNavigate,
-  onWidthChange
+  onWidthChange,
+  isCollapsed: externalIsCollapsed,
+  onCollapseChange
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+
+  // Sync with external collapse state if provided
+  useEffect(() => {
+    if (externalIsCollapsed !== undefined) {
+      setIsCollapsed(externalIsCollapsed);
+    }
+  }, [externalIsCollapsed]);
   const [expandedWorkflows, setExpandedWorkflows] = useState(new Set());
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [isResizing, setIsResizing] = useState(false);
@@ -98,9 +107,15 @@ const NavigationSidebar = ({
             <span>RE Butler Evaluation</span>
           </div>
         )}
-        <button 
+        <button
           className="collapse-btn"
-          onClick={() => setIsCollapsed(!isCollapsed)}
+          onClick={() => {
+            const newCollapsed = !isCollapsed;
+            setIsCollapsed(newCollapsed);
+            if (onCollapseChange) {
+              onCollapseChange(newCollapsed);
+            }
+          }}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -115,20 +130,6 @@ const NavigationSidebar = ({
 
       {!isCollapsed && (
         <div className="sidebar-content">
-          {/* Workflows Section */}
-          <div 
-            className={`nav-item ${isActive('workflows') ? 'active' : ''}`}
-            onClick={() => onNavigate('project', project)}
-          >
-            <div className="nav-item-content">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M12 1v6m0 6v6m7.07-13.07l-4.24 4.24m0 5.66l4.24 4.24M1 12h6m6 0h6M4.93 4.93l4.24 4.24m5.66 0l4.24-4.24"/>
-              </svg>
-              <span className="nav-item-label">Workflows</span>
-              <span className="nav-item-count">{project?.workflows?.length || 0}</span>
-            </div>
-          </div>
 
           {/* Workflow Tree */}
           {project?.workflows?.map(workflow => (
@@ -158,30 +159,57 @@ const NavigationSidebar = ({
               {/* Workflow Runs (no subworkflows) */}
               {expandedWorkflows.has(workflow.id) && (
                 <div className="nav-tree-children">
-                  {workflow.runs?.map((run) => (
-                    <div 
-                      key={run.version}
-                      className={`nav-item nested-2 ${
-                        selectedRunVersion === run.version && 
-                        selectedWorkflow?.id === workflow.id
-                          ? 'active' 
-                          : ''
-                      }`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onNavigate('run', project, workflow, null, { version: run.version, runs: run.runs || run.questions || [] });
-                      }}
-                      style={{ cursor: 'pointer' }}
-                    >
-                      <div className="nav-item-content">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <polyline points="9 11 12 14 22 4"/>
-                          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-                        </svg>
-                        <span className="nav-item-label run-label">{run.version}</span>
+                  {workflow.runs?.map((run) => {
+                    // Calculate combined score from executions
+                    const executions = run.runs || run.questions || [];
+                    const allMetrics = [];
+                    
+                    executions.forEach(exec => {
+                      Object.keys(exec).forEach(key => {
+                        const value = exec[key];
+                        if (value && typeof value === 'object' && 'value' in value) {
+                          const numValue = parseFloat(value.value);
+                          if (!isNaN(numValue) && numValue <= 1) {
+                            allMetrics.push(numValue);
+                          }
+                        }
+                      });
+                    });
+                    
+                    const combinedScore = allMetrics.length > 0 
+                      ? allMetrics.reduce((a, b) => a + b, 0) / allMetrics.length 
+                      : null;
+                    
+                    return (
+                      <div 
+                        key={run.version}
+                        className={`nav-item nested-2 ${
+                          selectedRunVersion === run.version && 
+                          selectedWorkflow?.id === workflow.id
+                            ? 'active' 
+                            : ''
+                        }`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onNavigate('run', project, workflow, null, { version: run.version, runs: run.runs || run.questions || [] });
+                        }}
+                        style={{ cursor: 'pointer' }}
+                      >
+                        <div className="nav-item-content">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="9 11 12 14 22 4"/>
+                            <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                          </svg>
+                          <span className="nav-item-label run-label">{run.version}</span>
+                          {combinedScore !== null && (
+                            <span className="run-score-badge" title={`Combined Score: ${combinedScore.toFixed(2)}`}>
+                              {combinedScore.toFixed(2)}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
             </div>
