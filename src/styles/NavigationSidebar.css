@@ -150,14 +150,6 @@
   padding-left: 40px;
 }
 
-.nav-item.nested-3 {
-  padding-left: 56px;
-}
-
-.nav-item.nested-4 {
-  padding-left: 72px;
-}
-
 .expand-btn {
   width: 16px;
   height: 16px;
@@ -224,31 +216,12 @@
   color: #94a3b8;
 }
 
-.nav-item-label.session-label {
-  font-size: 11px;
-  font-family: 'Courier New', monospace;
-  color: #94a3b8;
-}
-
 .nav-item:hover .nav-item-label {
   color: #e2e8f0;
 }
 
 .nav-item.active .nav-item-label.run-label {
   color: var(--primary-color);
-}
-
-.nav-item.nested-3 {
-  cursor: pointer !important;
-}
-
-.nav-item.nested-3:hover {
-  background: rgba(96, 165, 250, 0.08);
-  border-left-color: rgba(96, 165, 250, 0.3);
-}
-
-.nav-item.nested-3:hover .nav-item-label.session-label {
-  color: #cbd5e1;
 }
 
 .run-score-badge {
@@ -262,18 +235,6 @@
   font-weight: 700;
   font-family: 'Courier New', monospace;
   margin-left: auto;
-}
-
-.session-score-badge {
-  flex-shrink: 0;
-  padding: 2px 6px;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  border-radius: 8px;
-  color: #22c55e;
-  font-size: 10px;
-  font-weight: 600;
-  font-family: 'Courier New', monospace;
 }
 
 .nav-item-count {
@@ -307,10 +268,6 @@
   left: 36px;
 }
 
-.nav-item.nested-3 ~ .nav-tree-children::before {
-  left: 52px;
-}
-
 /* Responsive adjustments */
 @media (max-width: 1024px) {
   .navigation-sidebar {
@@ -336,50 +293,6 @@
 
 .navigation-sidebar {
   animation: slideInLeft 0.3s ease;
-}
-
-/* Breadcrumb integration hint */
-.nav-breadcrumb-separator {
-  color: #475569;
-  margin: 0 6px;
-  user-select: none;
-}
-
-/* Expand width button */
-.sidebar-expand-btn {
-  position: fixed;
-  left: 280px; /* Default position, overridden by inline style */
-  top: 50vh;
-  transform: translateY(-50%);
-  width: 24px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(30, 41, 59, 0.95);
-  border: 1px solid rgba(96, 165, 250, 0.3);
-  border-radius: 0 8px 8px 0;
-  border-left: none;
-  color: var(--primary-color);
-  cursor: pointer !important;
-  transition: left 0.2s ease, width 0.2s ease;
-  z-index: 99;
-  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.3);
-}
-
-.sidebar-expand-btn:hover {
-  background: rgba(96, 165, 250, 0.15);
-  border-color: var(--primary-color);
-  width: 28px;
-  box-shadow: 2px 0 12px rgba(96, 165, 250, 0.4);
-}
-
-.sidebar-expand-btn svg {
-  transition: transform 0.2s ease;
-}
-
-.sidebar-expand-btn:hover svg {
-  transform: scale(1.1);
 }
 
 /* Resize handle */

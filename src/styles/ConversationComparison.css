@@ -565,10 +565,6 @@
   border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
-.perf-icon {
-  font-size: 16px;
-}
-
 .perf-name {
   flex: 1;
   font-size: 13px;

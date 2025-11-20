@@ -1,6 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import '../styles/NavigationSidebar.css';
 
+// Helper function to get color based on score
+const getScoreColor = (score) => {
+  if (score >= 0.9) return '#10b981';   // Green for excellent
+  if (score >= 0.8) return '#22c55e';   // Light green for very good
+  if (score >= 0.7) return '#84cc16';   // Lime for good
+  if (score >= 0.6) return '#eab308';   // Yellow for acceptable
+  if (score >= 0.5) return '#f59e0b';   // Amber for mediocre
+  return '#ef4444';                      // Red for poor
+};
+
 const NavigationSidebar = ({
   currentView,
   selectedProject,
@@ -202,7 +212,14 @@ const NavigationSidebar = ({
                           </svg>
                           <span className="nav-item-label run-label">{run.version}</span>
                           {combinedScore !== null && (
-                            <span className="run-score-badge" title={`Combined Score: ${combinedScore.toFixed(2)}`}>
+                            <span 
+                              className="run-score-badge" 
+                              style={{ 
+                                backgroundColor: getScoreColor(combinedScore),
+                                color: '#ffffff'
+                              }}
+                              title={`Combined Score: ${combinedScore.toFixed(2)}`}
+                            >
                               {combinedScore.toFixed(2)}
                             </span>
                           )}

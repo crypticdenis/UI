@@ -4,19 +4,17 @@ import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metr
 // Helper function to get grade and colors based on score
 const getGradeInfo = (score) => {
   if (score >= 0.9) {
-    return { grade: 'Excellent', color: '#ffffff', bgColor: '#059669' };
+    return { grade: 'Excellent', color: '#ffffff', bgColor: '#10b981' };
   } else if (score >= 0.8) {
-    return { grade: 'Very Good', color: '#ffffff', bgColor: '#10b981' };
+    return { grade: 'Very Good', color: '#ffffff', bgColor: '#22c55e' };
   } else if (score >= 0.7) {
-    return { grade: 'Good', color: '#ffffff', bgColor: '#34d399' };
+    return { grade: 'Good', color: '#ffffff', bgColor: '#84cc16' };
   } else if (score >= 0.6) {
-    return { grade: 'Fair', color: '#0f172a', bgColor: '#fbbf24' };
+    return { grade: 'Fair', color: '#000000', bgColor: '#eab308' };
   } else if (score >= 0.5) {
     return { grade: 'Below Avg', color: '#ffffff', bgColor: '#f59e0b' };
-  } else if (score >= 0.4) {
-    return { grade: 'Poor', color: '#ffffff', bgColor: '#f97316' };
   } else {
-    return { grade: 'Very Poor', color: '#ffffff', bgColor: '#dc2626' };
+    return { grade: 'Poor', color: '#ffffff', bgColor: '#ef4444' };
   }
 };
 
@@ -235,7 +233,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
                   color: gradeInfo.color
                 }}
               >
-                {gradeInfo.grade}
+                {hoveredPoint.value.toFixed(2)}
               </div>
               <div className="tooltip-date">{hoveredPoint.date} at {hoveredPoint.time}</div>
               <div className="tooltip-hint">Click to view details</div>
@@ -611,7 +609,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
                 backgroundColor: gradeBgColor,
                 borderColor: gradeBgColor
               }}>
-                {overallGrade}
+                {avgScore.toFixed(2)}
               </div>
 
 

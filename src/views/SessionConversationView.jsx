@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import '../styles/SessionConversationView.css';
 
 const getScoreColor = (score) => {
@@ -100,7 +102,9 @@ const ChatExchange = ({ execution, highlighted }) => {
             </span>
           </div>
           <div className="message-bubble">
-            <div className="message-text">{execution.input}</div>
+            <div className="message-text">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{execution.input}</ReactMarkdown>
+            </div>
           </div>
         </div>
       )}
@@ -123,7 +127,9 @@ const ChatExchange = ({ execution, highlighted }) => {
             <div className={`message-bubble-content ${showEvaluationDetails ? 'expanded' : ''}`}>
 
               <div className="message-text-section">
-                <div className="message-text">{execution.output}</div>
+                <div className="message-text">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{execution.output}</ReactMarkdown>
+                </div>
                 {execution.duration && execution.totalTokens && (
                   <div className="message-footer-inline">
                     <span className="message-meta-inline">
@@ -366,7 +372,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
     return filteredSessions.find(s => s.sessionId === selectedSessionId);
   }, [selectedSessionId, filteredSessions]);
 
-  // Get comparison session if a compare run is selected (match by input sequence)
+  // Get comparison session if a compare run is selected (match by session ID prefix)
   const compareSession = useMemo(() => {
     if (!compareRunVersion || !selectedSessionId || !allRuns || !selectedSession) return null;
 
@@ -374,70 +380,91 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
     if (!compareRun) return null;
 
     const compareExecs = compareRun.runs || [];
-    const baseInputs = selectedSession.executions.map(exec => exec.input);
-
-    // Match by input sequence
-    for (let i = 0; i <= compareExecs.length - baseInputs.length; i++) {
-      const slice = compareExecs.slice(i, i + baseInputs.length);
-      const inputsMatch = slice.every((exec, idx) => exec.input === baseInputs[idx]);
-      
-      if (inputsMatch) {
-        // Use the actual sessionId from the matched executions
-        const matchedSessionId = slice[0]?.sessionId || `exec_${slice[0]?.id}`;
-        
-        return {
-          sessionId: matchedSessionId,
-          executions: slice.sort((a, b) => {
-            const timeA = new Date(a.executionTs || a.creationTs || 0);
-            const timeB = new Date(b.executionTs || b.creationTs || 0);
-            return timeA - timeB;
-          }),
-          runVersion: compareRunVersion
-        };
+    
+    // Extract session prefix (e.g., "1_20251117" from "1_20251117_083608")
+    // Format: sessionNumber_datePrefix
+    const getSessionPrefix = (sessionId) => {
+      if (!sessionId) return null;
+      const parts = sessionId.split('_');
+      if (parts.length >= 2) {
+        return `${parts[0]}_${parts[1]}`; // e.g., "1_20251117"
       }
-    }
+      return sessionId;
+    };
 
-    return null;
+    const basePrefix = getSessionPrefix(selectedSessionId);
+    if (!basePrefix) return null;
+
+    // Find executions with matching session prefix
+    const matchingExecs = compareExecs.filter(exec => {
+      const execPrefix = getSessionPrefix(exec.sessionId);
+      return execPrefix === basePrefix;
+    });
+
+    if (matchingExecs.length === 0) return null;
+
+    // Use the actual sessionId from the first matched execution
+    const matchedSessionId = matchingExecs[0]?.sessionId;
+    
+    return {
+      sessionId: matchedSessionId,
+      executions: matchingExecs.sort((a, b) => {
+        const timeA = new Date(a.executionTs || a.creationTs || 0);
+        const timeB = new Date(b.executionTs || b.creationTs || 0);
+        return timeA - timeB;
+      }),
+      runVersion: compareRunVersion
+    };
   }, [compareRunVersion, selectedSessionId, allRuns, selectedSession]);
 
-  // Filter runs that have the selected session (by matching input sequence)
+  // Filter runs that have the selected session (by matching session ID prefix)
   const availableCompareRuns = useMemo(() => {
     if (!allRuns || !selectedSessionId || !selectedSession) return [];
 
-    const baseInputs = selectedSession.executions.map(exec => exec.input);
-    if (baseInputs.length === 0) return [];
+    // Extract session prefix (e.g., "1_20251117" from "1_20251117_083608")
+    const getSessionPrefix = (sessionId) => {
+      if (!sessionId) return null;
+      const parts = sessionId.split('_');
+      if (parts.length >= 2) {
+        return `${parts[0]}_${parts[1]}`; // e.g., "1_20251117"
+      }
+      return sessionId;
+    };
+
+    const basePrefix = getSessionPrefix(selectedSessionId);
+    if (!basePrefix) return [];
 
     return allRuns
       .filter(run => run.version !== runVersion)
       .map(run => {
         const runExecutions = run.runs || [];
 
-        // Check if this run has executions with the same inputs in sequence
-        for (let i = 0; i <= runExecutions.length - baseInputs.length; i++) {
-          const slice = runExecutions.slice(i, i + baseInputs.length);
-          const inputsMatch = slice.every((exec, idx) => exec.input === baseInputs[idx]);
+        // Check if this run has executions with matching session prefix
+        const matchingExecs = runExecutions.filter(exec => {
+          const execPrefix = getSessionPrefix(exec.sessionId);
+          return execPrefix === basePrefix;
+        });
 
-          if (inputsMatch) {
-            // Calculate average score for matching executions
-            const metrics = [];
-            slice.forEach(exec => {
-              Object.keys(exec).forEach(key => {
-                const value = exec[key];
-                if (value && typeof value === 'object' && 'value' in value) {
-                  const numValue = parseFloat(value.value);
-                  if (!isNaN(numValue) && numValue <= 1) {
-                    metrics.push(numValue);
-                  }
+        if (matchingExecs.length > 0) {
+          // Calculate average score for matching executions
+          const metrics = [];
+          matchingExecs.forEach(exec => {
+            Object.keys(exec).forEach(key => {
+              const value = exec[key];
+              if (value && typeof value === 'object' && 'value' in value) {
+                const numValue = parseFloat(value.value);
+                if (!isNaN(numValue) && numValue <= 1) {
+                  metrics.push(numValue);
                 }
-              });
+              }
             });
+          });
 
-            const avgScore = metrics.length > 0
-              ? metrics.reduce((sum, val) => sum + val, 0) / metrics.length
-              : 0;
+          const avgScore = metrics.length > 0
+            ? metrics.reduce((sum, val) => sum + val, 0) / metrics.length
+            : 0;
 
-            return { ...run, hasSession: true, avgScore };
-          }
+          return { ...run, hasSession: true, avgScore };
         }
 
         return null;
