@@ -119,7 +119,7 @@ const ChatExchange = ({ execution, highlighted }) => {
             </span>
             {avgScore > 0 && (
               <span className="quality-score-badge" style={{ backgroundColor: getScoreColor(avgScore) }}>
-                {(avgScore * 10).toFixed(1)}/10
+                {avgScore.toFixed(2)}
               </span>
             )}
           </div>
@@ -239,7 +239,7 @@ const ChatExchange = ({ execution, highlighted }) => {
                     {avgScore > 0 && (
                       <div className="overall-score-section">
                         <div className="overall-score-value" style={{ color: getScoreColor(avgScore) }}>
-                          {Math.round(avgScore * 100)}%
+                          {avgScore.toFixed(2)}
                         </div>
                         <div className="overall-score-label">Overall Quality Score</div>
                       </div>
@@ -567,7 +567,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                               className="run-score-badge"
                               style={{ backgroundColor: getScoreColor(run.avgScore) }}
                             >
-                              {(run.avgScore * 10).toFixed(1)}/10
+                              {run.avgScore.toFixed(2)}
                             </span>
                           )}
                         </div>
@@ -622,9 +622,9 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
               <span
                 className="quality-score-badge session-score"
                 style={{ backgroundColor: getScoreColor(session.avgScore) }}
-                title={`Overall Quality: ${Math.round(session.avgScore * 100)}%`}
+                title={`Overall Quality: ${session.avgScore.toFixed(2)}`}
               >
-                {(session.avgScore * 10).toFixed(1)}/10
+                {session.avgScore.toFixed(2)}
               </span>
                 </span>
               )}
@@ -659,7 +659,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                           className="panel-score-badge"
                           style={{ backgroundColor: getScoreColor(selectedSession.avgScore) }}
                         >
-                          {(selectedSession.avgScore * 10).toFixed(1)}/10
+                          {selectedSession.avgScore.toFixed(2)}
                         </span>
                       )}
                     </div>
@@ -705,7 +705,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                             className="panel-score-badge"
                             style={{ backgroundColor: getScoreColor(avgScore) }}
                           >
-                            {(avgScore * 10).toFixed(1)}/10
+                            {avgScore.toFixed(2)}
                           </span>
                         ) : null;
                       })()}
@@ -735,7 +735,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                         className="panel-score-badge"
                         style={{ backgroundColor: getScoreColor(selectedSession.avgScore) }}
                       >
-                        {(selectedSession.avgScore * 10).toFixed(1)}/10
+                        {selectedSession.avgScore.toFixed(2)}
                       </span>
                     )}
                   </div>

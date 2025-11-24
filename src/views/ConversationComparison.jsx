@@ -149,11 +149,11 @@ const ConversationComparison = ({ sessionId, baseRunVersion, allRuns, onClose })
               <span className="message-timestamp">{formatTimestamp(execution.executionTs || execution.creationTs)}</span>
               <div className="quality-badge-with-delta">
                 <span className="quality-score-badge" style={{ backgroundColor: getScoreColor(avgScore) }}>
-                  {(avgScore * 10).toFixed(1)}/10
+                  {avgScore.toFixed(2)}
                 </span>
                 {scoreDelta !== null && (
                   <span className={`score-delta-indicator ${scoreDelta >= 0 ? 'positive' : 'negative'}`}>
-                    {scoreDelta >= 0 ? '+' : ''}{(scoreDelta * 10).toFixed(1)}
+                    {scoreDelta >= 0 ? '+' : ''}{scoreDelta.toFixed(2)}
                   </span>
                 )}
               </div>
@@ -199,7 +199,7 @@ const ConversationComparison = ({ sessionId, baseRunVersion, allRuns, onClose })
                             <div className="metric-header">
                               <span className="metric-name">{name}</span>
                               <span className="metric-value" style={{ color: getScoreColor(metric.value) }}>
-                                {(metric.value * 10).toFixed(1)}/10
+                                {metric.value.toFixed(2)}
                               </span>
                             </div>
                             {metric.reason && (
