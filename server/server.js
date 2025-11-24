@@ -79,6 +79,7 @@ async function formatTestRun(testRun) {
       parentExecutionId: execution.parent_execution_id,
       input: execution.input,
       expectedOutput: execution.expected_output,
+      groundtruth: execution.groundtruth,
       output: execution.output,
       duration: parseFloat(execution.duration) || 0,
       totalTokens: execution.total_tokens || 0,

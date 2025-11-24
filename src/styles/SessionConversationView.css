@@ -622,6 +622,16 @@
   color: #f1f5f9;
 }
 
+/* Groundtruth Block - similar to expected output but with different color */
+.groundtruth-block {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1.5px solid rgba(59, 130, 246, 0.5);
+}
+
+.groundtruth-block .expected-label {
+  color: #93c5fd;
+}
+
 /* Sub Executions */
 .sub-executions {
   display: flex;

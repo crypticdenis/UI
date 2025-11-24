@@ -149,8 +149,19 @@ const ChatExchange = ({ execution, highlighted }) => {
                   </div>
                 )}
 
+                {/* Groundtruth Section - shown when evaluation is expanded */}
+                {showEvaluationDetails && execution.groundtruth && (
+                  <div className="expected-output-block groundtruth-block">
+                    <div className="expected-header">
+                      <span className="expected-icon">📋</span>
+                      <span className="expected-label">Ground Truth</span>
+                    </div>
+                    <div className="expected-text">{execution.groundtruth}</div>
+                  </div>
+                )}
+
                 {/* Toggle Button underneath message */}
-                {(Object.keys(qualityMetrics).length > 0 || Object.keys(performanceMetrics).length > 0 || execution.expectedOutput) && (
+                {(Object.keys(qualityMetrics).length > 0 || Object.keys(performanceMetrics).length > 0 || execution.expectedOutput || execution.groundtruth) && (
                   <button
                     className="evaluation-toggle-button"
                     onClick={() => setShowEvaluationDetails(!showEvaluationDetails)}

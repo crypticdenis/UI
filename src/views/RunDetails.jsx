@@ -80,7 +80,8 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
       'sessionId': 5,
       'input': 10,
       'expectedOutput': 11,
-      'output': 12,
+      'groundtruth': 12,
+      'output': 13,
       'duration': 100,
       'totalTokens': 101,
       'executionTs': 102,
@@ -152,7 +153,8 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
       return (
         (q.input || '').toLowerCase().includes(search) ||
         (q.output || '').toLowerCase().includes(search) ||
-        (q.expectedOutput || '').toLowerCase().includes(search)
+        (q.expectedOutput || '').toLowerCase().includes(search) ||
+        (q.groundtruth || '').toLowerCase().includes(search)
       );
     });
   }, [questions, searchInput]);
@@ -405,7 +407,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
           </svg>
           <input
             type="text"
-            placeholder="Quick search across executions (input, output, expected output)... Press Ctrl+K"
+            placeholder="Quick search across executions (input, output, expected output, groundtruth)... Press Ctrl+K"
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
             className="search-input"
