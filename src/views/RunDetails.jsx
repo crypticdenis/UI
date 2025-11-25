@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, Fragment } from 'react';
+import RunCard from '../components/RunCard';
 
 const getScoreColor = (score) => {
   if (score >= 0.9) return '#10b981';
@@ -7,11 +8,6 @@ const getScoreColor = (score) => {
   if (score >= 0.6) return '#eab308';
   if (score >= 0.5) return '#f97316';
   return '#ef4444';
-};
-
-const formatNumber = (value) => {
-  if (value == null || isNaN(value)) return '-';
-  return Number(value).toFixed(2);
 };
 
 const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, viewMode }) => {
@@ -221,103 +217,6 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
     return null;
   };
 
-  // Calculate aggregate statistics
-  const calculateAggregates = () => {
-    if (!sortedQuestions || sortedQuestions.length === 0) return null;
-
-    const stats = {
-      totalExecutions: sortedQuestions.length,
-      metrics: {},
-      nonScaledMetrics: {}
-    };
-
-    // Fields to exclude from aggregates (non-metric fields)
-    const excludedFields = [
-      'id', 'input', 'expected_output', 'actual_output', 'timestamp', 
-      'subExecutions', 'workflowId', 'parentExecutionId', 'runId',
-      'execution_ts', 'created_at', 'updated_at', 'creationTs', 'SessionId',
-      'expectedOutput', 'output', 'executionTs'
-    ];
-
-    // Collect all metrics dynamically
-    const metricSums = {};
-    const metricCounts = {};
-    const nonScaledSums = {};
-    const nonScaledCounts = {};
-
-    sortedQuestions.forEach(question => {
-      Object.keys(question).forEach(key => {
-        if (excludedFields.includes(key)) {
-          return;
-        }
-
-        const value = question[key];
-        let numValue = null;
-        
-        // Extract numeric value from metric objects or direct numbers
-        if (value && typeof value === 'object' && 'value' in value) {
-          numValue = parseFloat(value.value);
-        } else if (typeof value === 'number' || !isNaN(parseFloat(value))) {
-          numValue = parseFloat(value);
-        }
-
-        // Only process valid numeric values that are likely metrics
-        if (numValue !== null && !isNaN(numValue) && numValue >= 0) {
-          // Additional check: Skip if this looks like an ID field
-          // IDs are typically integers and the key name suggests it's an identifier
-          const lowerKey = key.toLowerCase();
-          const isLikelyId = (lowerKey === 'id' || lowerKey.endsWith('_id') || lowerKey.endsWith('id')) && 
-                             Number.isInteger(numValue);
-          
-          if (isLikelyId) {
-            return; // Skip ID-like fields
-          }
-          
-          // Separate scaled (0-1) metrics from non-scaled metrics (duration, tokens, etc.)
-          const isScaled = numValue <= 1;
-          
-          if (isScaled) {
-            // Scaled metrics (0-1): scores, rates, accuracy
-            if (!metricSums[key]) {
-              metricSums[key] = 0;
-              metricCounts[key] = 0;
-            }
-            metricSums[key] += numValue;
-            metricCounts[key]++;
-          } else {
-            // Non-scaled metrics: duration, totalTokens, etc.
-            if (!nonScaledSums[key]) {
-              nonScaledSums[key] = 0;
-              nonScaledCounts[key] = 0;
-            }
-            nonScaledSums[key] += numValue;
-            nonScaledCounts[key]++;
-          }
-        }
-      });
-    });
-
-    // Calculate averages for scaled metrics
-    Object.keys(metricSums).forEach(key => {
-      stats.metrics[key] = {
-        avg: metricSums[key] / metricCounts[key],
-        count: metricCounts[key]
-      };
-    });
-
-    // Calculate averages for non-scaled metrics
-    Object.keys(nonScaledSums).forEach(key => {
-      stats.nonScaledMetrics[key] = {
-        avg: nonScaledSums[key] / nonScaledCounts[key],
-        count: nonScaledCounts[key]
-      };
-    });
-
-    return stats;
-  };
-
-  const aggregates = calculateAggregates();
-
   return (
     <div className="run-details">
       <div className="details-header">
@@ -337,66 +236,13 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
             </button>
           )}
         </div>
-        <div className="details-header-main">
-          <div className="details-title-section">
-            <h1>Run: {runVersion}</h1>
-            <span className="execution-count-badge">
-              {sortedQuestions.length} execution{sortedQuestions.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-
-          {/* Aggregate Statistics - Inline */}
-          {aggregates && (Object.keys(aggregates.metrics).length > 0 || Object.keys(aggregates.nonScaledMetrics).length > 0) && (
-            <div className="aggregate-stats-inline">
-              {/* Scaled metrics (0-1) with color coding */}
-              {Object.entries(aggregates.metrics)
-                .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-                .map(([key, data]) => {
-                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                  const color = getScoreColor(data.avg);
-
-                  return (
-                    <div key={key} className="aggregate-stat-card-inline">
-                      <div className="stat-label-inline">{label}</div>
-                      <div
-                        className="stat-value-inline"
-                        style={{ backgroundColor: color }}
-                      >
-                        {formatNumber(data.avg)}
-                      </div>
-                    </div>
-                  );
-                })}
-
-              {/* Non-scaled metrics (duration, tokens, etc.) without color coding */}
-              {Object.entries(aggregates.nonScaledMetrics)
-                .sort(([keyA], [keyB]) => keyA.localeCompare(keyB))
-                .map(([key, data]) => {
-                  const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                  const isDuration = key.toLowerCase().includes('duration');
-                  const isTokens = key.toLowerCase().includes('token');
-
-                  let displayValue;
-                  if (isDuration) {
-                    displayValue = `${data.avg.toFixed(2)}s`;
-                  } else if (isTokens) {
-                    displayValue = Math.round(data.avg).toLocaleString();
-                  } else {
-                    displayValue = formatNumber(data.avg);
-                  }
-
-                  return (
-                    <div key={key} className="aggregate-stat-card-inline">
-                      <div className="stat-label-inline">{label}</div>
-                      <div className="stat-value-inline bg-slate">
-                        {displayValue}
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          )}
-        </div>
+        {/* Details Header - Using RunCard in header mode */}
+        <RunCard
+          mode="header"
+          version={runVersion}
+          questions={sortedQuestions}
+          showAvgScore={true}
+        />
       </div>
 
       <div className="details-search-bar">

@@ -28,12 +28,13 @@ UI/
 │       │   ├── ContentViewer.test.jsx
 │       │   └── NavigationSidebar.test.jsx
 │       └── views/
-│           ├── ProjectsLandingPage.test.jsx
 │           ├── WorkflowsOverview.test.jsx
 │           ├── RunsOverview.test.jsx
 │           ├── RunDetails.test.jsx
+│           ├── SessionConversationView.test.jsx
 │           ├── QuestionComparison.test.jsx
-│           └── RunComparison.test.jsx
+│           ├── RunComparison.test.jsx
+│           └── ConversationComparison.test.jsx
 ├── server/
 │   └── __tests__/
 │       └── server.test.js               # API/Server tests

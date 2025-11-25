@@ -981,6 +981,60 @@
   font-family: 'Courier New', monospace;
 }
 
+/* Detailed Metrics Display */
+.run-metrics-detailed {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.metric-detail-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.metric-detail-value {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  min-width: 60px;
+  text-align: center;
+}
+
+.metric-detail-value.metric-duration {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-color);
+  text-shadow: none;
+}
+
+.metric-detail-value.metric-tokens {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-color);
+  text-shadow: none;
+}
+
 .run-card-scores {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -1155,7 +1209,24 @@
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 10px;
-  padding: 20px 24px;
+  padding: 5px 6px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.details-header-main h1 {
+  margin: 0;
+  padding: 10px;
+  font-size: 18px;
+  color: white;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.details-header-main .execution-count-badge {
+  flex-shrink: 0;
 }
 
 .details-title-section {
@@ -1370,6 +1441,53 @@
 .questions-table tbody tr:hover {
   background: var(--primary-alpha);
   box-shadow: 0 0 0 1px var(--primary-alpha);
+}
+
+/* Expanded row styling - minimal improvements */
+.expanded-row {
+  background: rgba(96, 165, 250, 0.03);
+}
+
+.expanded-content-grid {
+  padding: 16px;
+  display: block;
+}
+
+.expanded-field {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.expanded-field:last-child {
+  border-bottom: none;
+}
+
+.expanded-field-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.expanded-field-value {
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+.metric-score-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  margin-right: 8px;
+}
+
+.metric-reason {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-style: italic;
 }
 
 .compare-button,

@@ -201,7 +201,7 @@ psql -U postgres -d butler_eval -f database/schema.sql
 
 ### Or Just Truncate Data
 ```sql
-TRUNCATE projects CASCADE;  -- Removes all data, keeps structure
+TRUNCATE evaluation.test_run CASCADE;  -- Removes all data, keeps structure
 ```
 
 ---
@@ -212,25 +212,25 @@ TRUNCATE projects CASCADE;  -- Removes all data, keeps structure
 
 **See all data**:
 ```sql
-SELECT 
-    'projects' as table_name, COUNT(*) FROM projects
-UNION ALL SELECT 'workflows', COUNT(*) FROM workflows
-UNION ALL SELECT 'subworkflows', COUNT(*) FROM subworkflows
-UNION ALL SELECT 'runs', COUNT(*) FROM runs;
+SELECT
+    'test_run' as table_name, COUNT(*) FROM evaluation.test_run
+UNION ALL SELECT 'test_execution', COUNT(*) FROM evaluation.test_execution
+UNION ALL SELECT 'test_response', COUNT(*) FROM evaluation.test_response
+UNION ALL SELECT 'evaluation', COUNT(*) FROM evaluation.evaluation;
 ```
 
 **View hierarchy**:
 ```sql
-SELECT 
-    p.name as project,
-    w.name as workflow,
-    sw.name as subworkflow,
-    COUNT(r.id) as run_count
-FROM projects p
-LEFT JOIN workflows w ON w.project_id = p.id
-LEFT JOIN subworkflows sw ON sw.workflow_id = w.id
-LEFT JOIN runs r ON r.subworkflow_id = sw.id
-GROUP BY p.name, w.name, sw.name;
+SELECT
+    tr.workflow_id,
+    tr.id as run_id,
+    tr.start_ts,
+    COUNT(te.id) as execution_count
+FROM evaluation.test_run tr
+LEFT JOIN evaluation.test_execution te ON te.run_id = tr.id
+WHERE te.parent_execution_id IS NULL  -- Only count root executions
+GROUP BY tr.workflow_id, tr.id, tr.start_ts
+ORDER BY tr.start_ts DESC;
 ```
 
 **Backup database**:
@@ -249,9 +249,9 @@ psql -U postgres -d butler_eval -f backup_20251110.sql
 
 After setup, verify:
 
-- [ ] 6 tables exist (`\dt` shows all)
+- [ ] 4 tables exist in evaluation schema (`\dt evaluation.*` shows all)
 - [ ] Backend connects to database
-- [ ] API endpoint responds: `GET http://localhost:3001/api/projects`
+- [ ] API endpoint responds: `GET http://localhost:3001/api/workflows`
 - [ ] No errors in backend logs
 - [ ] Can insert sample data successfully
 

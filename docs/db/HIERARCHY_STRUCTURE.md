@@ -49,7 +49,17 @@ Single Project (Hardcoded: "RE Butler Evaluation")
   - Aggregate statistics at the top
   - Search and sort by any metric
 
-### 4. **Question Comparison** (`QuestionComparison.jsx`)
+### 4. **Session Conversation View** (`SessionConversationView.jsx`)
+- **Purpose**: View executions grouped by session_id as chat conversations
+- **Features**:
+  - Chat-style message display (user/assistant format)
+  - Session grouping and sidebar navigation
+  - Inline metrics display with expandable details
+  - Sub-execution tracking
+  - Search and filter sessions
+  - Breadcrumb: `Projects > [Workflow Name] > [Run Version] - Conversation View`
+
+### 5. **Question Comparison** (`QuestionComparison.jsx`)
 - **Purpose**: Compare the same execution position across different runs
 - **Features**:
   - Side-by-side comparison (up to 2 runs)
@@ -57,12 +67,20 @@ Single Project (Hardcoded: "RE Butler Evaluation")
   - All dynamic metrics included
   - Export to JSON/CSV
 
-### 5. **Run Comparison** (`RunComparison.jsx`)
+### 6. **Run Comparison** (`RunComparison.jsx`)
 - **Purpose**: Compare complete runs side-by-side
 - **Features**:
   - Detailed metrics comparison
   - Performance trends
   - Percentage improvements/regressions
+
+### 7. **Conversation Comparison** (`ConversationComparison.jsx`)
+- **Purpose**: Compare conversations/sessions side-by-side
+- **Features**:
+  - Side-by-side chat comparison
+  - Message-level metric comparison
+  - Session performance analytics
+  - Navigation between conversations
 
 ## Data Structure
 

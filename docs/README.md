@@ -100,6 +100,7 @@ cp .env.example .env
 - Frontend: http://localhost:5174
 - Backend API: http://localhost:3001/api
 - Health Check: http://localhost:3001/api/health
+- Workflows Endpoint: http://localhost:3001/api/workflows
 
 ### Troubleshooting
 See [Database Setup Guide](db/DATABASE_SETUP_GUIDE.md#-troubleshooting) for common issues.

@@ -115,12 +115,13 @@ UI/
 │   │   └── NavigationSidebar.jsx
 │   │
 │   ├── views/                    # Page-level components
-│   │   ├── ProjectsLandingPage.jsx
-│   │   ├── QuestionComparison.jsx    # Compare same execution across runs
-│   │   ├── RunComparison.jsx         # Compare multiple complete runs
-│   │   ├── RunDetails.jsx
-│   │   ├── RunsOverview.jsx
-│   │   └── WorkflowsOverview.jsx
+│   │   ├── WorkflowsOverview.jsx         # Main landing page - workflows view
+│   │   ├── RunsOverview.jsx              # View runs for a workflow
+│   │   ├── RunDetails.jsx                # View execution details for a run
+│   │   ├── SessionConversationView.jsx   # Chat-style conversation view
+│   │   ├── QuestionComparison.jsx        # Compare same execution across runs
+│   │   ├── RunComparison.jsx             # Compare multiple complete runs
+│   │   └── ConversationComparison.jsx    # Compare conversations side-by-side
 │   │
 │   ├── styles/                   # CSS stylesheets
 │   │   ├── App.css               # Main styles with CSS variables
@@ -172,11 +173,13 @@ UI/
 
 **Key Features:**
 - VS Code-style collapsible navigation sidebar
-- Hierarchical data structure: Projects → Workflows → Subworkflows → Runs
+- Hierarchical data structure: Workflows → Runs → Executions
+- Session-based conversation view for chat-style interactions
 - Dynamic metric detection and display
 - Real-time filtering and sorting
-- Comparison views for runs and questions
+- Comparison views for runs, questions, and conversations
 - Export functionality (CSV, JSON)
+- Performance trends visualization over time
 
 ### Backend (Node.js + Express)
 
@@ -186,8 +189,10 @@ UI/
 - CORS enabled
 
 **API Endpoints:**
-- `GET /api/projects` - Fetch all projects with full hierarchy
-- Additional endpoints for workflows, runs, and metrics
+- `GET /api/workflows` - Fetch all workflows with runs
+- `GET /api/workflows/:workflowId` - Fetch specific workflow details
+- `GET /api/health` - Health check endpoint
+- Additional endpoints for runs, executions, and metrics
 
 ### Database (PostgreSQL)
 

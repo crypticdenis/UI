@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, Fragment } from 'react';
-import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
+import { getUniqueScoreFields, formatNumber } from '../utils/metricUtils';
+import RunCard from '../components/RunCard';
 
 // Helper function to get grade and colors based on score
 const getGradeInfo = (score) => {
@@ -520,142 +521,26 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       </div>
 
       <div className="runs-list">
-        {sortedRuns.map((run) => {
-          // Calculate average score dynamically from all score fields
-          const scores = scoreFields
-            .map(f => parseFloat(run[`avg_${f.key}`]))
-            .filter(v => !isNaN(v));
-          const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
-          
-          // Descriptive grading system
-          let overallGrade, gradeColor, gradeBgColor;
-          if (avgScore >= 0.9) {
-            overallGrade = 'Excellent';
-            gradeColor = '#ffffff';
-            gradeBgColor = '#059669';
-          } else if (avgScore >= 0.8) {
-            overallGrade = 'Very Good';
-            gradeColor = '#ffffff';
-            gradeBgColor = '#10b981';
-          } else if (avgScore >= 0.7) {
-            overallGrade = 'Good';
-            gradeColor = '#ffffff';
-            gradeBgColor = '#34d399';
-          } else if (avgScore >= 0.6) {
-            overallGrade = 'Fair';
-            gradeColor = '#0f172a';
-            gradeBgColor = '#fbbf24';
-          } else if (avgScore >= 0.5) {
-            overallGrade = 'Below Avg';
-            gradeColor = '#ffffff';
-            gradeBgColor = '#f59e0b';
-          } else if (avgScore >= 0.4) {
-            overallGrade = 'Poor';
-            gradeColor = '#ffffff';
-            gradeBgColor = '#f97316';
-          } else {
-            overallGrade = 'Very Poor';
-            gradeColor = '#ffffff';
-            gradeBgColor = '#dc2626';
-          }
-          
-
-          
-          return (
-            <div 
-              key={run.version} 
-              className="run-card run-card-list clickable"
-              data-run-version={run.version}
-              onClick={() => {
-                console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
-                console.log('run.runs length:', run.runs?.length);
-                if (run.runs?.length > 0) {
-                  console.log('First run item:', run.runs[0]);
-                }
-                onViewRunDetails(run.version, run.runs);
-              }}
-            >
-              <div className="run-card-header">
-                <div className="run-card-title">
-                  <h3>{run.version}</h3>
-                </div>
-              </div>
-
-              <div className="run-card-meta">
-                {run.startTs && (
-                  <div className="meta-item">
-                    <span className="meta-value timestamp">
-                      {new Date(run.startTs).toLocaleString('de-DE', {
-                        year: 'numeric',
-                        month: 'short',
-                        day: '2-digit',
-                        hour: '2-digit',
-                        minute: '2-digit'
-                      })}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <span className="question-count-badge">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                  <rect x="9" y="3" width="6" height="4" rx="1"/>
-                </svg>
-                {run.questionCount}
-              </span>
-
-              <span className="meta-value prompt-badge">
-                {run.workflowId}
-              </span>
-
-              <div className="overall-grade" style={{ 
-                color: gradeColor, 
-                backgroundColor: gradeBgColor,
-                borderColor: gradeBgColor
-              }}>
-                {avgScore.toFixed(2)}
-              </div>
-
-
-              <div className="run-card-scores">
-                {scoreFields.map(field => {
-                  const avgValue = run[`avg_${field.key}`];
-                  return (
-                    <div key={field.key} className="score-item">
-                      <span className="score-label">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <circle cx="12" cy="12" r="3"/>
-                          <path d="M12 1v6m0 6v6"/>
-                        </svg>
-                        {field.label.split(' ')[0]}
-                      </span>
-                      <span 
-                        className="score-value" 
-                        style={{ backgroundColor: getScoreColor(parseFloat(avgValue)) }}
-                      >
-                        {avgValue}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-
-              <button 
-                className="view-details-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewRunDetails(run.version, run.runs);
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                View Details
-              </button>
-            </div>
-          );
-        })}
+        {sortedRuns.map((run) => (
+          <RunCard
+            key={run.version}
+            mode="card"
+            run={run}
+            scoreFields={scoreFields}
+            maxMetrics={3}
+            showAvgScore={true}
+            showAllScores={true}
+            onClick={() => {
+              console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
+              console.log('run.runs length:', run.runs?.length);
+              if (run.runs?.length > 0) {
+                console.log('First run item:', run.runs[0]);
+              }
+              onViewRunDetails(run.version, run.runs);
+            }}
+            onViewDetails={() => onViewRunDetails(run.version, run.runs)}
+          />
+        ))}
       </div>
 
       {sortedRuns.length === 0 && (
