@@ -24,6 +24,7 @@ docker/.env
 !docker/.env.test
 !docker/.env.prod
 
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -49,3 +50,6 @@ database/
 
 # Claude settings
 .claude/
+
+#ghpages hosting
+.github/

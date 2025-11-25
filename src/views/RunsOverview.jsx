@@ -78,7 +78,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
   
   // Chart dimensions
   const chartWidth = 1000; // viewBox width
-  const chartHeight = 250; // viewBox height
+  const chartHeight = 300; // viewBox height (increased for better aspect ratio)
   const padding = { left: 50, right: 50, top: 20, bottom: 40 };
   
   // Calculate points for the line
@@ -95,8 +95,6 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
   const linePath = points.length > 0
     ? points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')
     : '';
-
-  if (chartData.length === 0) return null;
 
   return (
     <div className="performance-trends-chart">
@@ -146,9 +144,15 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
           </select>
         </div>
       </div>
-      
+
+      {chartData.length === 0 ? (
+        <div className="chart-empty-state">
+          <p>No data available for the selected timeframe</p>
+          <p className="empty-state-hint">Try selecting a different time range or "ALL" to view all available data</p>
+        </div>
+      ) : (
       <div className="chart-container">
-        <svg ref={svgRef} width="100%" height={chartHeight} viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" className="trends-svg">
+        <svg ref={svgRef} width="100%" height="300px" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" className="trends-svg">
           {/* Grid lines */}
           {[0, 0.25, 0.5, 0.75, 1].map((ratio, i) => {
             const y = chartHeight - padding.bottom - (ratio * (chartHeight - padding.top - padding.bottom));
@@ -241,6 +245,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
           );
         })()}
       </div>
+      )}
     </div>
   );
 };
