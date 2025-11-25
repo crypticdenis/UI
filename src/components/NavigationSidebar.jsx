@@ -201,7 +201,7 @@ const NavigationSidebar = ({
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onNavigate('run', project, workflow, null, { version: run.version, runs: run.runs || run.questions || [] });
+                          onNavigate('run', project, workflow, null, run);
                         }}
                         style={{ cursor: 'pointer' }}
                       >

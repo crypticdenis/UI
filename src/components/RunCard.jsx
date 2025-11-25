@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { getScoreColor } from '../utils/metricUtils';
+import { getScoreColor, getGradeInfo } from '../utils/metricUtils';
 
 /**
  * Unified component to display run information
@@ -140,6 +140,14 @@ const RunCard = ({
 
   // Get duration - comes from DB as "MM:SS" format or null if not finished
   const calculatedDuration = useMemo(() => {
+    console.log('RunCard duration calc:', { 
+      mode, 
+      'runData.duration': runData.duration, 
+      'run?.duration': run?.duration,
+      isFinished,
+      runData 
+    });
+    
     // Use duration from run data if available (comes from backend/DB)
     if (runData.duration) return runData.duration;
     
@@ -183,23 +191,7 @@ const RunCard = ({
     return 0;
   }, [totalTokens, runData, executionsData]);
 
-  // Calculate grade info for average score
-  const getGradeInfo = (score) => {
-    if (score >= 0.9) {
-      return { grade: 'Excellent', color: '#ffffff', bgColor: '#10b981' };
-    } else if (score >= 0.8) {
-      return { grade: 'Very Good', color: '#ffffff', bgColor: '#22c55e' };
-    } else if (score >= 0.7) {
-      return { grade: 'Good', color: '#ffffff', bgColor: '#84cc16' };
-    } else if (score >= 0.6) {
-      return { grade: 'Fair', color: '#000000', bgColor: '#eab308' };
-    } else if (score >= 0.5) {
-      return { grade: 'Below Avg', color: '#ffffff', bgColor: '#f59e0b' };
-    } else {
-      return { grade: 'Poor', color: '#ffffff', bgColor: '#ef4444' };
-    }
-  };
-
+  // Get grade info for average score using utility function
   const gradeInfo = calculatedAvgScore != null ? getGradeInfo(calculatedAvgScore) : null;
 
   // Render metrics inline helper

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, Fragment } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
 
 const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => {
@@ -120,6 +120,9 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
     const isImprovement = delta && parseFloat(delta) > 0;
     const isRegression = delta && parseFloat(delta) < 0;
     
+    // Ensure score is a valid number
+    const numericScore = score != null && !isNaN(score) ? Number(score) : 0;
+    
     return (
       <div className="comparison-score-item-enhanced">
         <div className="score-header">
@@ -134,11 +137,11 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
           <div 
             className="score-bar" 
             style={{ 
-              width: `${(score || 0) * 100}%`,
-              backgroundColor: getScoreColor(score)
+              width: `${numericScore * 100}%`,
+              backgroundColor: getScoreColor(numericScore)
             }}
           >
-            <span className="score-bar-value">{formatNumber(score)}</span>
+            <span className="score-bar-value">{formatNumber(numericScore)}</span>
           </div>
         </div>
         {reason && (
@@ -511,11 +514,15 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
                               const prevVal = index > 0 ? selectedQuestions[0]?.[field.key] : null;
                               const prevScore = prevVal && typeof prevVal === 'object' && 'value' in prevVal ? prevVal.value : prevVal;
                               
-                              return renderScoreWithDelta(
-                                currentScore,
-                                prevScore,
-                                field.label,
-                                currentReason
+                              return (
+                                <Fragment key={field.key}>
+                                  {renderScoreWithDelta(
+                                    currentScore,
+                                    prevScore,
+                                    field.label,
+                                    currentReason
+                                  )}
+                                </Fragment>
                               );
                             })}
                           </div>

@@ -124,14 +124,12 @@ export const getScoreColor = (score) => {
   // Normalize to 0-1 range if needed (handles both 0-1 and 0-10 scales)
   const normalizedScore = numScore > 1 ? numScore / 10 : numScore;
   
-  if (normalizedScore >= 0.9) return '#059669'; // Dark green
-  if (normalizedScore >= 0.8) return '#10b981'; // Green
-  if (normalizedScore >= 0.7) return '#34d399'; // Light green
-  if (normalizedScore >= 0.6) return '#fbbf24'; // Yellow
-  if (normalizedScore >= 0.5) return '#f59e0b'; // Orange
-  if (normalizedScore >= 0.4) return '#f97316'; // Dark orange
-  if (normalizedScore >= 0.3) return '#ef4444'; // Red
-  return '#dc2626'; // Dark red
+  if (normalizedScore >= 0.9) return '#10b981'; // Excellent - Green (matches --success-color)
+  if (normalizedScore >= 0.8) return '#22c55e'; // Very Good - Light green
+  if (normalizedScore >= 0.7) return '#84cc16'; // Good - Lime green
+  if (normalizedScore >= 0.6) return '#eab308'; // Fair - Yellow
+  if (normalizedScore >= 0.5) return '#f59e0b'; // Below Avg - Orange
+  return '#ef4444'; // Poor - Red (matches --error-color)
 };
 
 /**
@@ -206,4 +204,65 @@ export const formatNumber = (value, decimals = 2) => {
     return '-';
   }
   return Number(value).toFixed(decimals);
+};
+
+/**
+ * Categorize metrics into quality and performance metrics
+ */
+export const categorizeMetrics = (execution) => {
+  const qualityMetrics = {};
+  const performanceMetrics = {};
+  
+  Object.keys(execution).forEach(key => {
+    const value = execution[key];
+    if (value && typeof value === 'object' && 'value' in value) {
+      // Categorize metrics
+      const lowerKey = key.toLowerCase();
+      if (lowerKey.includes('time') || lowerKey.includes('duration') || 
+          lowerKey.includes('token') || lowerKey.includes('cost')) {
+        performanceMetrics[key] = value;
+      } else {
+        qualityMetrics[key] = value;
+      }
+    }
+  });
+  
+  // Also add direct properties like duration and totalTokens as performance metrics
+  if (execution.duration) {
+    performanceMetrics['Response Time'] = { value: execution.duration, reason: '' };
+  }
+  if (execution.totalTokens) {
+    performanceMetrics['Token Count'] = { value: execution.totalTokens, reason: '' };
+  }
+  
+  return { qualityMetrics, performanceMetrics };
+};
+
+/**
+ * Calculate average score from quality metrics
+ */
+export const calculateAvgScore = (qualityMetrics) => {
+  const metricKeys = Object.keys(qualityMetrics);
+  if (metricKeys.length === 0) return 0;
+  
+  return Object.values(qualityMetrics).reduce((sum, m) => sum + m.value, 0) / metricKeys.length;
+};
+
+/**
+ * Get grade information based on score (0-1 scale)
+ */
+export const getGradeInfo = (score) => {
+  if (score >= 0.9) {
+    return { grade: 'Excellent', color: '#ffffff', bgColor: '#10b981' };
+  } else if (score >= 0.8) {
+    return { grade: 'Very Good', color: '#ffffff', bgColor: '#22c55e' };
+  } else if (score >= 0.7) {
+    return { grade: 'Good', color: '#ffffff', bgColor: '#84cc16' };
+  } else if (score >= 0.6) {
+    return { grade: 'Fair', color: '#000000', bgColor: '#eab308' };
+  } else if (score >= 0.5) {
+    return { grade: 'Below Avg', color: '#ffffff', bgColor: '#f59e0b' };
+  } else {
+    return { grade: 'Poor', color: '#ffffff', bgColor: '#ef4444' };
+  }
 };

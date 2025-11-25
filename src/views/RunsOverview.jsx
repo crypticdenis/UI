@@ -1,23 +1,6 @@
 import { useState, useMemo, useRef, Fragment } from 'react';
-import { getUniqueScoreFields, formatNumber } from '../utils/metricUtils';
+import { getUniqueScoreFields, formatNumber, getGradeInfo } from '../utils/metricUtils';
 import RunCard from '../components/RunCard';
-
-// Helper function to get grade and colors based on score
-const getGradeInfo = (score) => {
-  if (score >= 0.9) {
-    return { grade: 'Excellent', color: '#ffffff', bgColor: '#10b981' };
-  } else if (score >= 0.8) {
-    return { grade: 'Very Good', color: '#ffffff', bgColor: '#22c55e' };
-  } else if (score >= 0.7) {
-    return { grade: 'Good', color: '#ffffff', bgColor: '#84cc16' };
-  } else if (score >= 0.6) {
-    return { grade: 'Fair', color: '#000000', bgColor: '#eab308' };
-  } else if (score >= 0.5) {
-    return { grade: 'Below Avg', color: '#ffffff', bgColor: '#f59e0b' };
-  } else {
-    return { grade: 'Poor', color: '#ffffff', bgColor: '#ef4444' };
-  }
-};
 
 // Performance Trends Chart Component
 const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {

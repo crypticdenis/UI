@@ -254,7 +254,7 @@ function App() {
       // Open run details directly (same behavior as clicking the card)
       const questions = run.runs || run.questions || [];
       console.log('App.jsx - Navigating to run from sidebar:', { version: run.version, questionsCount: questions.length });
-      handleViewRunDetails(run.version, questions);
+      handleViewRunDetails(run.version, questions, run);
     }
   };
 

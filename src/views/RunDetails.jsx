@@ -1,14 +1,6 @@
 import { useState, useMemo, useEffect, Fragment } from 'react';
 import RunCard from '../components/RunCard';
-
-const getScoreColor = (score) => {
-  if (score >= 0.9) return '#10b981';
-  if (score >= 0.8) return '#22c55e';
-  if (score >= 0.7) return '#84cc16';
-  if (score >= 0.6) return '#eab308';
-  if (score >= 0.5) return '#f97316';
-  return '#ef4444';
-};
+import { getScoreColor } from '../utils/metricUtils';
 
 const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, viewMode }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });

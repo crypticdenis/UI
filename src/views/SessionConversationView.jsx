@@ -1,16 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { getScoreColor, categorizeMetrics, calculateAvgScore } from '../utils/metricUtils';
 import '../styles/SessionConversationView.css';
-
-const getScoreColor = (score) => {
-  if (score >= 0.9) return '#10b981';
-  if (score >= 0.8) return '#22c55e';
-  if (score >= 0.7) return '#84cc16';
-  if (score >= 0.6) return '#eab308';
-  if (score >= 0.5) return '#f97316';
-  return '#ef4444';
-};
 
 const MetricBadge = ({ name, value, reason }) => {
   const color = getScoreColor(value);
@@ -60,35 +52,11 @@ const formatTimestamp = (timestamp) => {
 const ChatExchange = ({ execution, highlighted }) => {
   const [showEvaluationDetails, setShowEvaluationDetails] = useState(false);
   
-  // Extract and categorize metrics
-  const qualityMetrics = {};
-  const performanceMetrics = {};
+  // Extract and categorize metrics using utility function
+  const { qualityMetrics, performanceMetrics } = categorizeMetrics(execution);
   
-  Object.keys(execution).forEach(key => {
-    const value = execution[key];
-    if (value && typeof value === 'object' && 'value' in value) {
-      // Categorize metrics
-      const lowerKey = key.toLowerCase();
-      if (lowerKey.includes('time') || lowerKey.includes('duration') || lowerKey.includes('token') || lowerKey.includes('cost')) {
-        performanceMetrics[key] = value;
-      } else {
-        qualityMetrics[key] = value;
-      }
-    }
-  });
-  
-  // Also add direct properties like duration and totalTokens as performance metrics
-  if (execution.duration) {
-    performanceMetrics['Response Time'] = { value: execution.duration, reason: '' };
-  }
-  if (execution.totalTokens) {
-    performanceMetrics['Token Count'] = { value: execution.totalTokens, reason: '' };
-  }
-  
-  // Calculate overall score from quality metrics
-  const avgScore = Object.keys(qualityMetrics).length > 0
-    ? Object.values(qualityMetrics).reduce((sum, m) => sum + m.value, 0) / Object.keys(qualityMetrics).length
-    : 0;
+  // Calculate overall score from quality metrics using utility function
+  const avgScore = calculateAvgScore(qualityMetrics);
   
   return (
     <>
