@@ -39,10 +39,17 @@ const RunCard = ({
   // Extract data from run object if provided (new API)
   const runVersion = run?.version || version;
   const runStartTs = run?.startTs || startTs;
+  const runFinishTs = run?.finishTs;
   const runQuestionCount = run?.questionCount || run?.runs?.length || questions?.length || questionCount;
   const runWorkflowId = run?.workflowId || workflowId;
-  const runData = run || {};
-  const executionsData = questions || run?.runs || [];
+  
+  // Memoize data objects to prevent unnecessary re-renders
+  const runData = useMemo(() => run || {}, [run]);
+  const executionsData = useMemo(() => questions || run?.runs || [], [questions, run]);
+
+  // Determine run status - simple: has finish_ts or not
+  const isFinished = runFinishTs != null;
+  const runStatus = isFinished ? 'finished' : 'running';
 
   // Calculate score fields dynamically from run data
   const calculatedScoreFields = useMemo(() => {
@@ -131,12 +138,19 @@ const RunCard = ({
     return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
   }, [avgScore, calculatedScoreFields, calculatedMetrics]);
 
-  // Calculate duration
+  // Get duration - comes from DB as "MM:SS" format or null if not finished
   const calculatedDuration = useMemo(() => {
+    // Use duration from run data if available (comes from backend/DB)
+    if (runData.duration) return runData.duration;
+    
+    // If no duration but run is not finished, show "-"
+    if (!isFinished) return '-';
+    
+    // Legacy: use durationMinutes if provided
     if (durationMinutes != null) return durationMinutes;
 
+    // For executions data, calculate average
     if (executionsData.length > 0) {
-      // Average duration from executions
       const durations = executionsData
         .map(e => parseFloat(e.duration))
         .filter(d => !isNaN(d));
@@ -145,14 +159,8 @@ const RunCard = ({
         : null;
     }
 
-    if (runData.startTs && runData.finishTs) {
-      const start = new Date(runData.startTs);
-      const finish = new Date(runData.finishTs);
-      return ((finish - start) / 1000 / 60).toFixed(1);
-    }
-
     return null;
-  }, [durationMinutes, runData, executionsData]);
+  }, [runData, isFinished, durationMinutes, executionsData]);
 
   // Calculate total tokens
   const calculatedTotalTokens = useMemo(() => {
@@ -229,12 +237,14 @@ const RunCard = ({
         );
       })}
 
-      {/* Duration */}
+      {/* Duration / Status */}
       {calculatedDuration && (
         <div className="metric-detail-item">
           <div className="metric-detail-label">DURATION</div>
-          <div className="metric-detail-value metric-duration">
-            {calculatedDuration}s
+          <div 
+            className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
+          >
+            {calculatedDuration}
           </div>
         </div>
       )}
@@ -297,8 +307,10 @@ const RunCard = ({
         {calculatedDuration && (
           <div className="metric-detail-item">
             <div className="metric-detail-label">DURATION</div>
-            <div className="metric-detail-value metric-duration">
-              {calculatedDuration}s
+            <div 
+              className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
+            >
+              {calculatedDuration}
             </div>
           </div>
         )}
@@ -328,12 +340,23 @@ const RunCard = ({
   // All elements are direct children of the main run-card container
   return (
     <div
-      className="run-card run-card-list clickable"
+      className={`run-card run-card-list clickable ${!isFinished ? 'run-card-running' : ''}`}
       data-run-version={runVersion}
+      data-status={runStatus}
       onClick={onClick}
     >
       {/* Run version title */}
       <h3>{runVersion}</h3>
+
+      {/* Status indicator for running runs */}
+      {!isFinished && (
+        <div className="metric-detail-item">
+          <div className="metric-detail-label">STATUS</div>
+          <div className="metric-detail-value metric-status-running">
+            RUNNING
+          </div>
+        </div>
+      )}
 
       {/* Timestamp as metric item */}
       {runStartTs && (

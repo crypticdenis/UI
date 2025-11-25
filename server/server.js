@@ -118,6 +118,7 @@ async function formatTestRun(testRun) {
     startTs: testRun.start_ts,
     finishTs: testRun.finish_ts,
     creationTs: testRun.creation_ts,
+    duration: testRun.duration, // Duration comes from DB (MM:SS format or null if not finished)
     version: `run_${testRun.id}`,
     questionCount: rootExecutions.length,  // Count only root executions
     runs: rootExecutions,  // Return only root executions (sub-executions nested inside)
@@ -302,8 +303,6 @@ app.post('/api/runs', async (req, res) => {
     res.status(500).json({ error: 'Failed to create run', details: error.message });
   }
 });
-
-
 
 // Start server
 app.listen(PORT, () => {

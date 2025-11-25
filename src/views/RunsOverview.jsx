@@ -312,16 +312,22 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
   const runsArray = Object.values(groupedRuns).map(group => {
     const avgScores = {};
     const executionCount = group.runs?.length || 0;
-    
+
     scoreFields.forEach(field => {
       const total = group[`total_${field.key}`];
       // Calculate average per metric (validScoreCount tracks how many times each metric appeared)
       const metricCount = executionCount; // Assume each execution can have the metric
-      avgScores[`avg_${field.key}`] = metricCount > 0 
+      avgScores[`avg_${field.key}`] = metricCount > 0
         ? formatNumber(total / metricCount)
         : '-';
     });
-    
+
+    // Calculate overall average score across all metrics
+    const scores = scoreFields
+      .map(f => parseFloat(avgScores[`avg_${f.key}`]))
+      .filter(v => !isNaN(v));
+    const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
+
     // Calculate run duration
     let durationMinutes = null;
     if (group.startTs && group.finishTs) {
@@ -329,7 +335,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       const finish = new Date(group.finishTs);
       durationMinutes = ((finish - start) / 1000 / 60).toFixed(1);
     }
-    
+
     return {
       version: group.version,
       id: group.id,
@@ -338,6 +344,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       finishTs: group.finishTs,
       durationMinutes,
       questionCount: executionCount,
+      avgScore, // Overall average score
       ...avgScores,
       runs: group.runs  // This is the executions array
     };
@@ -376,8 +383,10 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     let aValue = a[sortConfig.key];
     let bValue = b[sortConfig.key];
 
-    // Handle numeric sorting
-    if (['avgOutputScore', 'avgRagScore', 'avgHallucinationRate', 'avgSystemPromptScore', 'questionCount'].includes(sortConfig.key)) {
+    // Handle numeric sorting for avgScore, questionCount, and all avg_* metrics
+    if (sortConfig.key === 'avgScore' ||
+        sortConfig.key === 'questionCount' ||
+        sortConfig.key.startsWith('avg_')) {
       aValue = parseFloat(aValue) || 0;
       bValue = parseFloat(bValue) || 0;
       return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
@@ -493,16 +502,14 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
 
       <div className="overview-controls">
         <label>Sort By:</label>
-        <select 
-          value={sortConfig.key} 
+        <select
+          value={sortConfig.key}
           onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })}
           className="sort-select"
         >
           <option value="version">Version</option>
           <option value="startTs">Start Time</option>
-          <option value="finishTs">Finish Time</option>
-          <option value="id">Run ID</option>
-          <option value="workflowId">Workflow ID</option>
+          <option value="avgScore">Avg Score (Overall)</option>
           {scoreFields.map(field => (
             <option key={field.key} value={`avg_${field.key}`}>
               Avg {field.label}
@@ -510,8 +517,8 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
           ))}
           <option value="questionCount">Execution Count</option>
         </select>
-        <select 
-          value={sortConfig.direction} 
+        <select
+          value={sortConfig.direction}
           onChange={(e) => setSortConfig({ ...sortConfig, direction: e.target.value })}
           className="sort-select"
         >

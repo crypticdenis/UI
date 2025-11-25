@@ -1028,11 +1028,87 @@
   text-shadow: none;
 }
 
+/* Status indicators for unfinished/running runs */
+.metric-detail-value.metric-status-unfinished,
+.metric-detail-value.metric-status-running {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--error-color) 100%);
+  color: var(--text-primary);
+  font-weight: 700;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 2px 6px var(--accent-alpha);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(255, 144, 12, 0.5);
+  }
+}
+
+.run-card-running {
+  border: 2px solid var(--accent-color) !important;
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--accent-alpha) 100%);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.status-badge.status-unfinished {
+  background: var(--accent-alpha);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+}
+
 .metric-detail-value.metric-tokens {
   background: var(--bg-card);
   color: var(--text-primary);
   border: 1.5px solid var(--border-color);
   text-shadow: none;
+}
+
+.metric-detail-value.metric-status-running {
+  background: var(--accent-color);
+  color: white;
+  font-weight: 700;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.metric-detail-value.metric-status-failed {
+  background: var(--error-color);
+  color: white;
+  font-weight: 700;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Running run card styling */
+.run-card-running {
+  border-color: var(--accent-color) !important;
+  border-width: 2px;
+  opacity: 0.85;
+}
+
+/* Failed run card styling */
+.run-card-failed {
+  border-color: var(--error-color) !important;
+  border-width: 2px;
+  opacity: 0.7;
 }
 
 .run-card-scores {
