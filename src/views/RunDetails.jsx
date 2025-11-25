@@ -10,7 +10,7 @@ const getScoreColor = (score) => {
   return '#ef4444';
 };
 
-const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, viewMode }) => {
+const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, viewMode }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -239,6 +239,7 @@ const RunDetails = ({ runVersion, questions, onBack, onCompareQuestion, onNaviga
         {/* Details Header - Using RunCard in header mode */}
         <RunCard
           mode="header"
+          run={run}
           version={runVersion}
           questions={sortedQuestions}
           showAvgScore={true}

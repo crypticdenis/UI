@@ -204,7 +204,7 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
                 className="data-point cursor-pointer"
                 onMouseEnter={() => setHoveredPoint(point)}
                 onMouseLeave={() => setHoveredPoint(null)}
-                onClick={() => onViewRunDetails(point.version, point.runs)}
+                onClick={() => onViewRunDetails(point.version, point.runs, point)}
               />
             </g>
           ))}
@@ -543,9 +543,9 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
               if (run.runs?.length > 0) {
                 console.log('First run item:', run.runs[0]);
               }
-              onViewRunDetails(run.version, run.runs);
+              onViewRunDetails(run.version, run.runs, run);
             }}
-            onViewDetails={() => onViewRunDetails(run.version, run.runs)}
+            onViewDetails={() => onViewRunDetails(run.version, run.runs, run)}
           />
         ))}
       </div>

@@ -26,6 +26,7 @@ function App() {
   const [selectedWorkflow, setSelectedWorkflow] = useState(null);
   const [selectedRunVersion, setSelectedRunVersion] = useState(null);
   const [selectedRunQuestions, setSelectedRunQuestions] = useState([]);
+  const [selectedRun, setSelectedRun] = useState(null);
   const [autoExpandExecutionId, setAutoExpandExecutionId] = useState(null);
   
   const [comparisonBaseID, setComparisonBaseID] = useState(null);
@@ -106,14 +107,15 @@ function App() {
     setCurrentView('runs');
   };
 
-  const handleViewRunDetails = (version, questions) => {
-    console.log('handleViewRunDetails called with:', { version, questions });
+  const handleViewRunDetails = (version, questions, runData = null) => {
+    console.log('handleViewRunDetails called with:', { version, questions, runData });
     console.log('Questions array length:', questions?.length);
     if (questions?.length > 0) {
       console.log('First question:', questions[0]);
     }
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
+    setSelectedRun(runData); // Store full run object
     setViewMode('conversation'); // Default to conversation view
     setCurrentView('details');
   };
@@ -309,6 +311,7 @@ function App() {
           <RunDetails
             runVersion={selectedRunVersion}
             questions={selectedRunQuestions}
+            run={selectedRun}
             onBack={handleBackToRuns}
             onCompareQuestion={handleCompareQuestion}
             onExpandContent={handleExpandContent}

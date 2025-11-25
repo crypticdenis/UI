@@ -426,8 +426,10 @@ const RunCard = ({
       {calculatedDuration && (
         <div className="metric-detail-item">
           <div className="metric-detail-label">DURATION</div>
-          <div className="metric-detail-value metric-duration">
-            {calculatedDuration}s
+          <div 
+            className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
+          >
+            {calculatedDuration}
           </div>
         </div>
       )}
