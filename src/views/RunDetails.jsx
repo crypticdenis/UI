@@ -192,8 +192,8 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     
     if (value == null || value === undefined) return '-';
     
-    // Handle metric objects
-    if (field.isMetric && typeof value === 'object' && 'value' in value) {
+    // Always extract value from metric objects to prevent rendering object error
+    if (typeof value === 'object' && value !== null && 'value' in value) {
       return value.value;
     }
     
