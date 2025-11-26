@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, Fragment, useEffect } from 'react';
-import { getUniqueScoreFields, formatNumber, getGradeInfo, cleanMetricObjects } from '../utils/metricUtils';
+import { getUniqueScoreFields, formatNumber, getGradeInfo } from '../utils/metricUtils';
 import RunCard from '../components/RunCard';
 
 // Performance Trends Chart Component
@@ -235,28 +235,17 @@ const PerformanceTrendsChart = ({ runs, scoreFields, onViewRunDetails }) => {
 };
 
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'timestamp', direction: 'descending' });
-  const [filters, setFilters] = useState({
-    model: '',
-    promptVersion: '',
-    version: ''
-  });
+  const [sortConfig, setSortConfig] = useState({ key: 'startTs', direction: 'descending' });
   const [searchQuery, setSearchQuery] = useState('');
-
-  // Clean runs data to extract values from {value, reason} metric objects
-  // This prevents React error #31 when objects are accidentally rendered
-  const cleanedRuns = useMemo(() => {
-    return cleanMetricObjects(runs);
-  }, [runs]);
 
   // Get all unique score fields dynamically from executions within runs
   const scoreFields = useMemo(() => {
-    const allExecutions = cleanedRuns.flatMap(run => run.runs || run.questions || []);
+    const allExecutions = runs.flatMap(run => run.runs || run.questions || []);
     return getUniqueScoreFields(allExecutions);
-  }, [cleanedRuns]);
+  }, [runs]);
 
   // Group runs by version and calculate aggregate stats dynamically
-  const groupedRuns = cleanedRuns.reduce((acc, run) => {
+  const groupedRuns = runs.reduce((acc, run) => {
     const version = run.version;
     if (!acc[version]) {
       const scoreMetrics = {};
@@ -356,17 +345,15 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     
     // Model filter removed - not in database schema
     // Prompt version filter removed - not in database schema
-    if (filters.version && run.version !== filters.version) return false;
     return true;
   });
 
   const clearFilters = () => {
-    setFilters({ version: '' });
     setSearchQuery('');
   };
 
-  const hasActiveFilters = filters.version || searchQuery;
-  const activeFilterCount = [filters.version, searchQuery].filter(Boolean).length;
+  const hasActiveFilters = searchQuery;
+  const activeFilterCount = [searchQuery].filter(Boolean).length;
 
 
 
@@ -499,7 +486,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
           onChange={(e) => setSortConfig({ ...sortConfig, key: e.target.value })}
           className="sort-select"
         >
-          <option value="version">Version</option>
           <option value="startTs">Start Time</option>
           <option value="avgScore">Avg Score (Overall)</option>
           {scoreFields.map(field => (

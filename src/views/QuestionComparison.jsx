@@ -280,7 +280,7 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
               <div className="question-comparison-sidebar">
                 <div className="sidebar-header">
                   <h3>Select Runs</h3>
-                  <div className="flex items-center gap-8">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div className="selection-count">
                       {selectedVersions.length}/2 selected
                     </div>

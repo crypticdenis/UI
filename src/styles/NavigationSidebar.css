@@ -221,14 +221,14 @@
 }
 
 .nav-item.active .nav-item-label.run-label {
-  color: var(--primary-color);
+  font-family: 'Courier New', monospace;
 }
 
-.run-score-badge {
+.navigation-sidebar .run-score-badge {
   flex-shrink: 0;
   padding: 2px 8px;
   background: var(--success-alpha);
-  border: 1px solid var(--success-color);
+  border: none;
   border-radius: 10px;
   color: var(--success-color);
   font-size: 11px;

@@ -1,4 +1,6 @@
 import { useState, useMemo, useEffect, Fragment } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import RunCard from '../components/RunCard';
 import { getScoreColor } from '../utils/metricUtils';
 
@@ -104,6 +106,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
             // Metric object with {value, reason}
             type = typeof val.value === 'number' ? 'metric' : 'text';
             isMetric = true;
+            console.log(`[RunDetails] Found metric field: ${key}, value:`, val);
           } else if (typeof val === 'number') {
             type = 'number';
           } else if (typeof val === 'string' && val.length > 50) {
@@ -127,8 +130,10 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
       });
     });
     
+    const fields = Array.from(fieldMap.values()).sort((a, b) => a.order - b.order);
+    console.log('[RunDetails] All fields:', fields.map(f => ({key: f.key, type: f.type, isMetric: f.isMetric})));
     // Sort fields by order
-    return Array.from(fieldMap.values()).sort((a, b) => a.order - b.order);
+    return fields;
   }, [questions]);
 
   // Filter questions
@@ -413,13 +418,19 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                               const cellValue = getCellValue(question, field);
                               const reason = getCellReason(question, field);
                               
+                              // Fields that should render as markdown
+                              const markdownFields = ['groundtruth', 'expectedOutput', 'input', 'output'];
+                              const shouldRenderMarkdown = markdownFields.includes(field.key) && 
+                                                          typeof cellValue === 'string' && 
+                                                          cellValue.length > 100;
+                              
                               return (
                                 <div key={field.key} className="expanded-field">
                                   <div className="expanded-field-label">
                                     {field.label}
                                   </div>
                                   <div className="expanded-field-value">
-                                    {field.type === 'metric' && typeof cellValue === 'number' ? (
+                                    {field.isMetric && typeof cellValue === 'number' ? (
                                       <div>
                                         <span className="metric-score-badge" style={{ 
                                           backgroundColor: getScoreColor(cellValue)
@@ -428,9 +439,17 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                                         </span>
                                         {reason && (
                                           <div className="metric-reason">
-                                            {reason}
+                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                              {reason}
+                                            </ReactMarkdown>
                                           </div>
                                         )}
+                                      </div>
+                                    ) : shouldRenderMarkdown ? (
+                                      <div className="markdown-content">
+                                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                          {String(cellValue)}
+                                        </ReactMarkdown>
                                       </div>
                                     ) : String(cellValue)}
                                   </div>

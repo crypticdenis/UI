@@ -186,7 +186,7 @@
   font-weight: 700;
   color: white;
   white-space: nowrap;
-  box-shadow: 0 2px 4px var(--bg-overlay);
+  border: none;
 }
 
 
