@@ -169,7 +169,7 @@ const NavigationSidebar = ({
               {/* Workflow Runs (no subworkflows) */}
               {expandedWorkflows.has(workflow.id) && (
                 <div className="nav-tree-children">
-                  {workflow.runs?.map((run) => {
+                  {workflow.runs?.slice().reverse().map((run) => {
                     // Calculate combined score from executions
                     const executions = run.runs || run.questions || [];
                     const allMetrics = [];
