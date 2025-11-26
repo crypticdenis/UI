@@ -8,6 +8,7 @@ import RunComparison from './views/RunComparison.jsx';
 import ConversationComparison from './views/ConversationComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
 import NavigationSidebar from './components/NavigationSidebar.jsx';
+import { cleanMetricObjects } from './utils/metricUtils.js';
 import './styles/App.css';
 
 // API Configuration
@@ -50,11 +51,13 @@ function App() {
           throw new Error(`Failed to fetch projects: ${response.statusText}`);
         }
         const data = await response.json();
-        setProjects(data);
-        
+        // Clean metric objects to extract values from {value, reason} structures
+        const cleanedData = cleanMetricObjects(data);
+        setProjects(cleanedData);
+
         // Auto-select the single hardcoded project and show workflows
-        if (data.length > 0) {
-          setSelectedProject(data[0]);
+        if (cleanedData.length > 0) {
+          setSelectedProject(cleanedData[0]);
           setCurrentView('workflows');
         }
       } catch (err) {

@@ -3,6 +3,38 @@
  */
 
 /**
+ * Recursively clean metric objects by extracting values from {value, reason} structures
+ * This ensures no objects are accidentally rendered in React
+ */
+export const cleanMetricObjects = (data) => {
+  if (data === null || data === undefined) {
+    return data;
+  }
+
+  // If it's an object with {value, reason} structure, extract the value
+  if (typeof data === 'object' && !Array.isArray(data) && 'value' in data) {
+    return data.value;
+  }
+
+  // If it's an array, recursively clean each element
+  if (Array.isArray(data)) {
+    return data.map(item => cleanMetricObjects(item));
+  }
+
+  // If it's an object, recursively clean each property
+  if (typeof data === 'object') {
+    const cleaned = {};
+    for (const [key, value] of Object.entries(data)) {
+      cleaned[key] = cleanMetricObjects(value);
+    }
+    return cleaned;
+  }
+
+  // Otherwise return as-is (primitives)
+  return data;
+};
+
+/**
  * Determines if a value is a numeric score (float/number)
  */
 export const isNumericScore = (value) => {

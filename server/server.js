@@ -60,9 +60,10 @@ async function formatTestRun(testRun) {
     );
     
     // Build evaluation metrics object - each metric becomes a property
+    // Exclude duration and totalTokens as they have dedicated fields
     const metrics = {};
     evaluationsResult.rows.forEach(evalRow => {
-      if (evalRow.metric_name) {
+      if (evalRow.metric_name && evalRow.metric_name !== 'duration' && evalRow.metric_name !== 'totalTokens') {
         metrics[evalRow.metric_name] = {
           value: parseFloat(evalRow.metric_value) || 0,
           reason: evalRow.metric_reason || ''

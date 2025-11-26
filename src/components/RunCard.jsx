@@ -61,6 +61,9 @@ const RunCard = ({
 
     dataSource.forEach(item => {
       Object.keys(item).forEach(key => {
+        // Skip duration and totalTokens - they're not score metrics
+        if (key === 'duration' || key === 'totalTokens') return;
+        
         // Identify metric fields
         if (key.startsWith('avg_') ||
             (item[key] && typeof item[key] === 'object' && 'value' in item[key]) ||
@@ -118,8 +121,12 @@ const RunCard = ({
     } else {
       // Use existing avg_ fields from run data (card mode)
       calculatedScoreFields.forEach(field => {
-        if (runData[`avg_${field.key}`] !== undefined) {
-          result[`avg_${field.key}`] = runData[`avg_${field.key}`];
+        const value = runData[`avg_${field.key}`];
+        if (value !== undefined) {
+          // Extract value if it's an object with {value, reason} structure
+          result[`avg_${field.key}`] = value && typeof value === 'object' && 'value' in value
+            ? value.value
+            : value;
         }
       });
     }
@@ -140,16 +147,17 @@ const RunCard = ({
 
   // Get duration - comes from DB as "MM:SS" format or null if not finished
   const calculatedDuration = useMemo(() => {
-    console.log('RunCard duration calc:', { 
-      mode, 
-      'runData.duration': runData.duration, 
-      'run?.duration': run?.duration,
-      isFinished,
-      runData 
-    });
-    
     // Use duration from run data if available (comes from backend/DB)
-    if (runData.duration) return runData.duration;
+    if (runData.duration != null) {
+      // Extract value if duration is an object with {value, reason}
+      const duration = runData.duration;
+      if (typeof duration === 'object' && duration !== null && 'value' in duration) {
+        // Convert to string to ensure it's renderable
+        return String(duration.value);
+      }
+      // Ensure it's a string
+      return String(duration);
+    }
     
     // If no duration but run is not finished, show "-"
     if (!isFinished) return '-';
@@ -440,6 +448,10 @@ const RunCard = ({
         <div className="run-card-scores">
           {calculatedScoreFields.map(field => {
             const avgValue = calculatedMetrics[`avg_${field.key}`];
+            // Ensure we extract value if it's an object
+            const displayValue = avgValue && typeof avgValue === 'object' && 'value' in avgValue
+              ? avgValue.value
+              : avgValue;
             return (
               <div key={field.key} className="score-item">
                 <span className="score-label">
@@ -451,9 +463,9 @@ const RunCard = ({
                 </span>
                 <span
                   className="score-value"
-                  style={{ backgroundColor: getScoreColor(parseFloat(avgValue)) }}
+                  style={{ backgroundColor: getScoreColor(parseFloat(displayValue)) }}
                 >
-                  {avgValue}
+                  {displayValue}
                 </span>
               </div>
             );

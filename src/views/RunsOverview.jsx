@@ -1,5 +1,5 @@
-import { useState, useMemo, useRef, Fragment } from 'react';
-import { getUniqueScoreFields, formatNumber, getGradeInfo } from '../utils/metricUtils';
+import { useState, useMemo, useRef, Fragment, useEffect } from 'react';
+import { getUniqueScoreFields, formatNumber, getGradeInfo, cleanMetricObjects } from '../utils/metricUtils';
 import RunCard from '../components/RunCard';
 
 // Performance Trends Chart Component
@@ -242,15 +242,21 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     version: ''
   });
   const [searchQuery, setSearchQuery] = useState('');
-  
-  // Get all unique score fields dynamically from executions within runs
-  const scoreFields = useMemo(() => {
-    const allExecutions = runs.flatMap(run => run.runs || run.questions || []);
-    return getUniqueScoreFields(allExecutions);
+
+  // Clean runs data to extract values from {value, reason} metric objects
+  // This prevents React error #31 when objects are accidentally rendered
+  const cleanedRuns = useMemo(() => {
+    return cleanMetricObjects(runs);
   }, [runs]);
 
+  // Get all unique score fields dynamically from executions within runs
+  const scoreFields = useMemo(() => {
+    const allExecutions = cleanedRuns.flatMap(run => run.runs || run.questions || []);
+    return getUniqueScoreFields(allExecutions);
+  }, [cleanedRuns]);
+
   // Group runs by version and calculate aggregate stats dynamically
-  const groupedRuns = runs.reduce((acc, run) => {
+  const groupedRuns = cleanedRuns.reduce((acc, run) => {
     const version = run.version;
     if (!acc[version]) {
       const scoreMetrics = {};
@@ -319,16 +325,19 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       durationMinutes = ((finish - start) / 1000 / 60).toFixed(1);
     }
 
+    // Clean up any properties from group that might be objects with {value, reason}
+    // Only include known safe properties
     return {
       version: group.version,
       id: group.id,
       workflowId: group.workflowId,
       startTs: group.startTs,
       finishTs: group.finishTs,
+      duration: group.duration, // Include duration if it exists
       durationMinutes,
       questionCount: executionCount,
       avgScore, // Overall average score
-      ...avgScores,
+      ...avgScores, // These are already formatted numbers/strings
       runs: group.runs  // This is the executions array
     };
   });
