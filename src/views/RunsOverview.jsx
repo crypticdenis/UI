@@ -278,7 +278,11 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
         
         if (value != null && !isNaN(value)) {
           acc[version][`total_${field.key}`] += parseFloat(value);
-          acc[version].validScoreCount++;
+          // Track count per metric
+          if (!acc[version][`count_${field.key}`]) {
+            acc[version][`count_${field.key}`] = 0;
+          }
+          acc[version][`count_${field.key}`]++;
         }
       });
     });
@@ -292,18 +296,21 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     const executionCount = group.runs?.length || 0;
 
     scoreFields.forEach(field => {
-      const total = group[`total_${field.key}`];
-      // Calculate average per metric (validScoreCount tracks how many times each metric appeared)
-      const metricCount = executionCount; // Assume each execution can have the metric
-      avgScores[`avg_${field.key}`] = metricCount > 0
-        ? formatNumber(total / metricCount)
+      const total = group[`total_${field.key}`] || 0;
+      const metricCount = group[`count_${field.key}`] || 0;
+      const numericValue = metricCount > 0 ? total / metricCount : null;
+      
+      // Store both numeric (for sorting) and formatted (for display)
+      avgScores[`avg_${field.key}`] = numericValue;
+      avgScores[`avg_${field.key}_formatted`] = numericValue != null
+        ? formatNumber(numericValue)
         : '-';
     });
 
-    // Calculate overall average score across all metrics
+    // Calculate overall average score across all metrics using numeric values
     const scores = scoreFields
-      .map(f => parseFloat(avgScores[`avg_${f.key}`]))
-      .filter(v => !isNaN(v));
+      .map(f => avgScores[`avg_${f.key}`])
+      .filter(v => !isNaN(v) && v > 0);
     const avgScore = scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : 0;
 
     // Calculate run duration
@@ -325,8 +332,8 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       duration: group.duration, // Include duration if it exists
       durationMinutes,
       questionCount: executionCount,
-      avgScore, // Overall average score
-      ...avgScores, // These are already formatted numbers/strings
+      avgScore, // Overall average score (numeric)
+      ...avgScores, // Contains both numeric (avg_X) and formatted (avg_X_formatted) values
       runs: group.runs  // This is the executions array
     };
   });
@@ -366,8 +373,9 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
     if (sortConfig.key === 'avgScore' ||
         sortConfig.key === 'questionCount' ||
         sortConfig.key.startsWith('avg_')) {
-      aValue = parseFloat(aValue) || 0;
-      bValue = parseFloat(bValue) || 0;
+      // Handle '-' strings and convert to numbers
+      aValue = (aValue === '-' || aValue == null) ? 0 : parseFloat(aValue);
+      bValue = (bValue === '-' || bValue == null) ? 0 : parseFloat(bValue);
       return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
     }
 

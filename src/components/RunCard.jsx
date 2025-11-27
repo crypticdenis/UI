@@ -136,14 +136,19 @@ const RunCard = ({
 
   // Calculate average score
   const calculatedAvgScore = useMemo(() => {
+    // Check if avgScore was passed as prop
     if (avgScore != null) return avgScore;
 
+    // Check if avgScore exists in run data (preferred - already calculated correctly)
+    if (runData.avgScore != null) return runData.avgScore;
+
+    // Fallback: calculate from metrics
     const scores = calculatedScoreFields
       .map(f => parseFloat(calculatedMetrics[`avg_${f.key}`]))
       .filter(v => !isNaN(v));
 
     return scores.length > 0 ? scores.reduce((a, b) => a + b, 0) / scores.length : null;
-  }, [avgScore, calculatedScoreFields, calculatedMetrics]);
+  }, [avgScore, runData, calculatedScoreFields, calculatedMetrics]);
 
   // Get duration - comes from DB as "MM:SS" format or null if not finished
   const calculatedDuration = useMemo(() => {
@@ -290,15 +295,19 @@ const RunCard = ({
         )}
 
         {calculatedScoreFields.slice(0, maxMetrics).map(field => {
-          const avgValue = parseFloat(calculatedMetrics[`avg_${field.key}`]);
+          // Get numeric value from runData (for sorting and color)
+          const numericValue = runData[`avg_${field.key}`];
+          const formattedValue = runData[`avg_${field.key}_formatted`];
+          const displayValue = formattedValue || (numericValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-');
+          
           return (
             <div key={field.key} className="metric-detail-item">
               <div className="metric-detail-label">{field.label.toUpperCase()}</div>
               <div
                 className="metric-detail-value"
-                style={{ backgroundColor: getScoreColor(avgValue) }}
+                style={{ backgroundColor: numericValue != null && !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
               >
-                {!isNaN(avgValue) ? avgValue.toFixed(2) : '-'}
+                {displayValue}
               </div>
             </div>
           );
@@ -409,15 +418,19 @@ const RunCard = ({
       )}
 
       {calculatedScoreFields.slice(0, maxMetrics).map(field => {
-        const avgValue = parseFloat(calculatedMetrics[`avg_${field.key}`]);
+        // Get numeric value from runData (for sorting and color)
+        const numericValue = runData[`avg_${field.key}`];
+        const formattedValue = runData[`avg_${field.key}_formatted`];
+        const displayValue = formattedValue || (numericValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-');
+        
         return (
           <div key={field.key} className="metric-detail-item">
             <div className="metric-detail-label">{field.label.toUpperCase()}</div>
             <div
               className="metric-detail-value"
-              style={{ backgroundColor: getScoreColor(avgValue) }}
+              style={{ backgroundColor: numericValue != null && !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
             >
-              {!isNaN(avgValue) ? avgValue.toFixed(2) : '-'}
+              {displayValue}
             </div>
           </div>
         );

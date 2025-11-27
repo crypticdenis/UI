@@ -246,8 +246,13 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   const sessionGroups = useMemo(() => {
     if (!executions || executions.length === 0) return [];
     
+    // First, deduplicate executions by ID
+    const uniqueExecs = Array.from(
+      new Map(executions.map(exec => [exec.id, exec])).values()
+    );
+    
     const groups = {};
-    executions.forEach(exec => {
+    uniqueExecs.forEach(exec => {
       const sessionId = exec.sessionId || `exec_${exec.id}`;
       if (!groups[sessionId]) {
         groups[sessionId] = [];
@@ -343,11 +348,13 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   }, [compareRunVersion, onNavCollapse]);
 
   // Auto-select first session if none selected
-  const selectedSession = useMemo(() => {
+  useEffect(() => {
     if (!selectedSessionId && filteredSessions.length > 0) {
       setSelectedSessionId(filteredSessions[0].sessionId);
-      return filteredSessions[0];
     }
+  }, [selectedSessionId, filteredSessions]);
+
+  const selectedSession = useMemo(() => {
     return filteredSessions.find(s => s.sessionId === selectedSessionId);
   }, [selectedSessionId, filteredSessions]);
 
