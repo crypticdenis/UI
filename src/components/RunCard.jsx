@@ -391,16 +391,6 @@ const RunCard = ({
         </div>
       </div>
 
-      {/* Workflow ID as metric item */}
-      {runWorkflowId && (
-        <div className="metric-detail-item">
-          <div className="metric-detail-label">WORKFLOW</div>
-          <div className="metric-detail-value metric-workflow">
-            {runWorkflowId}
-          </div>
-        </div>
-      )}
-
       {/* All metrics as direct children */}
       {showAvgScore && calculatedAvgScore != null && (
         <div className="metric-detail-item">
