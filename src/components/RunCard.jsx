@@ -41,7 +41,6 @@ const RunCard = ({
   const runStartTs = run?.startTs || startTs;
   const runFinishTs = run?.finishTs;
   const runQuestionCount = run?.questionCount || run?.runs?.length || questions?.length || questionCount;
-  const runWorkflowId = run?.workflowId || workflowId;
   
   // Memoize data objects to prevent unnecessary re-renders
   const runData = useMemo(() => run || {}, [run]);
@@ -245,8 +244,8 @@ const RunCard = ({
       {/* Duration / Status */}
       {calculatedDuration && (
         <div className="metric-detail-item">
-          <div className="metric-detail-label">DURATION</div>
-          <div 
+          <div className="metric-detail-label">AVG DURATION</div>
+          <div
             className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
           >
             {calculatedDuration}
@@ -257,7 +256,7 @@ const RunCard = ({
       {/* Total Tokens */}
       {calculatedTotalTokens > 0 && (
         <div className="metric-detail-item">
-          <div className="metric-detail-label">TOTALTOKENS</div>
+          <div className="metric-detail-label">AVG TOKENS</div>
           <div className="metric-detail-value metric-tokens">
             {calculatedTotalTokens}
           </div>
@@ -315,8 +314,8 @@ const RunCard = ({
 
         {calculatedDuration && (
           <div className="metric-detail-item">
-            <div className="metric-detail-label">DURATION</div>
-            <div 
+            <div className="metric-detail-label">AVG DURATION</div>
+            <div
               className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
             >
               {calculatedDuration}
@@ -326,7 +325,7 @@ const RunCard = ({
 
         {calculatedTotalTokens > 0 && (
           <div className="metric-detail-item">
-            <div className="metric-detail-label">TOTALTOKENS</div>
+            <div className="metric-detail-label">AVG TOKENS</div>
             <div className="metric-detail-value metric-tokens">
               {calculatedTotalTokens}
             </div>
@@ -428,8 +427,8 @@ const RunCard = ({
 
       {calculatedDuration && (
         <div className="metric-detail-item">
-          <div className="metric-detail-label">DURATION</div>
-          <div 
+          <div className="metric-detail-label">AVG DURATION</div>
+          <div
             className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
           >
             {calculatedDuration}
@@ -439,7 +438,7 @@ const RunCard = ({
 
       {calculatedTotalTokens > 0 && (
         <div className="metric-detail-item">
-          <div className="metric-detail-label">TOTALTOKENS</div>
+          <div className="metric-detail-label">AVG TOKENS</div>
           <div className="metric-detail-value metric-tokens">
             {calculatedTotalTokens}
           </div>
