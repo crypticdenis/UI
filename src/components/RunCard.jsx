@@ -22,7 +22,6 @@ const RunCard = ({
   version,
   startTs,
   questionCount,
-  workflowId,
   onClick,
   avgScore,
   scoreFields = [],
@@ -294,17 +293,16 @@ const RunCard = ({
         )}
 
         {calculatedScoreFields.slice(0, maxMetrics).map(field => {
-          // Get numeric value from runData (for sorting and color)
-          const numericValue = runData[`avg_${field.key}`];
-          const formattedValue = runData[`avg_${field.key}_formatted`];
-          const displayValue = formattedValue || (numericValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-');
-          
+          // Use calculated metrics (works for both sidebar and RunsOverview navigation)
+          const avgValue = parseFloat(calculatedMetrics[`avg_${field.key}`]);
+          const displayValue = !isNaN(avgValue) ? avgValue.toFixed(2) : '-';
+
           return (
             <div key={field.key} className="metric-detail-item">
               <div className="metric-detail-label">{field.label.toUpperCase()}</div>
               <div
                 className="metric-detail-value"
-                style={{ backgroundColor: numericValue != null && !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
+                style={{ backgroundColor: !isNaN(avgValue) ? getScoreColor(avgValue) : '#334155' }}
               >
                 {displayValue}
               </div>
