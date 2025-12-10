@@ -171,17 +171,30 @@ const RunCard = ({
     // For executions data, calculate average
     if (executionsData.length > 0) {
       const durations = executionsData
-        .map(e => parseFloat(e.duration))
+        .map(e => {
+          const duration = e.duration;
+          // Handle MM:SS format
+          if (typeof duration === 'string' && duration.includes(':')) {
+            const [minutes, seconds] = duration.split(':').map(parseFloat);
+            return minutes + (seconds / 60);
+          }
+          return parseFloat(duration);
+        })
         .filter(d => !isNaN(d));
-      return durations.length > 0
-        ? (durations.reduce((a, b) => a + b, 0) / durations.length).toFixed(2)
-        : null;
+      
+      if (durations.length > 0) {
+        const avgMinutes = durations.reduce((a, b) => a + b, 0) / durations.length;
+        const minutes = Math.floor(avgMinutes);
+        const seconds = Math.round((avgMinutes - minutes) * 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+      return null;
     }
 
     return null;
   }, [runData, isFinished, durationMinutes, executionsData]);
 
-  // Calculate total tokens
+  // Calculate average tokens (for header/metrics-only modes)
   const calculatedTotalTokens = useMemo(() => {
     if (totalTokens != null && totalTokens > 0) return totalTokens;
 
@@ -201,6 +214,70 @@ const RunCard = ({
 
     return 0;
   }, [totalTokens, runData, executionsData]);
+
+  // Calculate total tokens sum (for card mode)
+  const totalTokensSum = useMemo(() => {
+    if (executionsData.length > 0) {
+      const tokens = executionsData
+        .map(e => parseFloat(e.totalTokens))
+        .filter(t => !isNaN(t) && t > 0);
+      return tokens.length > 0
+        ? Math.round(tokens.reduce((a, b) => a + b, 0))
+        : 0;
+    }
+
+    if (runData.runs) {
+      return runData.runs.reduce((sum, execution) => sum + (execution.totalTokens || 0), 0);
+    }
+
+    return 0;
+  }, [runData, executionsData]);
+
+  // Calculate total duration sum (for card mode)
+  const totalDurationSum = useMemo(() => {
+    if (executionsData.length > 0) {
+      const durations = executionsData
+        .map(e => {
+          const duration = e.duration;
+          // Handle MM:SS format
+          if (typeof duration === 'string' && duration.includes(':')) {
+            const [minutes, seconds] = duration.split(':').map(parseFloat);
+            return minutes + (seconds / 60);
+          }
+          return parseFloat(duration);
+        })
+        .filter(d => !isNaN(d) && d > 0);
+
+      if (durations.length > 0) {
+        const totalMinutes = durations.reduce((a, b) => a + b, 0);
+        const minutes = Math.floor(totalMinutes);
+        const seconds = Math.round((totalMinutes - minutes) * 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }
+
+    if (runData.runs) {
+      const durations = runData.runs
+        .map(e => {
+          const duration = e.duration;
+          if (typeof duration === 'string' && duration.includes(':')) {
+            const [minutes, seconds] = duration.split(':').map(parseFloat);
+            return minutes + (seconds / 60);
+          }
+          return parseFloat(duration);
+        })
+        .filter(d => !isNaN(d) && d > 0);
+
+      if (durations.length > 0) {
+        const totalMinutes = durations.reduce((a, b) => a + b, 0);
+        const minutes = Math.floor(totalMinutes);
+        const seconds = Math.round((totalMinutes - minutes) * 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+    }
+
+    return null;
+  }, [runData, executionsData]);
 
   // Get grade info for average score using utility function
   const gradeInfo = calculatedAvgScore != null ? getGradeInfo(calculatedAvgScore) : null;
@@ -387,6 +464,26 @@ const RunCard = ({
           {runQuestionCount}
         </div>
       </div>
+
+      {/* Total tokens sum */}
+      {totalTokensSum > 0 && (
+        <div className="metric-detail-item">
+          <div className="metric-detail-label">TOTAL TOKENS</div>
+          <div className="metric-detail-value metric-tokens">
+            {totalTokensSum}
+          </div>
+        </div>
+      )}
+
+      {/* Total duration sum */}
+      {totalDurationSum && (
+        <div className="metric-detail-item">
+          <div className="metric-detail-label">TOTAL DURATION</div>
+          <div className="metric-detail-value metric-duration">
+            {totalDurationSum}
+          </div>
+        </div>
+      )}
 
       {/* All metrics as direct children */}
       {showAvgScore && calculatedAvgScore != null && (
