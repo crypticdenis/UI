@@ -166,7 +166,11 @@ const ChatExchange = ({ execution, highlighted }) => {
                                   />
                                 </div>
                                 {metric.reason && (
-                                  <div className="metric-item-reason">{metric.reason}</div>
+                                  <div className="metric-item-reason">
+                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                      {metric.reason}
+                                    </ReactMarkdown>
+                                  </div>
                                 )}
                               </div>
                             ))}

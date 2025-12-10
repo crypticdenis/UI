@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { getScoreColor } from '../utils/metricUtils';
 import '../styles/ConversationComparison.css';
 
@@ -203,7 +205,11 @@ const ConversationComparison = ({ sessionId, baseRunVersion, allRuns, onClose })
                               </span>
                             </div>
                             {metric.reason && (
-                              <div className="metric-item-reason">{metric.reason}</div>
+                              <div className="metric-item-reason">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                  {metric.reason}
+                                </ReactMarkdown>
+                              </div>
                             )}
                           </div>
                         ))}
