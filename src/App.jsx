@@ -121,7 +121,16 @@ function App() {
   };
 
   const handleToggleViewMode = (executionId = null) => {
-    setHighlightExecutionId(executionId);
+    // If switching to conversation view with a specific execution, ensure highlight triggers
+    if (executionId && viewMode === 'conversation') {
+      // Clear highlight first, then set it again to trigger useEffect
+      setHighlightExecutionId(null);
+      setTimeout(() => {
+        setHighlightExecutionId(executionId);
+      }, 0);
+    } else {
+      setHighlightExecutionId(executionId);
+    }
     setViewMode(prev => prev === 'table' ? 'conversation' : 'table');
   };
 

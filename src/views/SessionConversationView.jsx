@@ -305,29 +305,59 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   // Handle highlighting and navigation to specific execution
   useEffect(() => {
     if (highlightExecutionId && sessionGroups.length > 0) {
+      // Update local highlight state
+      setHighlightedExecId(highlightExecutionId);
+      
       // Find which session contains this execution
       const targetSession = sessionGroups.find(session => 
         session.executions.some(exec => exec.id === highlightExecutionId)
       );
       
       if (targetSession) {
-        setSelectedSessionId(targetSession.sessionId);
+        // Only update if different from current selection
+        const needsUpdate = selectedSessionId !== targetSession.sessionId;
         
-        // Wait for render, then scroll to the execution
-        setTimeout(() => {
-          const element = document.getElementById(`execution-${highlightExecutionId}`);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
+        if (needsUpdate) {
+          // Ensure the correct session is selected
+          setSelectedSessionId(targetSession.sessionId);
           
-          // Remove highlight after animation
+          // Wait longer for session to be selected and rendered
           setTimeout(() => {
-            setHighlightedExecId(null);
-          }, 3000);
-        }, 100);
+            const element = document.getElementById(`execution-${highlightExecutionId}`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              // If element not found, try again after a longer delay
+              setTimeout(() => {
+                const retryElement = document.getElementById(`execution-${highlightExecutionId}`);
+                if (retryElement) {
+                  retryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }, 300);
+            }
+            
+            // Remove highlight after animation
+            setTimeout(() => {
+              setHighlightedExecId(null);
+            }, 3000);
+          }, 200);
+        } else {
+          // Session already selected, scroll immediately
+          setTimeout(() => {
+            const element = document.getElementById(`execution-${highlightExecutionId}`);
+            if (element) {
+              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            // Remove highlight after animation
+            setTimeout(() => {
+              setHighlightedExecId(null);
+            }, 3000);
+          }, 100);
+        }
       }
     }
-  }, [highlightExecutionId, sessionGroups]);
+  }, [highlightExecutionId, sessionGroups, selectedSessionId]);
   
   // Auto-collapse sidebars when comparison starts
   useEffect(() => {
@@ -342,12 +372,12 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
     }
   }, [compareRunVersion, onNavCollapse]);
 
-  // Auto-select first session if none selected
+  // Auto-select first session if none selected (but don't override if highlighting is in progress)
   useEffect(() => {
-    if (!selectedSessionId && filteredSessions.length > 0) {
+    if (!selectedSessionId && filteredSessions.length > 0 && !highlightExecutionId) {
       setSelectedSessionId(filteredSessions[0].sessionId);
     }
-  }, [selectedSessionId, filteredSessions]);
+  }, [selectedSessionId, filteredSessions, highlightExecutionId]);
 
   const selectedSession = useMemo(() => {
     return filteredSessions.find(s => s.sessionId === selectedSessionId);
