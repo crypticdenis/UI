@@ -314,50 +314,32 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
       );
       
       if (targetSession) {
-        // Only update if different from current selection
-        const needsUpdate = selectedSessionId !== targetSession.sessionId;
+        // Ensure the correct session is selected
+        setSelectedSessionId(targetSession.sessionId);
         
-        if (needsUpdate) {
-          // Ensure the correct session is selected
-          setSelectedSessionId(targetSession.sessionId);
+        // Wait for session to be selected and rendered, then scroll to the execution
+        setTimeout(() => {
+          const element = document.getElementById(`execution-${highlightExecutionId}`);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          } else {
+            // If element not found, try again after a longer delay
+            setTimeout(() => {
+              const retryElement = document.getElementById(`execution-${highlightExecutionId}`);
+              if (retryElement) {
+                retryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }, 300);
+          }
           
-          // Wait longer for session to be selected and rendered
+          // Remove highlight after animation
           setTimeout(() => {
-            const element = document.getElementById(`execution-${highlightExecutionId}`);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } else {
-              // If element not found, try again after a longer delay
-              setTimeout(() => {
-                const retryElement = document.getElementById(`execution-${highlightExecutionId}`);
-                if (retryElement) {
-                  retryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-              }, 300);
-            }
-            
-            // Remove highlight after animation
-            setTimeout(() => {
-              setHighlightedExecId(null);
-            }, 3000);
-          }, 200);
-        } else {
-          // Session already selected, scroll immediately
-          setTimeout(() => {
-            const element = document.getElementById(`execution-${highlightExecutionId}`);
-            if (element) {
-              element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            
-            // Remove highlight after animation
-            setTimeout(() => {
-              setHighlightedExecId(null);
-            }, 3000);
-          }, 100);
-        }
+            setHighlightedExecId(null);
+          }, 3000);
+        }, 200);
       }
     }
-  }, [highlightExecutionId, sessionGroups, selectedSessionId]);
+  }, [highlightExecutionId, sessionGroups]);
   
   // Auto-collapse sidebars when comparison starts
   useEffect(() => {

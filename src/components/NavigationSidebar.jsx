@@ -169,24 +169,51 @@ const NavigationSidebar = ({
               {expandedWorkflows.has(workflow.id) && (
                 <div className="nav-tree-children">
                   {workflow.runs?.slice().reverse().map((run) => {
-                    // Calculate combined score from executions
+                    // Calculate combined score from executions - same logic as RunCard
                     const executions = run.runs || run.questions || [];
-                    const allMetrics = [];
                     
+                    // First, identify score fields
+                    const scoreFields = new Set();
                     executions.forEach(exec => {
                       Object.keys(exec).forEach(key => {
+                        // Skip duration and totalTokens - they're not score metrics
+                        if (key === 'duration' || key === 'totalTokens') return;
+                        
                         const value = exec[key];
+                        // Identify metric fields
                         if (value && typeof value === 'object' && 'value' in value) {
                           const numValue = parseFloat(value.value);
-                          if (!isNaN(numValue) && numValue <= 1) {
-                            allMetrics.push(numValue);
+                          if (!isNaN(numValue) && numValue <= 1 && numValue >= 0) {
+                            scoreFields.add(key);
                           }
+                        } else if (typeof value === 'number' && value <= 1 && value >= 0 &&
+                                   (key.toLowerCase().includes('score') ||
+                                    key.toLowerCase().includes('rate') ||
+                                    key.toLowerCase().includes('accuracy'))) {
+                          scoreFields.add(key);
                         }
                       });
                     });
                     
-                    const combinedScore = allMetrics.length > 0 
-                      ? allMetrics.reduce((a, b) => a + b, 0) / allMetrics.length 
+                    // Calculate average for each score field
+                    const fieldAverages = [];
+                    scoreFields.forEach(fieldKey => {
+                      const values = executions.map(exec => {
+                        const val = exec[fieldKey];
+                        if (val && typeof val === 'object' && 'value' in val) {
+                          return parseFloat(val.value);
+                        }
+                        return parseFloat(val);
+                      }).filter(v => !isNaN(v));
+                      
+                      if (values.length > 0) {
+                        fieldAverages.push(values.reduce((a, b) => a + b, 0) / values.length);
+                      }
+                    });
+                    
+                    // Average of field averages
+                    const combinedScore = fieldAverages.length > 0 
+                      ? fieldAverages.reduce((a, b) => a + b, 0) / fieldAverages.length 
                       : null;
                     
                     return (
