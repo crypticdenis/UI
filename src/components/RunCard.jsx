@@ -348,11 +348,32 @@ const RunCard = ({
         {/* Title */}
         <h1>Run: {runVersion}</h1>
 
+
         {/* Execution count badge */}
         <span className="execution-count-badge">
           {runQuestionCount} execution{runQuestionCount !== 1 ? 's' : ''}
         </span>
 
+
+        {/* Total duration sum */}
+        {totalDurationSum && (
+          <div className="metric-detail-item">
+            <div className="metric-detail-label">TOTAL DURATION</div>
+            <div className="metric-detail-value metric-duration">
+              {totalDurationSum}
+            </div>
+          </div>
+        )}
+
+        {/* Total tokens sum */}
+        {totalTokensSum > 0 && (
+          <div className="metric-detail-item">
+            <div className="metric-detail-label">TOTAL TOKENS</div>
+            <div className="metric-detail-value metric-tokens">
+              {totalTokensSum}
+            </div>
+          </div>
+        )}
         {/* All metrics as direct children */}
         {showAvgScore && calculatedAvgScore != null && (
           <div className="metric-detail-item">

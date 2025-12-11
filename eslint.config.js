@@ -21,9 +21,34 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^_', argsIgnorePattern: '^_' }],
     },
   },
+  // Test files (Vitest)
+  {
+    files: ['src/**/*.test.{js,jsx}', 'src/test/**/*.{js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 2020,
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+      parserOptions: {
+        ecmaVersion: 'latest',
+        ecmaFeatures: { jsx: true },
+        sourceType: 'module',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['error', { 
+        varsIgnorePattern: '^(_|[A-Z])',
+        argsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      }],
+      'no-undef': 'off',
+    },
+  },
   // Client-side files (Browser)
   {
     files: ['src/**/*.{js,jsx}'],
+    ignores: ['src/**/*.test.{js,jsx}', 'src/test/**/*.{js,jsx}'],
     extends: [
       js.configs.recommended,
       reactHooks.configs['recommended-latest'],
@@ -39,6 +64,11 @@ export default defineConfig([
       },
     },
     rules: {
+      'no-unused-vars': ['error', { 
+        varsIgnorePattern: '^(_|[A-Z])',
+        argsIgnorePattern: '^_',
+        ignoreRestSiblings: true,
+      }],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },

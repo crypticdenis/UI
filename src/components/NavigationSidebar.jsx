@@ -13,7 +13,6 @@ const getScoreColor = (score) => {
 
 const NavigationSidebar = ({
   currentView,
-  selectedProject,
   selectedWorkflow,
   selectedRunVersion,
   projects,

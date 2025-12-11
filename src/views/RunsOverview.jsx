@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, Fragment, useEffect } from 'react';
+import { useState, useMemo, useRef, Fragment } from 'react';
 import { getUniqueScoreFields, formatNumber, getGradeInfo } from '../utils/metricUtils';
 import RunCard from '../components/RunCard';
 

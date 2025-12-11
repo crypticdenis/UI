@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 describe('Server API Tests', () => {
   const API_BASE_URL = 'http://localhost:3001/api';
@@ -28,7 +28,7 @@ describe('Server API Tests', () => {
 
   describe('Data Formatting Functions', () => {
     it('should format test run with hierarchical executions', () => {
-      const mockTestRun = {
+      const _mockTestRun = {
         id: 1,
         workflow_id: 'RE_Butler',
         start_ts: '2025-01-01T10:00:00',
@@ -164,7 +164,7 @@ describe('Server API Tests', () => {
 
   describe('Error Handling', () => {
     it('should handle missing run gracefully', () => {
-      const runId = 'non-existent-id';
+      const _runId = 'non-existent-id';
       const errorResponse = {
         error: 'Run not found'
       };

@@ -100,7 +100,7 @@ const ConversationComparison = ({ sessionId, baseRunVersion, allRuns, onClose })
   };
   
   // Render both user and assistant messages for a single execution
-  const renderExecutionMessages = (execution, compareExecution, index) => {
+  const renderExecutionMessages = (execution, compareExecution, _index) => {
     const avgScore = calculateAvgScore(execution);
     const compareScore = compareExecution ? calculateAvgScore(compareExecution) : null;
     const scoreDelta = compareScore !== null ? avgScore - compareScore : null;

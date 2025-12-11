@@ -238,9 +238,8 @@ const ChatExchange = ({ execution, highlighted }) => {
   );
 };
 
-const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewMode, highlightExecutionId, onCompareSession, allRuns, onNavCollapse }) => {
+const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewMode, highlightExecutionId, _onCompareSession, allRuns, onNavCollapse }) => {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
-  const [searchInput, setSearchInput] = useState('');
   const [highlightedExecId, setHighlightedExecId] = useState(highlightExecutionId);
   const [compareRunVersion, setCompareRunVersion] = useState(null);
   const [showCompareDropdown, setShowCompareDropdown] = useState(false);
@@ -300,16 +299,8 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   
   // Filter sessions
   const filteredSessions = useMemo(() => {
-    if (!searchInput) return sessionGroups;
-    const search = searchInput.toLowerCase();
-    return sessionGroups.filter(session => 
-      session.sessionId.toLowerCase().includes(search) ||
-      session.executions.some(exec => 
-        (exec.input || '').toLowerCase().includes(search) ||
-        (exec.output || '').toLowerCase().includes(search)
-      )
-    );
-  }, [sessionGroups, searchInput]);
+    return sessionGroups;
+  }, [sessionGroups]);
   
   // Handle highlighting and navigation to specific execution
   useEffect(() => {
