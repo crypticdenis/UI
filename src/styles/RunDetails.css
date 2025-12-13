@@ -1,0 +1,67 @@
+/* RunDetails Component Styles */
+
+/* Search Bar Layout */
+.details-search-bar {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.details-search-bar .search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.details-search-bar .search-icon {
+  position: absolute;
+  left: 16px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.details-search-bar .search-input {
+  width: 100%;
+  padding: 14px 48px 14px 48px;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 14px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.details-search-bar .search-input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  background: var(--bg-dark);
+  box-shadow: 0 0 0 3px var(--primary-alpha);
+}
+
+.details-search-bar .search-input::placeholder {
+  color: var(--text-dim);
+}
+
+.details-search-bar .clear-search-btn {
+  position: absolute;
+  right: 12px;
+  padding: 6px;
+  background: var(--bg-subtle);
+  border: none;
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.details-search-bar .clear-search-btn:hover {
+  background: var(--error-alpha);
+  color: var(--error-color);
+  transform: rotate(90deg);
+}

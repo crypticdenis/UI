@@ -1,40 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { getScoreColor, formatNumber } from '../utils/metricUtils';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+import { useRuns } from '../hooks/useAPI';
 
 const RunComparison = ({ workflowId, selectedRunIds = [], onClose }) => {
-  const [runs, setRuns] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (!selectedRunIds || selectedRunIds.length === 0) {
-      setLoading(false);
-      return;
-    }
-
-    const fetchRuns = async () => {
-      try {
-        setLoading(true);
-        const promises = selectedRunIds.map(runId =>
-          fetch(`${API_BASE_URL}/runs/${runId}`)
-            .then(res => res.json())
-        );
-        
-        const results = await Promise.all(promises);
-        setRuns(results);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching runs:', err);
-        setError('Failed to load run data');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchRuns();
-  }, [selectedRunIds]);
+  const { runs, loading, error } = useRuns(selectedRunIds);
 
   // Calculate aggregate metrics for a run
   const calculateAggregateMetrics = (run) => {

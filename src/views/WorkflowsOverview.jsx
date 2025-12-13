@@ -112,23 +112,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow }) => {
             onClick={() => onSelectWorkflow(workflow, 'runs')}
             title="Click to view runs"
           >
-            <div className="run-card-header">
-              <div className="run-card-title">
-                <h3>{workflow.name}</h3>
-                <span className="question-count-badge">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/>
-                  </svg>
-                  {workflow.subworkflowCount || 0}
-                </span>
-              </div>
-              <div className="workflow-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="12" cy="12" r="3"/>
-                  <path d="M12 1v6m0 6v6m7.07-13.07l-4.24 4.24m0 5.66l4.24 4.24M1 12h6m6 0h6M4.93 4.93l4.24 4.24m5.66 0l4.24-4.24"/>
-                </svg>
-              </div>
-            </div>
+            <h3>{workflow.name}</h3>
 
             {workflow.description && (
               <div className="project-description">

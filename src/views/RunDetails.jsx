@@ -2,12 +2,24 @@ import { useState, useMemo, useEffect, Fragment } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import RunCard from '../components/RunCard';
-import { getScoreColor } from '../utils/metricUtils';
+import ColumnFilter from '../components/ColumnFilter';
+import { getScoreColor, getUniqueScoreFields } from '../utils/metricUtils';
+import '../styles/RunDetails.css';
 
-const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, viewMode }) => {
+const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
+  const [visibleColumns, setVisibleColumns] = useState(() => {
+    // Load saved preferences from localStorage
+    const saved = localStorage.getItem('runDetails_visibleColumns');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
+
+  // Calculate score fields from questions
+  const scoreFields = useMemo(() => {
+    return getUniqueScoreFields(questions || []);
+  }, [questions]);
 
   console.log('RunDetails received:', { runVersion, questionsCount: questions?.length, questions });
 
@@ -132,9 +144,19 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     
     const fields = Array.from(fieldMap.values()).sort((a, b) => a.order - b.order);
     console.log('[RunDetails] All fields:', fields.map(f => ({key: f.key, type: f.type, isMetric: f.isMetric})));
+    
     // Sort fields by order
     return fields;
   }, [questions]);
+
+  // Initialize visible columns on first render if empty
+  useEffect(() => {
+    if (visibleColumns.size === 0 && allFields.length > 0) {
+      // Show all fields by default on first visit
+      const defaultVisible = new Set(allFields.map(f => f.key));
+      setVisibleColumns(defaultVisible);
+    }
+  }, [allFields, visibleColumns.size]);
 
   // Filter questions
   const filteredQuestions = useMemo(() => {
@@ -151,6 +173,35 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
       );
     });
   }, [questions, searchInput]);
+
+  // Get visible fields based on user preferences
+  const visibleFields = useMemo(() => {
+    return allFields.filter(field => visibleColumns.has(field.key));
+  }, [allFields, visibleColumns]);
+
+  // Toggle column visibility
+  const toggleColumnVisibility = (fieldKey) => {
+    setVisibleColumns(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(fieldKey)) {
+        newSet.delete(fieldKey);
+      } else {
+        newSet.add(fieldKey);
+      }
+      return newSet;
+    });
+  };
+
+  // Select/deselect all columns
+  const toggleAllColumns = () => {
+    if (visibleColumns.size === allFields.length) {
+      // Deselect all - but keep at least one column visible
+      setVisibleColumns(new Set([allFields[0]?.key]));
+    } else {
+      // Select all
+      setVisibleColumns(new Set(allFields.map(f => f.key)));
+    }
+  };
 
   // Sort questions
   const sortedQuestions = useMemo(() => {
@@ -217,7 +268,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
   return (
     <div className="run-details">
       <div className="details-header">
-        <div className="details-header-top">
+        <div className="details-header-top" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
           <button className="btn btn-secondary" onClick={onBack}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -225,21 +276,22 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
             Back to Runs
           </button>
           {onToggleViewMode && (
-            <button className="btn btn-secondary" onClick={onToggleViewMode} title="Switch to conversation view">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button className="btn btn-secondary" onClick={() => onToggleViewMode()}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
               </svg>
-              {viewMode === 'table' ? 'Conversation View' : 'Table View'}
+              Conversation View
             </button>
           )}
         </div>
-        {/* Details Header - Using RunCard in header mode */}
+        {/* Details Header - Using RunCard in card mode like RunsOverview */}
         <RunCard
-          mode="header"
+          mode="card"
           run={run}
-          version={runVersion}
-          questions={sortedQuestions}
+          scoreFields={scoreFields}
+          maxMetrics={3}
           showAvgScore={true}
+          showAllScores={true}
         />
       </div>
 
@@ -270,6 +322,15 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
             </button>
           )}
         </div>
+        
+        {/* Column Filter Button */}
+        <ColumnFilter
+          allFields={allFields}
+          visibleColumns={visibleColumns}
+          onToggleColumn={toggleColumnVisibility}
+          onToggleAll={toggleAllColumns}
+          storageKey="runDetails_visibleColumns"
+        />
       </div>
 
       <div className="questions-table-container">
@@ -281,7 +342,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                   <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
               </th>
-              {allFields.map(field => (
+              {visibleFields.map(field => (
                 <th key={field.key} onClick={() => handleSort(field.key)} style={{ cursor: 'pointer' }}>
                   {field.label} {sortConfig.key === field.key && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                 </th>
@@ -292,7 +353,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
           <tbody>
             {sortedQuestions.length === 0 ? (
               <tr>
-                <td colSpan={allFields.length + 1} className="text-center p-20 text-muted-color">
+                <td colSpan={visibleFields.length + 2} className="text-center p-20 text-muted-color">
                   No executions found
                 </td>
               </tr>
@@ -332,7 +393,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                           )}
                         </div>
                       </td>
-                      {allFields.map(field => {
+                      {visibleFields.map(field => {
                         const cellValue = getCellValue(question, field);
                         const reason = getCellReason(question, field);
                     
@@ -388,7 +449,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                         );
                       })}
                       <td>
-                        <div className="flex flex-col gap-8">
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                           {onCompareQuestion && (
                             <button 
                               className="compare-question-btn"
@@ -400,9 +461,9 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                           )}
                           {onToggleViewMode && (
                             <button 
-                              className="chat-view-btn"
+                              className="btn btn-secondary btn-sm"
                               onClick={() => onToggleViewMode(question.id)}
-                              title="Jump to this message in conversation view"
+                              title="View in conversation mode"
                             >
                               View
                             </button>
@@ -412,7 +473,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                     </tr>
                     {isExpanded && (
                       <tr className="expanded-row">
-                        <td colSpan={allFields.length + 2} className="expanded-row-cell">
+                        <td colSpan={visibleFields.length + 2} className="expanded-row-cell">
                           <div className="expanded-content-grid">
                             {allFields.map(field => {
                               const cellValue = getCellValue(question, field);

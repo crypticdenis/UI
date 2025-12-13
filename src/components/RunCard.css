@@ -1,0 +1,314 @@
+/* RunCard Component Styles */
+
+/* ========================================
+   CSS VARIABLES
+   ======================================== */
+:root {
+  /* Primary colors */
+  --rc-primary: #60a5fa;
+  --rc-primary-dark: #3b82f6;
+  --rc-primary-alpha: rgba(96, 165, 250, 0.3);
+  
+  /* Background colors */
+  --rc-bg-dark: rgba(15, 23, 42, 0.4);
+  --rc-bg-dark-hover: rgba(15, 23, 42, 0.6);
+  --rc-bg-darker: rgba(15, 23, 42, 0.95);
+  --rc-bg-medium: rgba(30, 41, 59, 0.6);
+  
+  /* Border colors */
+  --rc-border-light: rgba(255, 255, 255, 0.08);
+  --rc-border-primary: rgba(96, 165, 250, 0.3);
+  --rc-border-primary-strong: rgba(96, 165, 250, 0.2);
+  
+  /* Text colors */
+  --rc-text-primary: #cbd5e1;
+  --rc-text-secondary: #94a3b8;
+  --rc-text-accent: #60a5fa;
+  
+  /* Shadow colors */
+  --rc-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --rc-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.15);
+  --rc-shadow-lg: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --rc-shadow-xl: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --rc-shadow-glow: 0 4px 12px rgba(96, 165, 250, 0.3);
+  --rc-shadow-glow-lg: 0 4px 16px rgba(96, 165, 250, 0.3);
+  
+  /* Spacing */
+  --rc-padding-sm: 6px 12px;
+  --rc-padding-md: 8px 16px;
+  --rc-padding-lg: 10px 14px;
+  --rc-padding-xl: 20px;
+  
+  /* Border radius */
+  --rc-radius-sm: 6px;
+  --rc-radius-md: 8px;
+  --rc-radius-lg: 12px;
+  
+  /* Transitions */
+  --rc-transition-fast: all 0.2s ease;
+  --rc-transition-normal: all 0.3s ease;
+  --rc-transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ========================================
+   BASE COMPONENTS
+   ======================================== */
+
+/* Card title - reusable for both modes */
+.run-card-title,
+.run-card-list h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--rc-text-accent);
+  margin: 0;
+  padding: var(--rc-padding-lg);
+  background: var(--rc-bg-dark);
+  border-radius: var(--rc-radius-md);
+  border: 1px solid var(--rc-border-primary);
+  cursor: pointer;
+  transition: var(--rc-transition-smooth);
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  box-shadow: var(--rc-shadow-sm);
+}
+
+.run-card-title:hover,
+.run-card-list h3:hover {
+  background: var(--rc-bg-dark-hover);
+  border-color: var(--rc-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--rc-shadow-glow);
+}
+
+/* Metric item - reusable base style */
+.metric-item-base {
+  background: var(--rc-bg-dark);
+  padding: var(--rc-padding-lg);
+  border-radius: var(--rc-radius-md);
+  border: 1px solid var(--rc-border-light);
+  transition: var(--rc-transition-normal);
+}
+
+.metric-item-base:hover {
+  background: var(--rc-bg-dark-hover);
+  border-color: var(--rc-border-primary);
+  transform: translateY(-1px);
+}
+
+/* Metric label - reusable */
+.metric-label-base {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+/* Metric value - reusable */
+.metric-value-base {
+  font-size: 16px;
+  font-weight: 700;
+  padding: var(--rc-padding-sm);
+  border-radius: var(--rc-radius-sm);
+  box-shadow: var(--rc-shadow-md);
+}
+
+/* ========================================
+   CARD MODE SPECIFIC
+   ======================================== */
+
+.run-card-list .metric-detail-item {
+  background: var(--rc-bg-dark);
+  padding: var(--rc-padding-lg);
+  border-radius: var(--rc-radius-md);
+  border: 1px solid var(--rc-border-light);
+  transition: var(--rc-transition-normal);
+  cursor: pointer;
+}
+
+.run-card-list .metric-detail-item:hover {
+  background: var(--rc-bg-dark-hover);
+  border-color: var(--rc-border-primary);
+  transform: translateY(-1px);
+}
+
+.run-card-list .metric-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.run-card-list .metric-detail-value {
+  font-size: 16px;
+  font-weight: 700;
+  padding: var(--rc-padding-sm);
+  border-radius: var(--rc-radius-sm);
+  box-shadow: var(--rc-shadow-md);
+}
+
+/* ========================================
+   HEADER MODE SPECIFIC
+   ======================================== */
+
+.details-header-main .metric-detail-item {
+  background: var(--rc-bg-dark);
+  padding: var(--rc-padding-lg);
+  border-radius: var(--rc-radius-md);
+  border: 1px solid var(--rc-border-light);
+  transition: var(--rc-transition-normal);
+}
+
+.details-header-main .metric-detail-item:hover {
+  background: var(--rc-bg-dark-hover);
+  border-color: var(--rc-border-primary);
+  transform: translateY(-1px);
+}
+
+.details-header-main .metric-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--rc-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+}
+
+.details-header-main .metric-detail-value {
+  font-size: 16px;
+  font-weight: 700;
+  padding: var(--rc-padding-sm);
+  border-radius: var(--rc-radius-sm);
+  box-shadow: var(--rc-shadow-md);
+}
+
+.details-header-main .execution-count-badge {
+  background: var(--rc-bg-dark);
+  border: 1px solid var(--rc-border-primary);
+  padding: var(--rc-padding-md);
+  border-radius: var(--rc-radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rc-text-primary);
+  box-shadow: var(--rc-shadow-sm);
+}
+
+/* ========================================
+   TOGGLE BUTTON
+   ======================================== */
+
+.run-card-toggle-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 0 8px 0;
+  width: 100%;
+  flex-basis: 100%;
+}
+
+.metric-expand-btn {
+  background: var(--rc-bg-medium);
+  border: 1px solid var(--rc-border-primary);
+  color: var(--rc-text-primary);
+  padding: var(--rc-padding-md);
+  border-radius: var(--rc-radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: var(--rc-transition-smooth);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  box-shadow: var(--rc-shadow-lg);
+}
+
+.metric-expand-btn:hover {
+  background: var(--rc-bg-dark-hover);
+  border-color: var(--rc-primary);
+  color: var(--rc-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--rc-shadow-glow-lg);
+}
+
+.metric-expand-btn svg {
+  transition: var(--rc-transition-fast);
+  flex-shrink: 0;
+}
+
+/* ========================================
+   EXPANDABLE CONTAINER
+   ======================================== */
+
+.run-card-expanded-container {
+  width: 100%;
+  flex-basis: 100%;
+  background: var(--rc-bg-darker);
+  border: 1px solid var(--rc-border-primary-strong);
+  border-radius: var(--rc-radius-lg);
+  padding: var(--rc-padding-xl);
+  margin-top: 12px;
+  animation: expandContainer 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: var(--rc-shadow-xl);
+}
+
+@keyframes expandContainer {
+  from {
+    opacity: 0;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-top: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+    padding-top: var(--rc-padding-xl);
+    padding-bottom: var(--rc-padding-xl);
+    margin-top: 12px;
+  }
+}
+
+/* ========================================
+   METRICS SECTIONS
+   ======================================== */
+
+.run-card-metrics-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.metrics-section-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--rc-text-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid var(--rc-border-primary);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.metrics-section-title::before {
+  content: '';
+  width: 4px;
+  height: 16px;
+  background: var(--rc-primary);
+  border-radius: 2px;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+}

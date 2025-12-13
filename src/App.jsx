@@ -8,26 +8,34 @@ import RunComparison from './views/RunComparison.jsx';
 import ConversationComparison from './views/ConversationComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
 import NavigationSidebar from './components/NavigationSidebar.jsx';
+import { useNavigationState } from './hooks/useNavigationState.js';
+import { useProjects } from './hooks/useAPI.js';
 import './styles/App.css';
 
-// API Configuration
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-
 function App() {
-  const [projects, setProjects] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentView, setCurrentView] = useState('workflows'); // 'workflows', 'runs', 'details', 'conversation', 'comparison'
-  const [viewMode, setViewMode] = useState('table'); // 'table' or 'conversation'
   const [highlightExecutionId, setHighlightExecutionId] = useState(null);
-  
-  // Navigation state
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [selectedWorkflow, setSelectedWorkflow] = useState(null);
-  const [selectedRunVersion, setSelectedRunVersion] = useState(null);
-  const [selectedRunQuestions, setSelectedRunQuestions] = useState([]);
-  const [selectedRun, setSelectedRun] = useState(null);
   const [autoExpandExecutionId, setAutoExpandExecutionId] = useState(null);
+  
+  // Fetch projects from API
+  const { projects, loading, error } = useProjects();
+  
+  // Navigation state with localStorage persistence
+  const {
+    currentView,
+    setCurrentView,
+    viewMode,
+    setViewMode,
+    selectedProject,
+    setSelectedProject,
+    selectedWorkflow,
+    setSelectedWorkflow,
+    selectedRunVersion,
+    setSelectedRunVersion,
+    selectedRunQuestions,
+    setSelectedRunQuestions,
+    selectedRun,
+    setSelectedRun,
+  } = useNavigationState();
   
   const [comparisonBaseID, setComparisonBaseID] = useState(null);
   const [comparisonRunVersion, setComparisonRunVersion] = useState(null);
@@ -39,34 +47,16 @@ function App() {
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [navSidebarCollapsed, setNavSidebarCollapsed] = useState(false);
 
-  // Fetch projects from API and auto-select the single project
+  // Auto-select the single project when projects load
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const response = await fetch(`${API_BASE_URL}/projects`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch projects: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setProjects(data);
-
-        // Auto-select the single hardcoded project and show workflows
-        if (data.length > 0) {
-          setSelectedProject(data[0]);
-          setCurrentView('workflows');
-        }
-      } catch (err) {
-        console.error('Error fetching projects:', err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
+    if (projects.length > 0 && !selectedProject) {
+      setSelectedProject(projects[0]);
+      // Only set to workflows if no view is already set from localStorage
+      if (!localStorage.getItem('app_currentView')) {
+        setCurrentView('workflows');
       }
-    };
-
-    fetchProjects();
-  }, []);
+    }
+  }, [projects, selectedProject, setSelectedProject, setCurrentView]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -76,13 +66,22 @@ function App() {
         if (viewerContent) {
           setViewerContent(null);
         } else if (currentView === 'comparison') {
-          handleCloseComparison();
+          setCurrentView('details');
+          setComparisonBaseID(null);
+          setComparisonRunVersion(null);
         } else if (currentView === 'runComparison') {
-          handleCloseRunComparison();
+          setCurrentView('runs');
+          setRunComparisonWorkflowId(null);
+          setRunComparisonRunIds([]);
         } else if (currentView === 'details') {
-          handleBackToRuns();
+          setCurrentView('runs');
+          setSelectedRunVersion(null);
+          setSelectedRunQuestions([]);
         } else if (currentView === 'runs') {
-          handleBackToWorkflows();
+          setCurrentView('workflows');
+          setSelectedWorkflow(null);
+          setSelectedRunVersion(null);
+          setSelectedRunQuestions([]);
         }
       }
       
@@ -96,7 +95,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentView, viewerContent]);
+  }, [currentView, viewerContent, setCurrentView, setComparisonBaseID, setComparisonRunVersion, setRunComparisonWorkflowId, setRunComparisonRunIds, setSelectedWorkflow, setSelectedRunVersion, setSelectedRunQuestions, setViewerContent]);
 
 
   // Navigation handlers

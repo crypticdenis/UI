@@ -1,0 +1,129 @@
+/* ColumnFilter Component Styles */
+
+.column-filter-wrapper {
+  position: relative;
+}
+
+.column-filter-btn {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.column-filter-btn.active {
+  background: var(--primary-alpha);
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.column-filter-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  min-width: 320px;
+  max-height: 500px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideDownFade 0.2s ease;
+}
+
+@keyframes slideDownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.column-filter-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-subtle);
+}
+
+.column-filter-header h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-link:hover {
+  background: var(--primary-alpha);
+}
+
+.column-filter-list {
+  padding: 12px;
+  overflow-y: auto;
+  max-height: 400px;
+}
+
+.column-filter-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  gap: 12px;
+}
+
+.column-filter-item:hover {
+  background: var(--bg-subtle);
+}
+
+.column-filter-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--primary-color);
+}
+
+.column-filter-label {
+  flex: 1;
+  font-size: 14px;
+  color: var(--text-primary);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.column-badge {
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.column-badge.metric-badge {
+  background: var(--primary-alpha);
+  color: var(--primary-color);
+}

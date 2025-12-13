@@ -1,242 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { getScoreColor, categorizeMetrics, calculateAvgScore } from '../utils/metricUtils';
+import ColumnFilter from '../components/ColumnFilter';
+import ChatExchange from '../components/ChatExchange';
+import { getScoreColor } from '../utils/metricUtils';
 import '../styles/SessionConversationView.css';
-
-const MetricBadge = ({ name, value, reason }) => {
-  const color = getScoreColor(value);
-  return (
-    <div 
-      className="metric-badge" 
-      style={{ borderColor: color }}
-      title={reason || `${name}: ${value.toFixed(2)}`}
-    >
-      <span className="metric-name">{name}</span>
-      <span className="metric-value" style={{ color }}>{value.toFixed(2)}</span>
-    </div>
-  );
-};
-
-const SubExecution = ({ subExec }) => {
-  return (
-    <div className="sub-execution">
-      <div className="sub-execution-header">
-        <span className="sub-execution-id">{subExec.id}</span>
-        <span className="sub-execution-meta">
-          {subExec.duration && `${subExec.duration}s`}
-          {subExec.totalTokens && ` • ${subExec.totalTokens} tokens`}
-        </span>
-      </div>
-      {subExec.input && (
-        <div className="sub-execution-content">{subExec.input}</div>
-      )}
-      {subExec.output && (
-        <div className="sub-execution-output">→ {subExec.output}</div>
-      )}
-    </div>
-  );
-};
-
-const formatTimestamp = (timestamp) => {
-  if (!timestamp) return '';
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString('en-US', { 
-    hour: '2-digit', 
-    minute: '2-digit', 
-    second: '2-digit',
-    hour12: false 
-  });
-};
-
-const ChatExchange = ({ execution, highlighted }) => {
-  const [showEvaluationDetails, setShowEvaluationDetails] = useState(false);
-  
-  // Extract and categorize metrics using utility function
-  const { qualityMetrics, performanceMetrics } = categorizeMetrics(execution);
-  
-  // Calculate overall score from quality metrics using utility function
-  const avgScore = calculateAvgScore(qualityMetrics);
-  
-  return (
-    <>
-      {/* User Message */}
-      {execution.input && (
-        <div className={`chat-message user-message ${highlighted ? 'highlighted' : ''}`} id={`execution-${execution.id}`}>
-          <div className="message-header-tag">
-            <span className="message-role-label">User</span>
-            <span className="message-timestamp-header">
-              {(execution.executionTs || execution.creationTs) && formatTimestamp(execution.executionTs || execution.creationTs)}
-            </span>
-          </div>
-          <div className="message-bubble">
-            <div className="message-text">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>{execution.input}</ReactMarkdown>
-            </div>
-          </div>
-        </div>
-      )}
-      
-      {/* Assistant Message */}
-      {execution.output && (
-        <div className={`chat-message assistant-message ${highlighted ? 'highlighted' : ''}`}>
-          <div className="message-header-tag">
-            <span className="message-role-label">Assistant</span>
-            <span className="message-timestamp-header">
-              {(execution.executionTs || execution.creationTs) && formatTimestamp(execution.executionTs || execution.creationTs)}
-            </span>
-            {avgScore > 0 && (
-              <span className="quality-score-badge" style={{ backgroundColor: getScoreColor(avgScore) }}>
-                {avgScore.toFixed(2)}
-              </span>
-            )}
-          </div>
-          <div className="message-bubble">
-            <div className={`message-bubble-content ${showEvaluationDetails ? 'expanded' : ''}`}>
-
-              <div className="message-text-section">
-                <div className="message-text">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{execution.output}</ReactMarkdown>
-                </div>
-                {execution.duration && execution.totalTokens && (
-                  <div className="message-footer-inline">
-                    <span className="message-meta-inline">
-                      {execution.totalTokens} tokens • {execution.duration}s
-                    </span>
-                  </div>
-                )}
-
-                {/* Expected Output Section - shown when evaluation is expanded */}
-                {showEvaluationDetails && execution.expectedOutput && (
-                  <div className="expected-output-block">
-                    <div className="expected-header">
-                      <span className="expected-icon">✓</span>
-                      <span className="expected-label">Expected Output</span>
-                    </div>
-                    <div className="expected-text">{execution.expectedOutput}</div>
-                  </div>
-                )}
-
-                {/* Groundtruth Section - shown when evaluation is expanded */}
-                {showEvaluationDetails && execution.groundtruth && (
-                  <div className="expected-output-block groundtruth-block">
-                    <div className="expected-header">
-                      <span className="expected-icon">📋</span>
-                      <span className="expected-label">Ground Truth</span>
-                    </div>
-                    <div className="expected-text">{execution.groundtruth}</div>
-                  </div>
-                )}
-
-                {/* Toggle Button underneath message */}
-                {(Object.keys(qualityMetrics).length > 0 || Object.keys(performanceMetrics).length > 0 || execution.expectedOutput || execution.groundtruth) && (
-                  <button
-                    className="evaluation-toggle-button"
-                    onClick={() => setShowEvaluationDetails(!showEvaluationDetails)}
-                  >
-                    {showEvaluationDetails ? 'Hide Evaluation Details' : 'Show Evaluation Details'}
-                  </button>
-                )}
-              </div>
-
-              {/* Evaluation Details Section - Metrics on the right */}
-              {(Object.keys(qualityMetrics).length > 0 || Object.keys(performanceMetrics).length > 0) && (
-                <div className="evaluation-details-section">
-                  {showEvaluationDetails && (
-                    <div className="evaluation-content">
-                  <div className="evaluation-grid">
-                      {/* Quality Metrics Column */}
-                      {Object.keys(qualityMetrics).length > 0 && (
-                        <div className="metrics-column">
-                          <h4 className="metrics-column-title">QUALITY METRICS</h4>
-                          <div className="quality-metrics-list">
-                            {Object.entries(qualityMetrics).map(([name, metric]) => (
-                              <div key={name} className="quality-metric-item">
-                                <div className="metric-item-header">
-                                  <span className="metric-item-name">{name}</span>
-                                  <span className="metric-item-value">{Math.round(metric.value * 100)}%</span>
-                                </div>
-                                <div className="metric-progress-bar">
-                                  <div 
-                                    className="metric-progress-fill"
-                                    style={{ 
-                                      width: `${metric.value * 100}%`,
-                                      backgroundColor: getScoreColor(metric.value)
-                                    }}
-                                  />
-                                </div>
-                                {metric.reason && (
-                                  <div className="metric-item-reason">
-                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                      {metric.reason}
-                                    </ReactMarkdown>
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Performance Metrics Column */}
-                      {Object.keys(performanceMetrics).length > 0 && (
-                        <div className="metrics-column">
-                          <h4 className="metrics-column-title">PERFORMANCE METRICS</h4>
-                          <div className="performance-metrics-list">
-                            {Object.entries(performanceMetrics).map(([name, metric]) => {
-                              const lowerName = name.toLowerCase();
-                              let displayValue = metric.value;
-                              
-                              if (lowerName.includes('time') || lowerName.includes('duration')) {
-                                displayValue = `${metric.value}s`;
-                              } else if (lowerName.includes('token')) {
-                                displayValue = Math.round(metric.value);
-                              } else if (lowerName.includes('cost')) {
-                                displayValue = `$${metric.value.toFixed(4)}`;
-                              }
-                              
-                              return (
-                                <div key={name} className="performance-metric-item">
-                                  <span className="perf-name">{name}</span>
-                                  <span className="perf-value">{displayValue}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Overall Score */}
-                    {avgScore > 0 && (
-                      <div className="overall-score-section">
-                        <div className="overall-score-value" style={{ color: getScoreColor(avgScore) }}>
-                          {avgScore.toFixed(2)}
-                        </div>
-                        <div className="overall-score-label">Overall Quality Score</div>
-                      </div>
-                    )}
-                    
-                    {/* Sub-executions */}
-                    {execution.subExecutions && execution.subExecutions.length > 0 && (
-                      <div className="sub-executions">
-                        <h4 className="sub-executions-title">Sub-Executions</h4>
-                        {execution.subExecutions.map(subExec => (
-                          <SubExecution key={subExec.id} subExec={subExec} />
-                        ))}
-                      </div>
-                    )}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
-  );
-};
 
 const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewMode, highlightExecutionId, _onCompareSession, allRuns, onNavCollapse }) => {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
@@ -244,6 +10,11 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   const [compareRunVersion, setCompareRunVersion] = useState(null);
   const [showCompareDropdown, setShowCompareDropdown] = useState(false);
   const [sessionsSidebarCollapsed, setSessionsSidebarCollapsed] = useState(false);
+  const [visibleMetrics, setVisibleMetrics] = useState(() => {
+    // Load saved preferences from localStorage
+    const saved = localStorage.getItem('sessionConversation_visibleMetrics');
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  });
   
   // Group executions by sessionId
   const sessionGroups = useMemo(() => {
@@ -301,6 +72,64 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   const filteredSessions = useMemo(() => {
     return sessionGroups;
   }, [sessionGroups]);
+
+  // Extract all available metrics from executions
+  const allMetricFields = useMemo(() => {
+    if (!executions || executions.length === 0) return [];
+    
+    const fieldMap = new Map();
+    
+    executions.forEach(exec => {
+      Object.keys(exec).forEach(key => {
+        const val = exec[key];
+        // Check if it's a metric object with value/reason structure
+        if (val && typeof val === 'object' && 'value' in val) {
+          if (!fieldMap.has(key)) {
+            fieldMap.set(key, {
+              key,
+              label: key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()
+                .replace(/\b\w/g, l => l.toUpperCase()),
+              isMetric: true
+            });
+          }
+        }
+      });
+    });
+    
+    const fields = Array.from(fieldMap.values());
+    
+    // Initialize visible metrics on first render if empty
+    if (visibleMetrics.size === 0 && fields.length > 0) {
+      const defaultVisible = new Set(fields.map(f => f.key));
+      setVisibleMetrics(defaultVisible);
+    }
+    
+    return fields;
+  }, [executions, visibleMetrics.size]);
+
+  // Toggle metric visibility
+  const toggleMetricVisibility = (metricKey) => {
+    setVisibleMetrics(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(metricKey)) {
+        newSet.delete(metricKey);
+      } else {
+        newSet.add(metricKey);
+      }
+      return newSet;
+    });
+  };
+
+  // Select/deselect all metrics
+  const toggleAllMetrics = () => {
+    if (visibleMetrics.size === allMetricFields.length) {
+      // Deselect all - but keep at least one metric visible
+      setVisibleMetrics(new Set([allMetricFields[0]?.key]));
+    } else {
+      // Select all
+      setVisibleMetrics(new Set(allMetricFields.map(f => f.key)));
+    }
+  };
   
   // Handle highlighting and navigation to specific execution
   useEffect(() => {
@@ -468,18 +297,29 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   return (
     <div className="session-conversation-view">
       {/* Header */}
-        <div className="conversation-header">
+      <div className="conversation-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
           <button className="btn btn-secondary" onClick={onBack}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 12H5M12 19l-7-7 7-7"/>
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
             Back to Runs
           </button>
-          <h1>Run: {runVersion}</h1>
+
+          {/* Column Filter */}
+          {allMetricFields.length > 0 && (
+            <ColumnFilter
+              allFields={allMetricFields}
+              visibleColumns={visibleMetrics}
+              onToggleColumn={toggleMetricVisibility}
+              onToggleAll={toggleAllMetrics}
+              storageKey="sessionConversation_visibleMetrics"
+            />
+          )}
 
           {/* Comparison Dropdown */}
           {availableCompareRuns.length > 0 && (
-            <div className="compare-selector-container">
+          <div className="compare-selector-container">
               {compareRunVersion ? (
                 <div className="compare-active">
                   <span className="compare-label">Comparing with:</span>
@@ -560,16 +400,17 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
               )}
             </div>
           )}
-
-          <button className="btn btn-secondary" onClick={onToggleViewMode}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-          <line x1="3" y1="9" x2="21" y2="9"/>
-          <line x1="9" y1="21" x2="9" y2="9"/>
-            </svg>
-            Table View
-          </button>
         </div>
+
+        <button className="btn btn-secondary" onClick={onToggleViewMode}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+            <line x1="3" y1="9" x2="21" y2="9"/>
+            <line x1="9" y1="21" x2="9" y2="9"/>
+          </svg>
+          Table View
+        </button>
+      </div>
         
         <div className="conversation-container">
             <div className={`sessions-sidebar ${sessionsSidebarCollapsed ? 'collapsed' : ''}`}>
@@ -652,6 +493,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                             key={execution.id}
                             execution={execution}
                             highlighted={highlightedExecId === execution.id}
+                            visibleMetrics={visibleMetrics}
                           />
                         ))}
                       </div>
@@ -699,6 +541,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                             key={execution.id}
                             execution={execution}
                             highlighted={false}
+                            visibleMetrics={visibleMetrics}
                           />
                         ))}
                       </div>
@@ -728,6 +571,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                           key={execution.id}
                           execution={execution}
                           highlighted={highlightedExecId === execution.id}
+                          visibleMetrics={visibleMetrics}
                         />
                       ))}
                     </div>

@@ -1,5 +1,6 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { getScoreColor, getGradeInfo } from '../utils/metricUtils';
+import './RunCard.css';
 
 /**
  * Unified component to display run information
@@ -8,11 +9,12 @@ import { getScoreColor, getGradeInfo } from '../utils/metricUtils';
  * Modes:
  * - 'card': Full card with header, metadata, and metrics (for RunsOverview list)
  * - 'header': Details header with title and metrics (for RunDetails header)
+ * - 'compact': Like card but without expandable details (for SessionConversationView)
  * - 'metrics-only': Just the metrics bar (standalone)
  */
 const RunCard = ({
   // Display mode
-  mode = 'metrics-only', // 'card' | 'header' | 'metrics-only'
+  mode = 'metrics-only', // 'card' | 'header' | 'compact' | 'metrics-only'
 
   // Run data (raw data - component will calculate what it needs)
   run, // The run object with all data
@@ -30,9 +32,9 @@ const RunCard = ({
   totalTokens,
 
   // Display options
-  maxMetrics = 3,
+  maxMetrics = Infinity, // Show all metrics by default
   showAvgScore = true,
-  showAllScores = false, // Show the full score list below metrics (for 'card' mode)
+  _showAllScores = false, // Show the full score list below metrics (for 'card' mode) - deprecated
   onViewDetails // For 'card' mode button
 }) => {
   // Extract data from run object if provided (new API)
@@ -44,6 +46,9 @@ const RunCard = ({
   // Memoize data objects to prevent unnecessary re-renders
   const runData = useMemo(() => run || {}, [run]);
   const executionsData = useMemo(() => questions || run?.runs || [], [questions, run]);
+
+  // State for collapsible metrics (used in header mode and card mode) - default to collapsed for better UX
+  const [showAllMetrics, setShowAllMetrics] = useState(false);
 
   // Determine run status - simple: has finish_ts or not
   const isFinished = runFinishTs != null;
@@ -341,19 +346,17 @@ const RunCard = ({
     </>
   );
 
-  // Header mode (for RunDetails header with title and metrics) - completely flat
-  if (mode === 'header') {
+  // Compact mode (for SessionConversationView - like card but no expandable section)
+  if (mode === 'compact') {
     return (
       <div className="details-header-main">
         {/* Title */}
         <h1>Run: {runVersion}</h1>
 
-
         {/* Execution count badge */}
         <span className="execution-count-badge">
           {runQuestionCount} execution{runQuestionCount !== 1 ? 's' : ''}
         </span>
-
 
         {/* Total duration sum */}
         {totalDurationSum && (
@@ -374,7 +377,61 @@ const RunCard = ({
             </div>
           </div>
         )}
-        {/* All metrics as direct children */}
+
+        {/* Average Score */}
+        {showAvgScore && calculatedAvgScore != null && (
+          <div className="metric-detail-item">
+            <div className="metric-detail-label">AVG SCORE</div>
+            <div
+              className="metric-detail-value"
+              style={{
+                backgroundColor: gradeInfo.bgColor,
+                color: gradeInfo.color
+              }}
+            >
+              {calculatedAvgScore.toFixed(2)}
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Header mode (for RunDetails header with title and metrics) - completely flat
+  if (mode === 'header') {
+    const hasMoreMetrics = calculatedScoreFields.length > 0;
+
+    return (
+      <div className={`details-header-main ${showAllMetrics ? 'run-card-expanded' : ''}`}>
+        {/* Title */}
+        <h1>Run: {runVersion}</h1>
+
+        {/* Execution count badge */}
+        <span className="execution-count-badge">
+          {runQuestionCount} execution{runQuestionCount !== 1 ? 's' : ''}
+        </span>
+
+        {/* Total duration sum */}
+        {totalDurationSum && (
+          <div className="metric-detail-item">
+            <div className="metric-detail-label">TOTAL DURATION</div>
+            <div className="metric-detail-value metric-duration">
+              {totalDurationSum}
+            </div>
+          </div>
+        )}
+
+        {/* Total tokens sum */}
+        {totalTokensSum > 0 && (
+          <div className="metric-detail-item">
+            <div className="metric-detail-label">TOTAL TOKENS</div>
+            <div className="metric-detail-value metric-tokens">
+              {totalTokensSum}
+            </div>
+          </div>
+        )}
+
+        {/* Average Score only */}
         {showAvgScore && calculatedAvgScore != null && (
           <div className="metric-detail-item">
             <div className="metric-detail-label">AVG SCORE</div>
@@ -390,40 +447,82 @@ const RunCard = ({
           </div>
         )}
 
-        {calculatedScoreFields.slice(0, maxMetrics).map(field => {
-          // Use calculated metrics (works for both sidebar and RunsOverview navigation)
-          const avgValue = parseFloat(calculatedMetrics[`avg_${field.key}`]);
-          const displayValue = !isNaN(avgValue) ? avgValue.toFixed(2) : '-';
-
-          return (
-            <div key={field.key} className="metric-detail-item">
-              <div className="metric-detail-label">{field.label.toUpperCase()}</div>
-              <div
-                className="metric-detail-value"
-                style={{ backgroundColor: !isNaN(avgValue) ? getScoreColor(avgValue) : '#334155' }}
-              >
-                {displayValue}
-              </div>
-            </div>
-          );
-        })}
-
-        {calculatedDuration && (
-          <div className="metric-detail-item">
-            <div className="metric-detail-label">AVG DURATION</div>
-            <div
-              className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
+        {/* Toggle button centered underneath */}
+        {hasMoreMetrics && (
+          <div className="run-card-toggle-container">
+            <button 
+              className="metric-expand-btn"
+              onClick={() => setShowAllMetrics(!showAllMetrics)}
             >
-              {calculatedDuration}
-            </div>
+              <svg 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2"
+                style={{ 
+                  transform: showAllMetrics ? 'rotate(180deg)' : 'rotate(0deg)',
+                  transition: 'transform 0.2s'
+                }}
+              >
+                <path d="M6 9l6 6 6-6"/>
+              </svg>
+              <span>{showAllMetrics ? 'Hide Details' : 'Show Details'}</span>
+            </button>
           </div>
         )}
 
-        {calculatedTotalTokens > 0 && (
-          <div className="metric-detail-item">
-            <div className="metric-detail-label">AVG TOKENS</div>
-            <div className="metric-detail-value metric-tokens">
-              {calculatedTotalTokens}
+        {/* Expandable metrics container */}
+        {showAllMetrics && (
+          <div className="run-card-expanded-container">
+            {/* All quality metrics */}
+            <div className="run-card-metrics-section">
+              <div className="metrics-section-title">Quality Metrics</div>
+              <div className="metrics-grid">
+                {calculatedScoreFields.map(field => {
+                  const avgValue = parseFloat(calculatedMetrics[`avg_${field.key}`]);
+                  const displayValue = !isNaN(avgValue) ? avgValue.toFixed(2) : '-';
+
+                  return (
+                    <div key={field.key} className="metric-detail-item">
+                      <div className="metric-detail-label">{field.label.toUpperCase()}</div>
+                      <div
+                        className="metric-detail-value"
+                        style={{ backgroundColor: !isNaN(avgValue) ? getScoreColor(avgValue) : '#334155' }}
+                      >
+                        {displayValue}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Performance metrics */}
+            <div className="run-card-metrics-section">
+              <div className="metrics-section-title">Performance</div>
+              <div className="metrics-grid">
+                {calculatedDuration && (
+                  <div className="metric-detail-item">
+                    <div className="metric-detail-label">AVG DURATION</div>
+                    <div
+                      className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
+                    >
+                      {calculatedDuration}
+                    </div>
+                  </div>
+                )}
+
+                {calculatedTotalTokens > 0 && (
+                  <div className="metric-detail-item">
+                    <div className="metric-detail-label">AVG TOKENS</div>
+                    <div className="metric-detail-value metric-tokens">
+                      {calculatedTotalTokens}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}
@@ -442,12 +541,15 @@ const RunCard = ({
 
   // Full card mode (for RunsOverview list) - completely flat structure
   // All elements are direct children of the main run-card container
+  const hasMoreMetrics = calculatedScoreFields.length > 0;
+
   return (
     <div
-      className={`run-card run-card-list clickable ${!isFinished ? 'run-card-running' : ''}`}
+      className={`run-card run-card-list ${!isFinished ? 'run-card-running' : ''} ${showAllMetrics ? 'run-card-expanded' : ''}`}
       data-run-version={runVersion}
       data-status={runStatus}
       onClick={onClick}
+      style={{ cursor: 'pointer' }}
     >
       {/* Run version title */}
       <h3>{runVersion}</h3>
@@ -506,7 +608,7 @@ const RunCard = ({
         </div>
       )}
 
-      {/* All metrics as direct children */}
+      {/* Average Score */}
       {showAvgScore && calculatedAvgScore != null && (
         <div className="metric-detail-item">
           <div className="metric-detail-label">AVG SCORE</div>
@@ -522,72 +624,87 @@ const RunCard = ({
         </div>
       )}
 
-      {calculatedScoreFields.slice(0, maxMetrics).map(field => {
-        // Get numeric value from runData (for sorting and color)
-        const numericValue = runData[`avg_${field.key}`];
-        const formattedValue = runData[`avg_${field.key}_formatted`];
-        const displayValue = formattedValue || (numericValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-');
-        
-        return (
-          <div key={field.key} className="metric-detail-item">
-            <div className="metric-detail-label">{field.label.toUpperCase()}</div>
-            <div
-              className="metric-detail-value"
-              style={{ backgroundColor: numericValue != null && !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
+      {/* Toggle button centered underneath */}
+      {hasMoreMetrics && (
+        <div className="run-card-toggle-container">
+          <button 
+            className="metric-expand-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowAllMetrics(!showAllMetrics);
+            }}
+          >
+            <svg 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2"
+              style={{ 
+                transform: showAllMetrics ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.2s'
+              }}
             >
-              {displayValue}
+              <path d="M6 9l6 6 6-6"/>
+            </svg>
+            <span>{showAllMetrics ? 'Hide Details' : 'Show Details'}</span>
+          </button>
+        </div>
+      )}
+
+      {/* Expandable metrics container */}
+      {showAllMetrics && (
+        <div className="run-card-expanded-container">
+          {/* All quality metrics */}
+          <div className="run-card-metrics-section">
+            <div className="metrics-section-title">Quality Metrics</div>
+            <div className="metrics-grid">
+              {calculatedScoreFields.map(field => {
+                const numericValue = runData[`avg_${field.key}`];
+                const formattedValue = runData[`avg_${field.key}_formatted`];
+                const displayValue = formattedValue || (numericValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-');
+                
+                return (
+                  <div key={field.key} className="metric-detail-item">
+                    <div className="metric-detail-label">{field.label.toUpperCase()}</div>
+                    <div
+                      className="metric-detail-value"
+                      style={{ backgroundColor: numericValue != null && !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
+                    >
+                      {displayValue}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-        );
-      })}
 
-      {calculatedDuration && (
-        <div className="metric-detail-item">
-          <div className="metric-detail-label">AVG DURATION</div>
-          <div
-            className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
-          >
-            {calculatedDuration}
+          {/* Performance metrics */}
+          <div className="run-card-metrics-section">
+            <div className="metrics-section-title">Performance</div>
+            <div className="metrics-grid">
+              {calculatedDuration && (
+                <div className="metric-detail-item">
+                  <div className="metric-detail-label">AVG DURATION</div>
+                  <div
+                    className={`metric-detail-value ${calculatedDuration === '-' ? 'metric-status-unfinished' : 'metric-duration'}`}
+                  >
+                    {calculatedDuration}
+                  </div>
+                </div>
+              )}
+
+              {calculatedTotalTokens > 0 && (
+                <div className="metric-detail-item">
+                  <div className="metric-detail-label">AVG TOKENS</div>
+                  <div className="metric-detail-value metric-tokens">
+                    {calculatedTotalTokens}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-
-      {calculatedTotalTokens > 0 && (
-        <div className="metric-detail-item">
-          <div className="metric-detail-label">AVG TOKENS</div>
-          <div className="metric-detail-value metric-tokens">
-            {calculatedTotalTokens}
-          </div>
-        </div>
-      )}
-
-      {/* Full Score List (optional expanded view) */}
-      {showAllScores && calculatedScoreFields.length > 0 && (
-        <div className="run-card-scores">
-          {calculatedScoreFields.map(field => {
-            const avgValue = calculatedMetrics[`avg_${field.key}`];
-            // Ensure we extract value if it's an object
-            const displayValue = avgValue && typeof avgValue === 'object' && 'value' in avgValue
-              ? avgValue.value
-              : avgValue;
-            return (
-              <div key={field.key} className="score-item">
-                <span className="score-label">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M12 1v6m0 6v6"/>
-                  </svg>
-                  {field.label.split(' ')[0]}
-                </span>
-                <span
-                  className="score-value"
-                  style={{ backgroundColor: getScoreColor(parseFloat(displayValue)) }}
-                >
-                  {displayValue}
-                </span>
-              </div>
-            );
-          })}
         </div>
       )}
 
