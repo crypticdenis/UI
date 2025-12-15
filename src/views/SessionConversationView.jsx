@@ -2,6 +2,9 @@ import { useState, useMemo, useEffect } from 'react';
 import ColumnFilter from '../components/ColumnFilter';
 import ChatExchange from '../components/ChatExchange';
 import { getScoreColor } from '../utils/metricUtils';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useMetricFields } from '../hooks/useMetricFields';
+import { useSessionGroups } from '../hooks/useSessionGroups';
 import '../styles/SessionConversationView.css';
 
 const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewMode, highlightExecutionId, _onCompareSession, allRuns, onNavCollapse }) => {
@@ -10,126 +13,27 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   const [compareRunVersion, setCompareRunVersion] = useState(null);
   const [showCompareDropdown, setShowCompareDropdown] = useState(false);
   const [sessionsSidebarCollapsed, setSessionsSidebarCollapsed] = useState(false);
-  const [visibleMetrics, setVisibleMetrics] = useState(() => {
-    // Load saved preferences from localStorage
-    const saved = localStorage.getItem('sessionConversation_visibleMetrics');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
   
-  // Group executions by sessionId
-  const sessionGroups = useMemo(() => {
-    if (!executions || executions.length === 0) return [];
-    
-    // First, deduplicate executions by ID
-    const uniqueExecs = Array.from(
-      new Map(executions.map(exec => [exec.id, exec])).values()
-    );
-    
-    const groups = {};
-    uniqueExecs.forEach(exec => {
-      const sessionId = exec.sessionId || `exec_${exec.id}`;
-      if (!groups[sessionId]) {
-        groups[sessionId] = [];
-      }
-      groups[sessionId].push(exec);
-    });
-    
-    // Convert to array and sort by timestamp
-    return Object.entries(groups).map(([sessionId, execs]) => {
-      const sortedExecs = execs.sort((a, b) => {
-        const timeA = new Date(a.executionTs || a.creationTs || 0);
-        const timeB = new Date(b.executionTs || b.creationTs || 0);
-        return timeA - timeB;
-      });
-      
-      // Calculate average score
-      const metrics = [];
-      sortedExecs.forEach(exec => {
-        Object.keys(exec).forEach(key => {
-          const value = exec[key];
-          if (value && typeof value === 'object' && 'value' in value) {
-            metrics.push(value.value);
-          }
-        });
-      });
-      
-      const avgScore = metrics.length > 0
-        ? metrics.reduce((sum, val) => sum + val, 0) / metrics.length
-        : 0;
-      
-      return {
-        sessionId,
-        executions: sortedExecs,
-        avgScore,
-        messageCount: sortedExecs.length,
-        firstMessage: sortedExecs[0]?.input || 'No input',
-        timestamp: sortedExecs[0]?.executionTs || sortedExecs[0]?.creationTs
-      };
-    }).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-  }, [executions]);
+  // Use localStorage hook for visible metrics
+  const [visibleMetrics, setVisibleMetrics] = useLocalStorage(
+    'sessionConversation_visibleMetrics',
+    new Set()
+  );
+  
+  // Group executions by sessionId using custom hook
+  const sessionGroups = useSessionGroups(executions);
   
   // Filter sessions
   const filteredSessions = useMemo(() => {
     return sessionGroups;
   }, [sessionGroups]);
 
-  // Extract all available metrics from executions
-  const allMetricFields = useMemo(() => {
-    if (!executions || executions.length === 0) return [];
-    
-    const fieldMap = new Map();
-    
-    executions.forEach(exec => {
-      Object.keys(exec).forEach(key => {
-        const val = exec[key];
-        // Check if it's a metric object with value/reason structure
-        if (val && typeof val === 'object' && 'value' in val) {
-          if (!fieldMap.has(key)) {
-            fieldMap.set(key, {
-              key,
-              label: key.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').trim()
-                .replace(/\b\w/g, l => l.toUpperCase()),
-              isMetric: true
-            });
-          }
-        }
-      });
-    });
-    
-    const fields = Array.from(fieldMap.values());
-    
-    // Initialize visible metrics on first render if empty
-    if (visibleMetrics.size === 0 && fields.length > 0) {
-      const defaultVisible = new Set(fields.map(f => f.key));
-      setVisibleMetrics(defaultVisible);
-    }
-    
-    return fields;
-  }, [executions, visibleMetrics.size]);
-
-  // Toggle metric visibility
-  const toggleMetricVisibility = (metricKey) => {
-    setVisibleMetrics(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(metricKey)) {
-        newSet.delete(metricKey);
-      } else {
-        newSet.add(metricKey);
-      }
-      return newSet;
-    });
-  };
-
-  // Select/deselect all metrics
-  const toggleAllMetrics = () => {
-    if (visibleMetrics.size === allMetricFields.length) {
-      // Deselect all - but keep at least one metric visible
-      setVisibleMetrics(new Set([allMetricFields[0]?.key]));
-    } else {
-      // Select all
-      setVisibleMetrics(new Set(allMetricFields.map(f => f.key)));
-    }
-  };
+  // Extract metric fields and get toggle functions
+  const { allMetricFields, toggleMetricVisibility, toggleAllMetrics } = useMetricFields(
+    executions,
+    visibleMetrics,
+    setVisibleMetrics
+  );
   
   // Handle highlighting and navigation to specific execution
   useEffect(() => {

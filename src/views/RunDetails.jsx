@@ -4,22 +4,32 @@ import remarkGfm from 'remark-gfm';
 import RunCard from '../components/RunCard';
 import ColumnFilter from '../components/ColumnFilter';
 import { getScoreColor, getUniqueScoreFields } from '../utils/metricUtils';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { useMetricFields } from '../hooks/useMetricFields';
 import '../styles/RunDetails.css';
 
 const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
-  const [visibleColumns, setVisibleColumns] = useState(() => {
-    // Load saved preferences from localStorage
-    const saved = localStorage.getItem('runDetails_visibleColumns');
-    return saved ? new Set(JSON.parse(saved)) : new Set();
-  });
+  
+  // Use localStorage hook for visible columns
+  const [visibleColumns, setVisibleColumns] = useLocalStorage(
+    'runDetails_visibleColumns',
+    new Set()
+  );
 
   // Calculate score fields from questions
   const scoreFields = useMemo(() => {
     return getUniqueScoreFields(questions || []);
   }, [questions]);
+
+  // Extract metric fields and get toggle functions
+  const { allMetricFields: _metricFields, toggleMetricVisibility: toggleColumnVisibility, toggleAllMetrics: toggleAllColumns } = useMetricFields(
+    questions,
+    visibleColumns,
+    setVisibleColumns
+  );
 
   console.log('RunDetails received:', { runVersion, questionsCount: questions?.length, questions });
 
@@ -156,7 +166,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
       const defaultVisible = new Set(allFields.map(f => f.key));
       setVisibleColumns(defaultVisible);
     }
-  }, [allFields, visibleColumns.size]);
+  }, [allFields, visibleColumns.size, setVisibleColumns]);
 
   // Filter questions
   const filteredQuestions = useMemo(() => {
@@ -178,30 +188,6 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
   const visibleFields = useMemo(() => {
     return allFields.filter(field => visibleColumns.has(field.key));
   }, [allFields, visibleColumns]);
-
-  // Toggle column visibility
-  const toggleColumnVisibility = (fieldKey) => {
-    setVisibleColumns(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(fieldKey)) {
-        newSet.delete(fieldKey);
-      } else {
-        newSet.add(fieldKey);
-      }
-      return newSet;
-    });
-  };
-
-  // Select/deselect all columns
-  const toggleAllColumns = () => {
-    if (visibleColumns.size === allFields.length) {
-      // Deselect all - but keep at least one column visible
-      setVisibleColumns(new Set([allFields[0]?.key]));
-    } else {
-      // Select all
-      setVisibleColumns(new Set(allFields.map(f => f.key)));
-    }
-  };
 
   // Sort questions
   const sortedQuestions = useMemo(() => {
