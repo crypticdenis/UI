@@ -8,6 +8,8 @@ import RunComparison from './views/RunComparison.jsx';
 import ConversationComparison from './views/ConversationComparison.jsx';
 import ContentViewer from './components/ContentViewer.jsx';
 import NavigationSidebar from './components/NavigationSidebar.jsx';
+import LoadingSpinner from './components/LoadingSpinner.jsx';
+import ErrorDisplay from './components/ErrorDisplay.jsx';
 import { useNavigationState } from './hooks/useNavigationState.js';
 import { useProjects } from './hooks/useAPI.js';
 import './styles/App.css';
@@ -17,7 +19,7 @@ function App() {
   const [autoExpandExecutionId, setAutoExpandExecutionId] = useState(null);
   
   // Fetch projects from API
-  const { projects, loading, error } = useProjects();
+  const { projects, loading, error, retry } = useProjects();
   
   // Navigation state with localStorage persistence
   const {
@@ -281,18 +283,19 @@ function App() {
       />
       <div className="main-content" style={{ marginLeft: `${sidebarWidth}px` }}>
         {loading && (
-          <div className="loading-container font-size-15rem color-muted-888">
-            Loading projects...
-          </div>
+          <LoadingSpinner 
+            size="large" 
+            text="Loading projects..." 
+          />
         )}
 
         {error && (
-          <div className="error-container font-size-12rem color-error">
-            <div>Error loading projects: {error}</div>
-            <div className="font-size-09rem color-muted-888">
-              Make sure the backend server is running on http://localhost:3001
-            </div>
-          </div>
+          <ErrorDisplay 
+            error={error}
+            title="Failed to Load Projects"
+            description="Make sure the backend server is running on http://localhost:3001"
+            onRetry={retry}
+          />
         )}
 
         {!loading && !error && currentView === 'workflows' && selectedProject && (

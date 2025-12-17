@@ -1,13 +1,14 @@
 import { useState, useMemo, useEffect } from 'react';
 import ColumnFilter from '../components/ColumnFilter';
 import ChatExchange from '../components/ChatExchange';
+import LoadingSpinner from '../components/LoadingSpinner';
 import { getScoreColor } from '../utils/metricUtils';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMetricFields } from '../hooks/useMetricFields';
 import { useSessionGroups } from '../hooks/useSessionGroups';
 import '../styles/SessionConversationView.css';
 
-const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewMode, highlightExecutionId, _onCompareSession, allRuns, onNavCollapse }) => {
+const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewMode, highlightExecutionId, _onCompareSession, allRuns, onNavCollapse, loading = false }) => {
   const [selectedSessionId, setSelectedSessionId] = useState(null);
   const [highlightedExecId, setHighlightedExecId] = useState(highlightExecutionId);
   const [compareRunVersion, setCompareRunVersion] = useState(null);
@@ -504,14 +505,18 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                   </div>
                   <div className="conversation-content">
                     <div className="chat-history">
-                      {selectedSession.executions.map((execution) => (
-                        <ChatExchange
-                          key={execution.id}
-                          execution={execution}
-                          highlighted={highlightedExecId === execution.id}
-                          visibleMetrics={visibleMetrics}
-                        />
-                      ))}
+                      {loading ? (
+                        <LoadingSpinner size="medium" text="Loading conversation..." />
+                      ) : (
+                        selectedSession.executions.map((execution) => (
+                          <ChatExchange
+                            key={execution.id}
+                            execution={execution}
+                            highlighted={highlightedExecId === execution.id}
+                            visibleMetrics={visibleMetrics}
+                          />
+                        ))
+                      )}
                     </div>
                   </div>
                 </>
@@ -519,7 +524,11 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
             </>
           ) : (
             <div className="conversation-empty">
-              <p>Select a conversation to view details</p>
+              {loading ? (
+                <LoadingSpinner size="medium" text="Loading sessions..." />
+              ) : (
+                <p>Select a conversation to view details</p>
+              )}
             </div>
           )}
         </div>

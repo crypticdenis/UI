@@ -2,9 +2,10 @@ import { useState, useMemo, Fragment } from 'react';
 import { getUniqueScoreFields, formatNumber } from '../utils/metricUtils';
 import RunCard from '../components/RunCard';
 import PerformanceTrendsChart from '../components/PerformanceTrendsChart';
+import LoadingSpinner from '../components/LoadingSpinner';
 import '../styles/RunsOverview.css';
 
-const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
+const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'startTs', direction: 'descending' });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -286,29 +287,36 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs }) => {
       </div>
 
       <div className="runs-list">
-        {sortedRuns.map((run) => (
-          <RunCard
-            key={run.version}
-            mode="card"
-            run={run}
-            scoreFields={scoreFields}
-            maxMetrics={3}
-            showAvgScore={true}
-            showAllScores={true}
-            onClick={() => {
-              console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
-              console.log('run.runs length:', run.runs?.length);
-              if (run.runs?.length > 0) {
-                console.log('First run item:', run.runs[0]);
-              }
-              onViewRunDetails(run.version, run.runs, run);
-            }}
-            onViewDetails={() => onViewRunDetails(run.version, run.runs, run)}
+        {loading ? (
+          <LoadingSpinner 
+            size="large" 
+            text="Loading runs..." 
           />
-        ))}
+        ) : (
+          sortedRuns.map((run) => (
+            <RunCard
+              key={run.version}
+              mode="card"
+              run={run}
+              scoreFields={scoreFields}
+              maxMetrics={3}
+              showAvgScore={true}
+              showAllScores={true}
+              onClick={() => {
+                console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
+                console.log('run.runs length:', run.runs?.length);
+                if (run.runs?.length > 0) {
+                  console.log('First run item:', run.runs[0]);
+                }
+                onViewRunDetails(run.version, run.runs, run);
+              }}
+              onViewDetails={() => onViewRunDetails(run.version, run.runs, run)}
+            />
+          ))
+        )}
       </div>
 
-      {sortedRuns.length === 0 && (
+      {!loading && sortedRuns.length === 0 && (
         <div className="no-results">
           <div className="no-results-icon">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

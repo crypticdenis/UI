@@ -3,12 +3,13 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import RunCard from '../components/RunCard';
 import ColumnFilter from '../components/ColumnFilter';
+import SkeletonLoader from '../components/SkeletonLoader';
 import { getScoreColor, getUniqueScoreFields } from '../utils/metricUtils';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMetricFields } from '../hooks/useMetricFields';
 import '../styles/RunDetails.css';
 
-const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode }) => {
+const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode, loading = false }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
@@ -367,7 +368,13 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
             </tr>
           </thead>
           <tbody>
-            {sortedQuestions.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={visibleFields.length + 2}>
+                  <SkeletonLoader rows={5} columns={visibleFields.length + 2} variant="table" />
+                </td>
+              </tr>
+            ) : sortedQuestions.length === 0 ? (
               <tr>
                 <td colSpan={visibleFields.length + 2} className="text-center p-20 text-muted-color">
                   No executions found

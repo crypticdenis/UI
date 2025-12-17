@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import LoadingSpinner from '../components/LoadingSpinner';
 
-const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow }) => {
+const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading = false }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -105,60 +106,64 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow }) => {
       </div>
 
       <div className="runs-grid">
-        {sortedWorkflows.map((workflow) => (
-          <div 
-            key={workflow.id} 
-            className="run-card workflow-card clickable"
-            onClick={() => onSelectWorkflow(workflow, 'runs')}
-            title="Click to view runs"
-          >
-            <h3>{workflow.name}</h3>
+        {loading ? (
+          <LoadingSpinner size="large" text="Loading workflows..." />
+        ) : (
+          sortedWorkflows.map((workflow) => (
+            <div 
+              key={workflow.id} 
+              className="run-card workflow-card clickable"
+              onClick={() => onSelectWorkflow(workflow, 'runs')}
+              title="Click to view runs"
+            >
+              <h3>{workflow.name}</h3>
 
-            {workflow.description && (
-              <div className="project-description">
-                <p>{workflow.description}</p>
-              </div>
-            )}
-
-            <div className="">
-              <div className="meta-item">
-                <span className="meta-label">Runs:</span>
-                <span className="meta-value model-badge">{workflow.runCount || 0}</span>
-              </div>
-              {workflow.createdAt && (
-                <div className="meta-item">
-                  <span className="meta-label">Created:</span>
-                  <span className="meta-value timestamp">
-                    {new Date(workflow.createdAt).toLocaleDateString('de-DE', {
-                      year: 'numeric',
-                      month: 'short',
-                      day: '2-digit'
-                    })}
-                  </span>
+              {workflow.description && (
+                <div className="project-description">
+                  <p>{workflow.description}</p>
                 </div>
               )}
-            </div>
 
-            <div className="workflow-actions">
-              <button 
-                className="view-details-btn workflow-runs-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onSelectWorkflow(workflow);
-                }}
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-                  <rect x="9" y="3" width="6" height="4" rx="1"/>
-                </svg>
-                View Runs
-              </button>
+              <div className="">
+                <div className="meta-item">
+                  <span className="meta-label">Runs:</span>
+                  <span className="meta-value model-badge">{workflow.runCount || 0}</span>
+                </div>
+                {workflow.createdAt && (
+                  <div className="meta-item">
+                    <span className="meta-label">Created:</span>
+                    <span className="meta-value timestamp">
+                      {new Date(workflow.createdAt).toLocaleDateString('de-DE', {
+                        year: 'numeric',
+                        month: 'short',
+                        day: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="workflow-actions">
+                <button 
+                  className="view-details-btn workflow-runs-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectWorkflow(workflow);
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+                    <rect x="9" y="3" width="6" height="4" rx="1"/>
+                  </svg>
+                  View Runs
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
 
-      {sortedWorkflows.length === 0 && (
+      {!loading && sortedWorkflows.length === 0 && (
         <div className="no-results">
           <div className="no-results-icon">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
