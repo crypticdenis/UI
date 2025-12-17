@@ -1,0 +1,127 @@
+/* ============================================================================
+   ANIMATIONS
+   All keyframe animations and transitions
+   ============================================================================ */
+
+/* Fade In */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Slide Down */
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 600px;
+  }
+}
+
+/* Slide Up */
+@keyframes slideUp {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Slide Up Fade */
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pop In */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Spin */
+@keyframes spin {
+  to { 
+    transform: rotate(360deg); 
+  }
+}
+
+/* Pulse */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Pulse Warning */
+@keyframes pulse-warning {
+  0%, 100% {
+    box-shadow: 0 2px 6px var(--accent-alpha);
+  }
+  50% {
+    box-shadow: 0 4px 12px rgba(255, 144, 12, 0.5);
+  }
+}
+
+/* Highlight Pulse - For navigation flash effect */
+@keyframes highlightPulse {
+  0% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: var(--border-color);
+  }
+  15% {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(96, 165, 250, 0.6), 0 0 40px rgba(254, 143, 15, 0.4);
+    border-color: var(--primary-color);
+  }
+  30% {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 36px rgba(96, 165, 250, 0.5), 0 0 32px rgba(254, 143, 15, 0.3);
+  }
+  45% {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 16px 48px rgba(96, 165, 250, 0.6), 0 0 40px rgba(254, 143, 15, 0.4);
+    border-color: var(--primary-color);
+  }
+  60% {
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 36px rgba(96, 165, 250, 0.4), 0 0 28px rgba(254, 143, 15, 0.2);
+  }
+  75% {
+    transform: translateY(-2px) scale(1.005);
+    box-shadow: 0 8px 24px rgba(96, 165, 250, 0.3), 0 0 20px rgba(254, 143, 15, 0.15);
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    border-color: var(--border-color);
+  }
+}

@@ -1,0 +1,243 @@
+/* ============================================================================
+   MODALS
+   Modal overlays, dialogs, and comparison modals
+   ============================================================================ */
+
+/* Base Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.2s ease;
+  overflow: hidden;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  max-width: 800px;
+  width: calc(100% - 40px);
+  max-height: calc(80vh - 40px);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+  position: relative;
+  pointer-events: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.modal-header h3,
+.modal-header h2 {
+  margin: 0;
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.modal-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+/* LEGACY: Migrate to .btn.btn-success */
+.export-btn {
+  padding: 8px 14px;
+  background: var(--success-alpha);
+  border: 1px solid var(--success-alpha);
+  border-radius: 8px;
+  color: var(--success-color);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.export-btn:hover:not(:disabled) {
+  background: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px var(--success-alpha);
+}
+
+.export-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+  background: var(--error-alpha);
+  color: var(--error-color);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  position: relative;
+}
+
+.modal-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-body::-webkit-scrollbar-track {
+  background: var(--bg-subtle);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary-alpha);
+  border-radius: 4px;
+}
+
+.modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}
+
+/* Comparison Modal - Fullscreen variant */
+.comparison-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+  padding: 0;
+  margin: 0;
+}
+
+.comparison-modal-content {
+  background: var(--bg-card);
+  border: 2px solid var(--primary-color);
+  border-radius: 0;
+  width: 100vw;
+  height: 100vh;
+  max-width: 100vw;
+  max-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: slideUp 0.3s ease;
+}
+
+.comparison-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 2px solid var(--primary-alpha);
+  background: var(--primary-alpha);
+}
+
+.comparison-modal-header h3 {
+  margin: 0;
+  color: var(--primary-color);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.comparison-modal-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--error-alpha);
+  border-radius: 6px;
+  background: var(--error-alpha);
+  color: var(--error-color);
+  cursor: pointer;
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-weight: 600;
+}
+
+.comparison-modal-close:hover {
+  background: var(--error-color);
+  border-color: var(--error-color);
+  color: white;
+  transform: scale(1.1);
+}
+
+.comparison-modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  color: var(--text-secondary);
+  font-size: 14px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.comparison-modal-body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.comparison-modal-body::-webkit-scrollbar-track {
+  background: var(--bg-subtle);
+  border-radius: 5px;
+}
+
+.comparison-modal-body::-webkit-scrollbar-thumb {
+  background: var(--primary-alpha);
+  border-radius: 5px;
+}
+
+.comparison-modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--primary-color);
+}

@@ -1,5 +1,20 @@
-@import './buttons.css';
+/* Import order:
+   1. Design tokens and globals (App.css)
+   2. Animations (used across components)
+   3. Base components (buttons)
+   4. Layout components (modals, content viewer)
+   5. Data components (tables, charts)
+   6. Feature components (comparison, run cards)
+*/
+
 @import './App.css';
+@import './animations.css';
+@import './buttons.css';
+@import './modals.css';
+@import './ContentViewer.css';
+@import './tables.css';
+@import './charts.css';
+@import './comparison.css';
 
 * {
   box-sizing: border-box;

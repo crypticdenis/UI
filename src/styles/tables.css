@@ -1,0 +1,223 @@
+/* ============================================================================
+   TABLES
+   Table layouts, question tables, and data grids
+   ============================================================================ */
+
+/* Questions Table */
+.questions-table-container {
+  overflow-x: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+}
+
+.questions-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: transparent;
+}
+
+.questions-table th,
+.questions-table td {
+  border: 1px solid var(--border-color);
+  padding: 12px 14px;
+  text-align: left;
+  max-width: 300px;
+  vertical-align: middle;
+}
+
+.questions-table th {
+  background: var(--bg-card);
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--primary-color);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  white-space: nowrap;
+  border-bottom: 2px solid var(--primary-alpha);
+  padding: 14px 16px;
+}
+
+.questions-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.questions-table tbody tr:hover {
+  background: var(--primary-alpha);
+  box-shadow: 0 0 0 1px var(--primary-alpha);
+  transform: translateX(4px);
+}
+
+/* Expanded Row Styling */
+.expanded-row {
+  background: rgba(96, 165, 250, 0.03);
+}
+
+.expanded-content-grid {
+  padding: 16px;
+  display: block;
+}
+
+.expanded-field {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.expanded-field:last-child {
+  border-bottom: none;
+}
+
+.expanded-field-label {
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.expanded-field-value {
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* Table Expansion Buttons */
+.btn-expand {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--primary-color);
+  font-size: 18px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-expand:hover {
+  color: var(--primary-hover);
+  transform: scale(1.2);
+}
+
+/* Sub-execution button in tables */
+.btn-sub-exec {
+  background: var(--purple-alpha);
+  border: 1px solid var(--purple-alpha);
+  border-radius: 8px;
+  color: var(--purple-color);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 14px;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px var(--purple-alpha);
+}
+
+.btn-sub-exec:hover {
+  background: var(--purple-color);
+  border-color: var(--purple-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--purple-alpha);
+}
+
+/* Markdown Content in Tables */
+.markdown-content {
+  color: var(--text-primary);
+  line-height: 1.6;
+  max-width: 100%;
+}
+
+.markdown-content h1,
+.markdown-content h2,
+.markdown-content h3,
+.markdown-content h4 {
+  color: var(--text-primary);
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+.markdown-content h1 { font-size: 1.5em; }
+.markdown-content h2 { font-size: 1.3em; }
+.markdown-content h3 { font-size: 1.1em; }
+.markdown-content h4 { font-size: 1em; }
+
+.markdown-content p {
+  margin-bottom: 12px;
+}
+
+.markdown-content ul,
+.markdown-content ol {
+  margin-left: 20px;
+  margin-bottom: 12px;
+}
+
+.markdown-content li {
+  margin-bottom: 4px;
+}
+
+.markdown-content code {
+  background: rgba(255, 255, 255, 0.1);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+.markdown-content pre {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 12px;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin-bottom: 12px;
+}
+
+.markdown-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.markdown-content blockquote {
+  border-left: 3px solid var(--primary-color);
+  padding-left: 12px;
+  margin-left: 0;
+  margin-bottom: 12px;
+  color: var(--text-secondary);
+}
+
+.markdown-content a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+
+.markdown-content a:hover {
+  text-decoration: underline;
+}
+
+.markdown-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.markdown-content th,
+.markdown-content td {
+  border: 1px solid var(--border-color);
+  padding: 8px;
+  text-align: left;
+}
+
+.markdown-content th {
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+}

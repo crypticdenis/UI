@@ -312,3 +312,497 @@
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 14px;
 }
+
+/* ========================================
+   RUN CARD - CARD MODE
+   Styles from App.css - consolidated here
+   ======================================== */
+
+.run-card {
+  background: var(--bg-card);
+  border: 2px solid var(--border-color);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.run-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--primary-color);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.run-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px var(--primary-alpha);
+  border-color: var(--primary-color);
+}
+
+.run-card:hover::before {
+  opacity: 1;
+}
+
+.run-card.clickable {
+  cursor: pointer;
+}
+
+.run-card.selected {
+  border-color: var(--primary-color);
+  box-shadow: 0 8px 24px var(--primary-alpha);
+  background: var(--bg-card);
+}
+
+.run-card.selected::before {
+  opacity: 1;
+}
+
+/* Highlight flash animation for navigation */
+.run-card.highlight-flash {
+  animation: highlightPulse 2s ease-in-out;
+}
+
+.run-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 2px solid var(--border-color);
+  gap: 12px;
+}
+
+.run-card-title {
+  flex: 1;
+}
+
+.run-card-title h3 {
+  color: white;
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.3px;
+}
+
+.question-count-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--primary-alpha);
+  border: 1px solid var(--primary-alpha);
+  border-radius: 20px;
+  color: var(--primary-color);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.overall-grade {
+  min-width: 90px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
+.run-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  gap: 12px;
+}
+
+.meta-item svg {
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.meta-label {
+  color: var(--text-muted);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.meta-value {
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-align: right;
+}
+
+.meta-value.model-badge {
+  padding: 4px 10px;
+  background: var(--primary-alpha);
+  border: 1px solid var(--primary-alpha);
+  border-radius: 6px;
+  color: var(--primary-color);
+  font-size: 12px;
+}
+
+.meta-value.prompt-badge {
+  padding: 4px 10px;
+  background: var(--accent-alpha);
+  border: 1px solid var(--accent-alpha);
+  border-radius: 6px;
+  color: var(--accent-color);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.meta-value.timestamp {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: 'Courier New', monospace;
+}
+
+.run-metrics-detailed {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 16px;
+  background: var(--bg-subtle);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.metric-detail-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.metric-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  text-align: center;
+}
+
+.metric-detail-value {
+  font-size: 18px;
+  font-weight: 800;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  min-width: 60px;
+  text-align: center;
+}
+
+.metric-detail-value.metric-duration {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-color);
+  text-shadow: none;
+}
+
+.metric-detail-value.metric-tokens {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1.5px solid var(--border-color);
+  text-shadow: none;
+}
+
+.metric-detail-value.metric-status-unfinished,
+.metric-detail-value.metric-status-running {
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--error-color) 100%);
+  color: var(--text-primary);
+  font-weight: 700;
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+.metric-detail-value.metric-status-failed {
+  background: var(--error-color);
+  color: white;
+  font-weight: 700;
+}
+
+.run-card-running {
+  border: 2px solid var(--accent-color) !important;
+  background: linear-gradient(135deg, var(--bg-card) 0%, var(--accent-alpha) 100%);
+}
+
+.run-card-failed {
+  border-color: var(--error-color) !important;
+  border-width: 2px;
+  opacity: 0.7;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 8px;
+}
+
+.status-badge.status-unfinished {
+  background: var(--accent-alpha);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+}
+
+.run-card-scores {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.score-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 14px;
+  transition: all 0.2s ease;
+}
+
+.score-item:hover {
+  background: var(--bg-card);
+  border-color: var(--primary-alpha);
+  transform: translateY(-2px);
+}
+
+.score-item-label,
+.score-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.score-item-value,
+.score-value {
+  font-size: 22px;
+  font-weight: 800;
+  display: block;
+  padding: 6px;
+  border-radius: 6px;
+  text-align: center;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.score-value {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.score-value:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.run-card-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.view-details-btn {
+  flex: 1;
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border: 2px solid var(--primary-alpha);
+  border-radius: 10px;
+  color: var(--primary-color);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+}
+
+.view-details-btn::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.view-details-btn:hover {
+  background: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--primary-alpha);
+}
+
+.view-details-btn:active {
+  transform: scale(0.96);
+}
+
+.view-details-btn:active::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* ========================================
+   RUN CARD - LIST MODE
+   ======================================== */
+
+.run-card-list {
+  padding: 14px 24px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.4), rgba(15, 23, 42, 0.6));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.run-card-list:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25), 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.7));
+}
+
+.run-card-list .run-card-header {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  display: flex;
+}
+
+.run-card-list .run-select-checkbox {
+  margin-right: 0;
+  padding: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.run-card-list .run-card-title {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.run-card-list .run-card-title h3 {
+  font-size: 14px;
+  margin: 0;
+  font-weight: 600;
+  white-space: nowrap;
+  min-width: 120px;
+}
+
+.run-card-list .question-count-badge {
+  font-size: 11px;
+  flex-shrink: 0;
+  padding: 3px 8px;
+}
+
+.run-card-list .prompt-badge {
+  margin-left: 0;
+  font-size: 11px;
+  padding: 3px 8px;
+  flex-shrink: 0;
+}
+
+.run-card-list .overall-grade {
+  font-size: 12px;
+  padding: 4px 10px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.run-card-list .run-card-meta {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0;
+  flex: 0 0 auto;
+}
+
+.run-card-list .run-card-meta .meta-item {
+  flex: 0 0 auto;
+  min-width: fit-content;
+  display: flex;
+  align-items: center;
+}
+
+.run-card-list .run-card-meta .meta-label {
+  display: none;
+}
+
+.run-card-list .run-card-meta .meta-value.timestamp {
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: var(--text-muted);
+}
+
+.run-card-list .run-card-scores {
+  display: none;
+}
+
+.run-card-list .view-details-btn {
+  display: none;
+}
+
+.run-card-list > .run-card-meta:last-of-type {
+  display: none;
+}
