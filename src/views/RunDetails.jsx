@@ -19,6 +19,12 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     new Set()
   );
 
+  // Use localStorage hook for column order
+  const [columnOrder, setColumnOrder] = useLocalStorage(
+    'runDetails_columnOrder',
+    []
+  );
+
   // Calculate score fields from questions
   const scoreFields = useMemo(() => {
     return getUniqueScoreFields(questions || []);
@@ -155,9 +161,27 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     const fields = Array.from(fieldMap.values()).sort((a, b) => a.order - b.order);
     console.log('[RunDetails] All fields:', fields.map(f => ({key: f.key, type: f.type, isMetric: f.isMetric})));
     
-    // Sort fields by order
+    // Apply saved column order if available
+    if (columnOrder.length > 0) {
+      const orderedFields = [];
+      const fieldsByKey = new Map(fields.map(f => [f.key, f]));
+      
+      // First add fields in saved order
+      columnOrder.forEach(key => {
+        if (fieldsByKey.has(key)) {
+          orderedFields.push(fieldsByKey.get(key));
+          fieldsByKey.delete(key);
+        }
+      });
+      
+      // Then add any new fields that weren't in saved order
+      fieldsByKey.forEach(field => orderedFields.push(field));
+      
+      return orderedFields;
+    }
+    
     return fields;
-  }, [questions]);
+  }, [questions, columnOrder]);
 
   // Initialize visible columns on first render if empty
   useEffect(() => {
@@ -227,6 +251,11 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
       key,
       direction: prev.key === key && prev.direction === 'ascending' ? 'descending' : 'ascending'
     }));
+  };
+
+  const handleReorderColumns = (newFields) => {
+    const newOrder = newFields.map(f => f.key);
+    setColumnOrder(newOrder);
   };
 
   const getCellValue = (question, field) => {
@@ -315,6 +344,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
           visibleColumns={visibleColumns}
           onToggleColumn={toggleColumnVisibility}
           onToggleAll={toggleAllColumns}
+          onReorderColumns={handleReorderColumns}
           storageKey="runDetails_visibleColumns"
         />
       </div>

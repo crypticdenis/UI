@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import '../styles/ColumnFilter.css';
 
 /**
- * Reusable column filter component for customizing table visibility
+ * Reusable column filter component for customizing table visibility and order
  * @param {Array} allFields - Array of field objects with {key, label, type, isMetric}
  * @param {Set} visibleColumns - Set of visible column keys
  * @param {Function} onToggleColumn - Callback when a column is toggled
  * @param {Function} onToggleAll - Callback to toggle all columns
+ * @param {Function} onReorderColumns - Callback when columns are reordered
  * @param {string} storageKey - Optional localStorage key for persistence
  */
 const ColumnFilter = ({ 
@@ -14,9 +15,11 @@ const ColumnFilter = ({
   visibleColumns, 
   onToggleColumn, 
   onToggleAll,
+  onReorderColumns,
   storageKey 
 }) => {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -44,12 +47,41 @@ const ColumnFilter = ({
     onToggleAll();
   };
 
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e, _index) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, dropIndex) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) return;
+
+    const newFields = [...allFields];
+    const draggedField = newFields[draggedIndex];
+    newFields.splice(draggedIndex, 1);
+    newFields.splice(dropIndex, 0, draggedField);
+
+    if (onReorderColumns) {
+      onReorderColumns(newFields);
+    }
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+  };
+
   return (
     <div className="column-filter-wrapper">
       <button 
         className={`btn btn-secondary column-filter-btn ${showDropdown ? 'active' : ''}`}
         onClick={() => setShowDropdown(!showDropdown)}
-        title="Customize visible columns"
+        title="Customize visible columns and order"
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="4" y1="21" x2="4" y2="14"/>
@@ -76,9 +108,30 @@ const ColumnFilter = ({
               {visibleColumns.size === allFields.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
+          <div className="column-filter-hint">
+            💡 Drag to reorder columns
+          </div>
           <div className="column-filter-list">
-            {allFields.map(field => (
-              <label key={field.key} className="column-filter-item">
+            {allFields.map((field, index) => (
+              <label 
+                key={field.key} 
+                className={`column-filter-item ${draggedIndex === index ? 'dragging' : ''}`}
+                draggable
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+                onDragEnd={handleDragEnd}
+              >
+                <div className="column-drag-handle">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                    <circle cx="9" cy="5" r="2"/>
+                    <circle cx="9" cy="12" r="2"/>
+                    <circle cx="9" cy="19" r="2"/>
+                    <circle cx="15" cy="5" r="2"/>
+                    <circle cx="15" cy="12" r="2"/>
+                    <circle cx="15" cy="19" r="2"/>
+                  </svg>
+                </div>
                 <input
                   type="checkbox"
                   checked={visibleColumns.has(field.key)}

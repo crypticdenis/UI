@@ -61,6 +61,15 @@
   color: var(--text-primary);
 }
 
+.column-filter-hint {
+  padding: 8px 20px;
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--bg-hover);
+  border-bottom: 1px solid var(--border-color);
+  font-style: italic;
+}
+
 .btn-link {
   background: none;
   border: none;
@@ -88,13 +97,35 @@
   align-items: center;
   padding: 10px 12px;
   border-radius: 6px;
-  cursor: pointer;
+  cursor: grab;
   transition: all 0.2s ease;
   gap: 12px;
+  user-select: none;
+}
+
+.column-filter-item:active {
+  cursor: grabbing;
+}
+
+.column-filter-item.dragging {
+  opacity: 0.5;
+  background: var(--primary-alpha);
 }
 
 .column-filter-item:hover {
   background: var(--bg-subtle);
+}
+
+.column-drag-handle {
+  display: flex;
+  align-items: center;
+  color: var(--text-muted);
+  opacity: 0.4;
+  transition: opacity 0.2s ease;
+}
+
+.column-filter-item:hover .column-drag-handle {
+  opacity: 1;
 }
 
 .column-filter-item input[type="checkbox"] {

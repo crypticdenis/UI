@@ -19,6 +19,12 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
     'sessionConversation_visibleMetrics',
     new Set()
   );
+
+  // Use localStorage hook for metric order
+  const [metricOrder, setMetricOrder] = useLocalStorage(
+    'sessionConversation_metricOrder',
+    []
+  );
   
   // Group executions by sessionId using custom hook
   const sessionGroups = useSessionGroups(executions);
@@ -29,11 +35,38 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   }, [sessionGroups]);
 
   // Extract metric fields and get toggle functions
-  const { allMetricFields, toggleMetricVisibility, toggleAllMetrics } = useMetricFields(
+  const { allMetricFields: rawMetricFields, toggleMetricVisibility, toggleAllMetrics } = useMetricFields(
     executions,
     visibleMetrics,
     setVisibleMetrics
   );
+
+  // Apply saved metric order
+  const allMetricFields = useMemo(() => {
+    if (metricOrder.length === 0) return rawMetricFields;
+
+    const orderedFields = [];
+    const fieldsByKey = new Map(rawMetricFields.map(f => [f.key, f]));
+    
+    // First add fields in saved order
+    metricOrder.forEach(key => {
+      if (fieldsByKey.has(key)) {
+        orderedFields.push(fieldsByKey.get(key));
+        fieldsByKey.delete(key);
+      }
+    });
+    
+    // Then add any new fields that weren't in saved order
+    fieldsByKey.forEach(field => orderedFields.push(field));
+    
+    return orderedFields;
+  }, [rawMetricFields, metricOrder]);
+  
+  // Handle metric reordering
+  const handleReorderMetrics = (newFields) => {
+    const newOrder = newFields.map(f => f.key);
+    setMetricOrder(newOrder);
+  };
   
   // Handle highlighting and navigation to specific execution
   useEffect(() => {
@@ -217,6 +250,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
               visibleColumns={visibleMetrics}
               onToggleColumn={toggleMetricVisibility}
               onToggleAll={toggleAllMetrics}
+              onReorderColumns={handleReorderMetrics}
               storageKey="sessionConversation_visibleMetrics"
             />
           )}
