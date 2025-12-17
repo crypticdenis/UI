@@ -303,11 +303,6 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) 
               showAvgScore={true}
               showAllScores={true}
               onClick={() => {
-                console.log('Run card clicked:', { version: run.version, runs: run.runs, runKeys: Object.keys(run) });
-                console.log('run.runs length:', run.runs?.length);
-                if (run.runs?.length > 0) {
-                  console.log('First run item:', run.runs[0]);
-                }
                 onViewRunDetails(run.version, run.runs, run);
               }}
               onViewDetails={() => onViewRunDetails(run.version, run.runs, run)}

@@ -109,11 +109,6 @@ function App() {
   };
 
   const handleViewRunDetails = (version, questions, runData = null) => {
-    console.log('handleViewRunDetails called with:', { version, questions, runData });
-    console.log('Questions array length:', questions?.length);
-    if (questions?.length > 0) {
-      console.log('First question:', questions[0]);
-    }
     setSelectedRunVersion(version);
     setSelectedRunQuestions(questions);
     setSelectedRun(runData); // Store full run object
@@ -190,17 +185,13 @@ function App() {
   };
 
   const handleNavigateToSubExecution = (workflowId, runId, executionId, navigateToStandalone = false) => {
-    console.log('🔍 Navigating to sub-execution:', { workflowId, runId, executionId, navigateToStandalone });
-    
     // If navigateToStandalone is true, navigate to the standalone workflow
     if (navigateToStandalone) {
       const targetWorkflow = selectedProject?.workflows?.find(w => w.id === workflowId);
       if (!targetWorkflow) {
-        console.error('❌ Standalone workflow not found:', workflowId);
         return;
       }
       
-      console.log('✅ Navigating to standalone workflow:', targetWorkflow.id);
       setSelectedWorkflow(targetWorkflow);
       setSelectedRunVersion(null);
       setSelectedRunQuestions([]);
@@ -236,17 +227,8 @@ function App() {
     }
     
     if (!targetWorkflow || !targetRun || !parentExecutionId) {
-      console.error('❌ Could not find parent execution for sub-execution:', { workflowId, runId, executionId });
       return;
     }
-
-    console.log('✅ Found parent execution:', { 
-      workflow: targetWorkflow.id, 
-      run: targetRun.id, 
-      parentExec: parentExecutionId,
-      subExec: executionId,
-      subWorkflow: workflowId
-    });
 
     // Navigate to the run and expand the parent execution (which will show the sub-execution)
     setSelectedWorkflow(targetWorkflow);
@@ -263,7 +245,6 @@ function App() {
       setSelectedWorkflow(workflow);
       // Open run details directly (same behavior as clicking the card)
       const questions = run.runs || run.questions || [];
-      console.log('App.jsx - Navigating to run from sidebar:', { version: run.version, questionsCount: questions.length });
       handleViewRunDetails(run.version, questions, run);
     }
   };

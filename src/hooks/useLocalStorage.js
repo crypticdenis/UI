@@ -20,8 +20,7 @@ export const useLocalStorage = (key, defaultValue) => {
         return parsed;
       }
       return defaultValue;
-    } catch (error) {
-      console.warn(`Error loading localStorage key "${key}":`, error);
+    } catch {
       return defaultValue;
     }
   });
@@ -31,8 +30,8 @@ export const useLocalStorage = (key, defaultValue) => {
       // Convert Set to array for JSON serialization
       const toSave = value instanceof Set ? Array.from(value) : value;
       localStorage.setItem(key, JSON.stringify(toSave));
-    } catch (error) {
-      console.warn(`Error saving localStorage key "${key}":`, error);
+    } catch {
+      // Silently fail if localStorage is unavailable
     }
   }, [key, value]);
 

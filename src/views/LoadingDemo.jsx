@@ -9,7 +9,6 @@ import '../styles/LoadingDemo.css';
  */
 const LoadingDemo = () => {
   const handleRetry = () => {
-    console.log('Retry clicked');
     alert('Retry functionality demonstrated!');
   };
 

@@ -108,9 +108,7 @@ const ColumnFilter = ({
               {visibleColumns.size === allFields.length ? 'Deselect All' : 'Select All'}
             </button>
           </div>
-          <div className="column-filter-hint">
-            💡 Drag to reorder columns
-          </div>
+ 
           <div className="column-filter-list">
             {allFields.map((field, index) => (
               <label 

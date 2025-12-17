@@ -38,8 +38,6 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     setVisibleColumns
   );
 
-  console.log('RunDetails received:', { runVersion, questionsCount: questions?.length, questions });
-
   // Auto-expand execution if specified
   useEffect(() => {
     if (autoExpandExecutionId) {
@@ -83,8 +81,6 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     const workflowId = subExec.workflowId;
     const runId = subExec.runId;
     const executionId = subExec.id;
-    
-    console.log('Navigating to sub-execution:', { workflowId, runId, executionId, parentId: parentExecution.id });
     
     // Call the navigation handler
     if (onNavigateToSubExecution) {
@@ -135,7 +131,6 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
             // Metric object with {value, reason}
             type = typeof val.value === 'number' ? 'metric' : 'text';
             isMetric = true;
-            console.log(`[RunDetails] Found metric field: ${key}, value:`, val);
           } else if (typeof val === 'number') {
             type = 'number';
           } else if (typeof val === 'string' && val.length > 50) {
@@ -160,7 +155,6 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     });
     
     const fields = Array.from(fieldMap.values()).sort((a, b) => a.order - b.order);
-    console.log('[RunDetails] All fields:', fields.map(f => ({key: f.key, type: f.type, isMetric: f.isMetric})));
     
     // Apply saved column order if available
     if (columnOrder.length > 0) {
@@ -409,7 +403,6 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                                 if (Array.isArray(question.subExecutions)) {
                                   return question.subExecutions.length;
                                 }
-                                console.error('subExecutions is not an array:', question.subExecutions);
                                 return '?';
                               })()}
                             </button>

@@ -18,7 +18,6 @@ export function useProjects() {
       const data = await api.getProjects();
       setProjects(data);
     } catch (err) {
-      console.error('Error fetching projects:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -56,7 +55,6 @@ export function useRun(runId) {
       const data = await api.getRun(runId);
       setRun(data);
     } catch (err) {
-      console.error('Error fetching run:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -97,7 +95,6 @@ export function useRuns(runIds) {
       const data = await api.getRunsByIds(runIds);
       setRuns(data);
     } catch (err) {
-      console.error('Error fetching runs:', err);
       setError(err.message);
     } finally {
       setLoading(false);

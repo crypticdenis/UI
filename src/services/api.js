@@ -11,24 +11,19 @@ class ApiService {
    * Generic fetch wrapper with error handling
    */
   async fetch(endpoint, options = {}) {
-    try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          ...options.headers,
-        },
-        ...options,
-      });
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
+      ...options,
+    });
 
-      if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText} (${response.status})`);
-      }
-
-      return await response.json();
-    } catch (error) {
-      console.error(`API request failed for ${endpoint}:`, error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.statusText} (${response.status})`);
     }
+
+    return await response.json();
   }
 
   /**
