@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LoadingSpinner from '../components/LoadingSpinner';
+import EmptyState from '../components/EmptyState';
 
 const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading = false }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
@@ -71,10 +72,10 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading =
           {searchQuery && (
             <button 
               onClick={() => setSearchQuery('')}
-              className="clear-search-btn"
+              className="btn-close"
               title="Clear search"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="12" cy="12" r="10"/>
                 <line x1="15" y1="9" x2="9" y2="15"/>
                 <line x1="9" y1="9" x2="15" y2="15"/>
@@ -108,6 +109,21 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading =
       <div className="runs-grid">
         {loading ? (
           <LoadingSpinner size="large" text="Loading workflows..." />
+        ) : sortedWorkflows.length === 0 ? (
+          <EmptyState
+            icon={searchQuery ? "search" : "workflow"}
+            title={searchQuery ? "No workflows found" : "No workflows yet"}
+            description={
+              searchQuery 
+                ? `No workflows match "${searchQuery}". Try adjusting your search.`
+                : "No workflows have been created for this project yet."
+            }
+            action={searchQuery ? {
+              label: "Clear Search",
+              onClick: () => setSearchQuery(''),
+              variant: "btn-secondary"
+            } : null}
+          />
         ) : (
           sortedWorkflows.map((workflow) => (
             <div 

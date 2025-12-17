@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { getScoreColor } from '../utils/metricUtils';
 import '../styles/NavigationSidebar.css';
-
-// Helper function to get color based on score
-const getScoreColor = (score) => {
-  if (score >= 0.9) return '#10b981';   // Green for excellent
-  if (score >= 0.8) return '#22c55e';   // Light green for very good
-  if (score >= 0.7) return '#84cc16';   // Lime for good
-  if (score >= 0.6) return '#eab308';   // Yellow for acceptable
-  if (score >= 0.5) return '#f59e0b';   // Amber for mediocre
-  return '#ef4444';                      // Red for poor
-};
 
 const NavigationSidebar = ({
   currentView,
@@ -19,7 +10,9 @@ const NavigationSidebar = ({
   onNavigate,
   onWidthChange,
   isCollapsed: externalIsCollapsed,
-  onCollapseChange
+  onCollapseChange,
+  title = 'Evaluation Dashboard', // Configurable title
+  showResizeHandle = true // Option to show/hide resize
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -113,7 +106,7 @@ const NavigationSidebar = ({
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
             </svg>
-            <span>RE Butler Evaluation</span>
+            <span>{title}</span>
           </div>
         )}
         <button
@@ -126,6 +119,7 @@ const NavigationSidebar = ({
             }
           }}
           title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             {isCollapsed ? (
@@ -260,12 +254,16 @@ const NavigationSidebar = ({
         </div>
       )}
 
-      {!isCollapsed && (
+      {/* Resize Handle */}
+      {!isCollapsed && showResizeHandle && (
         <div 
           className="sidebar-resize-handle"
           onMouseDown={handleMouseDown}
-          title="Drag to resize"
-        />
+          title="Drag to resize sidebar"
+          aria-label="Resize sidebar"
+        >
+          <div className="resize-handle-indicator"></div>
+        </div>
       )}
     </div>
   );

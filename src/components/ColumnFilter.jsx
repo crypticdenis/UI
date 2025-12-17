@@ -26,14 +26,21 @@ const ColumnFilter = ({
     if (!showDropdown) return;
 
     const handleClickOutside = (e) => {
-      const filterWrapper = document.querySelector('.column-filter-wrapper');
-      if (filterWrapper && !filterWrapper.contains(e.target)) {
+      const filterWrapper = e.target.closest('.column-filter-wrapper');
+      if (!filterWrapper) {
         setShowDropdown(false);
       }
     };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    // Add slight delay to prevent immediate close
+    const timer = setTimeout(() => {
+      document.addEventListener('mousedown', handleClickOutside);
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [showDropdown]);
 
   // Save to localStorage when columns change
@@ -79,11 +86,11 @@ const ColumnFilter = ({
   return (
     <div className="column-filter-wrapper">
       <button 
-        className={`btn btn-secondary column-filter-btn ${showDropdown ? 'active' : ''}`}
+        className={`btn btn-secondary btn-sm ${showDropdown ? 'active' : ''}`}
         onClick={() => setShowDropdown(!showDropdown)}
         title="Customize visible columns and order"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <line x1="4" y1="21" x2="4" y2="14"/>
           <line x1="4" y1="10" x2="4" y2="3"/>
           <line x1="12" y1="21" x2="12" y2="12"/>

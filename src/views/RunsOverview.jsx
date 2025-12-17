@@ -3,6 +3,7 @@ import { getUniqueScoreFields, formatNumber } from '../utils/metricUtils';
 import RunCard from '../components/RunCard';
 import PerformanceTrendsChart from '../components/PerformanceTrendsChart';
 import LoadingSpinner from '../components/LoadingSpinner';
+import EmptyState from '../components/EmptyState';
 import '../styles/RunsOverview.css';
 
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) => {
@@ -215,9 +216,9 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) 
           </p>
         </div>
         <div className="flex gap-12">
-          {hasActiveFilters && (
-            <button onClick={clearFilters} className="clear-filters-btn" title="Clear all filters">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {activeFilterCount > 0 && (
+            <button onClick={clearFilters} className="btn btn-danger btn-sm" title="Clear all filters">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18"/>
                 <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
@@ -245,15 +246,14 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) 
             title="Use Ctrl+K or Cmd+K to focus"
           />
           {searchQuery && (
-            <button
+            <button 
               onClick={() => setSearchQuery('')}
-              className="clear-search-btn"
+              className="btn-close"
               title="Clear search"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <line x1="15" y1="9" x2="9" y2="15"/>
-                <line x1="9" y1="9" x2="15" y2="15"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"/>
+                <line x1="6" y1="6" x2="18" y2="18"/>
               </svg>
             </button>
           )}
@@ -312,27 +312,22 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) 
       </div>
 
       {!loading && sortedRuns.length === 0 && (
-        <div className="no-results">
-          <div className="no-results-icon">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="11" cy="11" r="8"/>
-              <path d="m21 21-4.35-4.35"/>
-              <line x1="11" y1="8" x2="11" y2="14"/>
-              <line x1="8" y1="11" x2="14" y2="11"/>
-            </svg>
-          </div>
-          <h3>No runs found</h3>
-          <p>
-            {hasActiveFilters 
+        <EmptyState
+          icon={hasActiveFilters || searchQuery ? "filter" : "run"}
+          title={hasActiveFilters || searchQuery ? "No runs match your criteria" : "No runs yet"}
+          description={
+            hasActiveFilters 
               ? 'No runs match your current filters. Try adjusting or clearing your filters.'
-              : 'No evaluation runs available yet. Start a new evaluation to see results here.'}
-          </p>
-          {hasActiveFilters && (
-            <button onClick={clearFilters} className="btn-primary">
-              Clear All Filters
-            </button>
-          )}
-        </div>
+              : searchQuery
+                ? `No runs match "${searchQuery}". Try a different search term.`
+                : 'No evaluation runs available yet. Start a new evaluation to see results here.'
+          }
+          action={hasActiveFilters || searchQuery ? {
+            label: hasActiveFilters ? "Clear All Filters" : "Clear Search",
+            onClick: clearFilters,
+            variant: "btn-primary"
+          } : null}
+        />
       )}
 
 
