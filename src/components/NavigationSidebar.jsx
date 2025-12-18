@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { getScoreColor } from '../utils/metricUtils';
+import { usePanelState } from '../hooks/usePanelState';
 import '../styles/NavigationSidebar.css';
 
 const NavigationSidebar = ({
@@ -14,25 +15,37 @@ const NavigationSidebar = ({
   title = 'Evaluation Dashboard', // Configurable title
   showResizeHandle = true // Option to show/hide resize
 }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const {
+    isCollapsed,
+    setIsCollapsed,
+    width: sidebarWidth,
+    isResizing,
+    startResize,
+    expandedItems: expandedWorkflows,
+    toggleItem: toggleWorkflow,
+    expandItem,
+    panelRef: sidebarRef,
+  } = usePanelState({
+    defaultCollapsed: false,
+    defaultWidth: 280,
+    minWidth: 200,
+    maxWidth: 600,
+    persistToLocalStorage: false,
+  });
 
   // Sync with external collapse state if provided
   useEffect(() => {
     if (externalIsCollapsed !== undefined) {
       setIsCollapsed(externalIsCollapsed);
     }
-  }, [externalIsCollapsed]);
-  const [expandedWorkflows, setExpandedWorkflows] = useState(new Set());
-  const [sidebarWidth, setSidebarWidth] = useState(280);
-  const [isResizing, setIsResizing] = useState(false);
-  const sidebarRef = useRef(null);
+  }, [externalIsCollapsed, setIsCollapsed]);
 
   // Auto-expand current path
   useEffect(() => {
     if (selectedWorkflow) {
-      setExpandedWorkflows(prev => new Set([...prev, selectedWorkflow.id]));
+      expandItem(selectedWorkflow.id);
     }
-  }, [selectedWorkflow]);
+  }, [selectedWorkflow, expandItem]);
 
   // Update parent when collapse state changes
   useEffect(() => {
@@ -41,17 +54,9 @@ const NavigationSidebar = ({
     }
   }, [isCollapsed, sidebarWidth, onWidthChange]);
 
-  const toggleWorkflow = (workflowId, e) => {
+  const handleToggleWorkflow = (workflowId, e) => {
     e.stopPropagation();
-    setExpandedWorkflows(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(workflowId)) {
-        newSet.delete(workflowId);
-      } else {
-        newSet.add(workflowId);
-      }
-      return newSet;
-    });
+    toggleWorkflow(workflowId);
   };
 
   const isActive = (view, workflowId) => {
@@ -65,30 +70,11 @@ const NavigationSidebar = ({
     return false;
   };
 
-  // Handle resize functionality
+  // Handle resize functionality using usePanelState
   const handleMouseDown = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsResizing(true);
-    
-    const handleMouseMove = (e) => {
-      const newWidth = e.clientX;
-      if (newWidth >= 200 && newWidth <= 600) {
-        setSidebarWidth(newWidth);
-        if (onWidthChange) {
-          onWidthChange(newWidth);
-        }
-      }
-    };
-    
-    const handleMouseUp = () => {
-      setIsResizing(false);
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-    
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    startResize(e);
   };
 
   // Get the single project (hardcoded)
@@ -143,7 +129,7 @@ const NavigationSidebar = ({
               >
                 <button 
                   className={`expand-btn ${expandedWorkflows.has(workflow.id) ? 'expanded' : ''}`}
-                  onClick={(e) => toggleWorkflow(workflow.id, e)}
+                  onClick={(e) => handleToggleWorkflow(workflow.id, e)}
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M9 18l6-6-6-6"/>

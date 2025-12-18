@@ -1,13 +1,61 @@
-import { useState, useMemo, Fragment } from 'react';
+import { useMemo, Fragment } from 'react';
 import { getUniqueScoreFields, formatNumber } from '../utils/metricUtils';
+import { useTableState } from '../hooks/useTableState';
 import RunCard from '../components/RunCard';
 import PerformanceTrendsChart from '../components/PerformanceTrendsChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'startTs', direction: 'descending' });
-  const [searchQuery, setSearchQuery] = useState('');
+  // Custom sort function for runs
+  const customSortFn = (a, b, config) => {
+    let aValue = a[config.key];
+    let bValue = b[config.key];
+
+    // Handle numeric sorting for avgScore, questionCount, and all avg_* metrics
+    if (config.key === 'avgScore' ||
+        config.key === 'questionCount' ||
+        config.key.startsWith('avg_')) {
+      aValue = (aValue === '-' || aValue == null) ? 0 : parseFloat(aValue);
+      bValue = (bValue === '-' || bValue == null) ? 0 : parseFloat(bValue);
+      return config.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+    }
+
+    // Handle timestamp sorting
+    if (config.key === 'startTs' || config.key === 'finishTs') {
+      const aTime = aValue ? new Date(aValue).getTime() : 0;
+      const bTime = bValue ? new Date(bValue).getTime() : 0;
+      return config.direction === 'ascending' ? aTime - bTime : bTime - aTime;
+    }
+
+    // Handle string sorting
+    const aStr = String(aValue || '').toLowerCase();
+    const bStr = String(bValue || '').toLowerCase();
+    if (aStr < bStr) return config.direction === 'ascending' ? -1 : 1;
+    if (aStr > bStr) return config.direction === 'ascending' ? 1 : -1;
+    return 0;
+  };
+
+  // Custom filter function for runs
+  const customFilterFn = (run, query) => {
+    if (!query) return true;
+    const searchLower = query.toLowerCase();
+    return run.version?.toLowerCase().includes(searchLower) ||
+           String(run.id || '').includes(searchLower) ||
+           String(run.workflowId || '').includes(searchLower);
+  };
+
+  const {
+    sortConfig,
+    setSortConfig,
+    searchQuery,
+    setSearchQuery,
+  } = useTableState({
+    defaultSortKey: 'startTs',
+    defaultSortDirection: 'descending',
+    filterFn: customFilterFn,
+    sortFn: customSortFn,
+  });
 
   // Get all unique score fields dynamically from executions within runs
   const scoreFields = useMemo(() => {
@@ -112,21 +160,7 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) 
   });
 
   // Filter runs
-  const filteredRuns = runsArray.filter(run => {
-    // Search query filter (searches across version, id, and workflow)
-    if (searchQuery) {
-      const searchLower = searchQuery.toLowerCase();
-      const matchesSearch = 
-        run.version?.toLowerCase().includes(searchLower) ||
-        String(run.id || '').includes(searchLower) ||
-        String(run.workflowId || '').includes(searchLower);
-      if (!matchesSearch) return false;
-    }
-    
-    // Model filter removed - not in database schema
-    // Prompt version filter removed - not in database schema
-    return true;
-  });
+  const filteredRuns = runsArray.filter(run => customFilterFn(run, searchQuery));
 
   const clearFilters = () => {
     setSearchQuery('');
@@ -135,37 +169,8 @@ const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) 
   const hasActiveFilters = searchQuery;
   const activeFilterCount = [searchQuery].filter(Boolean).length;
 
-
-
-  // Sort runs
-  const sortedRuns = [...filteredRuns].sort((a, b) => {
-    let aValue = a[sortConfig.key];
-    let bValue = b[sortConfig.key];
-
-    // Handle numeric sorting for avgScore, questionCount, and all avg_* metrics
-    if (sortConfig.key === 'avgScore' ||
-        sortConfig.key === 'questionCount' ||
-        sortConfig.key.startsWith('avg_')) {
-      // Handle '-' strings and convert to numbers
-      aValue = (aValue === '-' || aValue == null) ? 0 : parseFloat(aValue);
-      bValue = (bValue === '-' || bValue == null) ? 0 : parseFloat(bValue);
-      return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
-    }
-
-    // Handle timestamp sorting
-    if (sortConfig.key === 'startTs' || sortConfig.key === 'finishTs') {
-      const aTime = aValue ? new Date(aValue).getTime() : 0;
-      const bTime = bValue ? new Date(bValue).getTime() : 0;
-      return sortConfig.direction === 'ascending' ? aTime - bTime : bTime - aTime;
-    }
-
-    // Handle string sorting
-    const aStr = String(aValue || '').toLowerCase();
-    const bStr = String(bValue || '').toLowerCase();
-    if (aStr < bStr) return sortConfig.direction === 'ascending' ? -1 : 1;
-    if (aStr > bStr) return sortConfig.direction === 'ascending' ? 1 : -1;
-    return 0;
-  });
+  // Sort runs using custom sort function
+  const sortedRuns = [...filteredRuns].sort((a, b) => customSortFn(a, b, sortConfig));
 
   return (
     <div className="runs-overview">

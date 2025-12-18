@@ -7,10 +7,14 @@ import SkeletonLoader from '../components/SkeletonLoader';
 import { getScoreColor, getUniqueScoreFields } from '../utils/metricUtils';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { useMetricFields } from '../hooks/useMetricFields';
+import { useTableState } from '../hooks/useTableState';
 import '../styles/RunDetails.css';
 
 const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode, loading = false }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+  const { sortConfig, handleSort } = useTableState({
+    defaultSortKey: 'id',
+    defaultSortDirection: 'ascending',
+  });
   const [searchInput, setSearchInput] = useState('');
   const [expandedRows, setExpandedRows] = useState(new Set());
   
@@ -241,11 +245,8 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     });
   }, [filteredQuestions, sortConfig]);
 
-  const handleSort = (key) => {
-    setSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'ascending' ? 'descending' : 'ascending'
-    }));
+  const handleSortClick = (key) => {
+    handleSort(key);
   };
 
   const handleReorderColumns = (newFields) => {
@@ -354,7 +355,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
                 </svg>
               </th>
               {visibleFields.map(field => (
-                <th key={field.key} onClick={() => handleSort(field.key)} style={{ cursor: 'pointer' }}>
+                <th key={field.key} onClick={() => handleSortClick(field.key)} style={{ cursor: 'pointer' }}>
                   {field.label} {sortConfig.key === field.key && (sortConfig.direction === 'ascending' ? '↑' : '↓')}
                 </th>
               ))}

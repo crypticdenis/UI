@@ -1,47 +1,59 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useTableState } from '../hooks/useTableState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
 
 const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading = false }) => {
-  const [sortConfig, setSortConfig] = useState({ key: 'name', direction: 'ascending' });
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // Filter workflows based on search
-  const filteredWorkflows = workflows.filter(workflow => {
-    if (!searchQuery) return true;
-    const searchLower = searchQuery.toLowerCase();
-    return (
-      workflow.name?.toLowerCase().includes(searchLower) ||
-      workflow.description?.toLowerCase().includes(searchLower)
-    );
-  });
-
-  // Sort workflows
-  const sortedWorkflows = [...filteredWorkflows].sort((a, b) => {
-    let aValue = a[sortConfig.key];
-    let bValue = b[sortConfig.key];
+  // Custom sort function for workflows
+  const customSortFn = (a, b, config) => {
+    let aValue = a[config.key];
+    let bValue = b[config.key];
 
     // Handle timestamp sorting
-    if (sortConfig.key === 'createdAt' || sortConfig.key === 'updatedAt') {
+    if (config.key === 'createdAt' || config.key === 'updatedAt') {
       const aTime = aValue ? new Date(aValue).getTime() : 0;
       const bTime = bValue ? new Date(bValue).getTime() : 0;
-      return sortConfig.direction === 'ascending' ? aTime - bTime : bTime - aTime;
+      return config.direction === 'ascending' ? aTime - bTime : bTime - aTime;
     }
 
     // Handle numeric sorting
-    if (sortConfig.key === 'subworkflowCount') {
+    if (config.key === 'subworkflowCount') {
       aValue = aValue || 0;
       bValue = bValue || 0;
-      return sortConfig.direction === 'ascending' ? aValue - bValue : bValue - aValue;
+      return config.direction === 'ascending' ? aValue - bValue : bValue - aValue;
     }
 
     // Handle string sorting
     const aStr = String(aValue || '').toLowerCase();
     const bStr = String(bValue || '').toLowerCase();
-    if (aStr < bStr) return sortConfig.direction === 'ascending' ? -1 : 1;
-    if (aStr > bStr) return sortConfig.direction === 'ascending' ? 1 : -1;
+    if (aStr < bStr) return config.direction === 'ascending' ? -1 : 1;
+    if (aStr > bStr) return config.direction === 'ascending' ? 1 : -1;
     return 0;
+  };
+
+  // Custom filter function for workflows
+  const customFilterFn = (workflow, query) => {
+    if (!query) return true;
+    const searchLower = query.toLowerCase();
+    return workflow.name?.toLowerCase().includes(searchLower) ||
+           workflow.description?.toLowerCase().includes(searchLower);
+  };
+
+  const {
+    sortConfig,
+    setSortConfig,
+    searchQuery,
+    setSearchQuery,
+    processData,
+  } = useTableState({
+    defaultSortKey: 'name',
+    defaultSortDirection: 'ascending',
+    filterFn: customFilterFn,
+    sortFn: customSortFn,
   });
+
+  // Process workflows (filter and sort)
+  const processedWorkflows = processData(workflows);
 
   return (
     <div className="workflows-overview">
@@ -50,7 +62,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading =
           <h2>Workflows in {projectName}</h2>
           <p className="overview-subtitle">
             <span className="stat-item">
-              <strong>{sortedWorkflows.length}</strong> {sortedWorkflows.length === 1 ? 'Workflow' : 'Workflows'}
+              <strong>{processedWorkflows.length}</strong> {processedWorkflows.length === 1 ? 'Workflow' : 'Workflows'}
             </span>
           </p>
         </div>
@@ -109,7 +121,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading =
       <div className="runs-grid">
         {loading ? (
           <LoadingSpinner size="large" text="Loading workflows..." />
-        ) : sortedWorkflows.length === 0 ? (
+        ) : processedWorkflows.length === 0 ? (
           <EmptyState
             icon={searchQuery ? "search" : "workflow"}
             title={searchQuery ? "No workflows found" : "No workflows yet"}
@@ -125,7 +137,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading =
             } : null}
           />
         ) : (
-          sortedWorkflows.map((workflow) => (
+          processedWorkflows.map((workflow) => (
             <div 
               key={workflow.id} 
               className="run-card workflow-card clickable"
@@ -179,7 +191,7 @@ const WorkflowsOverview = ({ workflows, projectName, onSelectWorkflow, loading =
         )}
       </div>
 
-      {!loading && sortedWorkflows.length === 0 && (
+      {!loading && processedWorkflows.length === 0 && (
         <div className="no-results">
           <div className="no-results-icon">
             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

@@ -1,5 +1,6 @@
 import { useState, useMemo, Fragment } from 'react';
 import { getUniqueScoreFields, getScoreColor, formatNumber } from '../utils/metricUtils';
+import { useTableState } from '../hooks/useTableState';
 
 const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => {
   // Find the base execution and its position within its run
@@ -32,10 +33,14 @@ const QuestionComparison = ({ baseID, currentRunVersion, allRuns, onClose }) => 
 
   const availableVersions = Object.keys(runsByVersion);
   
-  // Filter and sort state
+  // Use table state for filtering (note: QuestionComparison has custom sort logic)
+  const { searchQuery: filterText, setSearchQuery: setFilterText } = useTableState({
+    defaultSortKey: 'timestamp',
+    defaultSortDirection: 'desc',
+  });
+  
   const [sortBy, setSortBy] = useState('timestamp'); // timestamp, avgScore, version
   const [sortOrder, setSortOrder] = useState('desc'); // asc, desc
-  const [filterText, setFilterText] = useState('');
   
   // Initialize with current run selected (limit to 2 runs max)
   const [selectedVersions, setSelectedVersions] = useState([currentRunVersion].filter(v => runsByVersion[v]));

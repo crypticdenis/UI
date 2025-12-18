@@ -11,6 +11,7 @@ import NavigationSidebar from './components/NavigationSidebar.jsx';
 import LoadingSpinner from './components/LoadingSpinner.jsx';
 import ErrorDisplay from './components/ErrorDisplay.jsx';
 import { useNavigationState } from './hooks/useNavigationState.js';
+import { useComparisonState } from './hooks/useComparisonState.js';
 import { useProjects } from './hooks/useAPI.js';
 import './styles/App.css';
 
@@ -39,12 +40,22 @@ function App() {
     setSelectedRun,
   } = useNavigationState();
   
-  const [comparisonBaseID, setComparisonBaseID] = useState(null);
-  const [comparisonRunVersion, setComparisonRunVersion] = useState(null);
-  const [runComparisonWorkflowId, setRunComparisonWorkflowId] = useState(null);
-  const [runComparisonRunIds, setRunComparisonRunIds] = useState([]);
-  const [conversationComparisonSessionId, setConversationComparisonSessionId] = useState(null);
-  const [conversationComparisonRunVersion, setConversationComparisonRunVersion] = useState(null);
+  // Comparison state management
+  const {
+    comparisonBaseID,
+    comparisonRunVersion,
+    runComparisonWorkflowId,
+    runComparisonRunIds,
+    conversationComparisonSessionId,
+    conversationComparisonRunVersion,
+    startQuestionComparison,
+    clearQuestionComparison,
+    startRunComparison,
+    clearRunComparison,
+    startConversationComparison,
+    clearConversationComparison,
+  } = useComparisonState();
+  
   const [viewerContent, setViewerContent] = useState(null);
   const [sidebarWidth, setSidebarWidth] = useState(280);
   const [navSidebarCollapsed, setNavSidebarCollapsed] = useState(false);
@@ -69,12 +80,10 @@ function App() {
           setViewerContent(null);
         } else if (currentView === 'comparison') {
           setCurrentView('details');
-          setComparisonBaseID(null);
-          setComparisonRunVersion(null);
+          clearQuestionComparison();
         } else if (currentView === 'runComparison') {
           setCurrentView('runs');
-          setRunComparisonWorkflowId(null);
-          setRunComparisonRunIds([]);
+          clearRunComparison();
         } else if (currentView === 'details') {
           setCurrentView('runs');
           setSelectedRunVersion(null);
@@ -97,7 +106,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentView, viewerContent, setCurrentView, setComparisonBaseID, setComparisonRunVersion, setRunComparisonWorkflowId, setRunComparisonRunIds, setSelectedWorkflow, setSelectedRunVersion, setSelectedRunQuestions, setViewerContent]);
+  }, [currentView, viewerContent, setCurrentView, clearQuestionComparison, clearRunComparison, setSelectedWorkflow, setSelectedRunVersion, setSelectedRunQuestions, setViewerContent]);
 
 
   // Navigation handlers
@@ -144,40 +153,34 @@ function App() {
   };
 
   const handleCompareQuestion = (baseID, runVersion) => {
-    setComparisonBaseID(baseID);
-    setComparisonRunVersion(runVersion);
+    startQuestionComparison(baseID, runVersion);
     setCurrentView('comparison');
   };
 
   const handleCloseComparison = () => {
     setCurrentView('details');
-    setComparisonBaseID(null);
-    setComparisonRunVersion(null);
+    clearQuestionComparison();
   };
 
   const handleCompareRuns = (workflowId, runIds) => {
-    setRunComparisonWorkflowId(workflowId);
-    setRunComparisonRunIds(runIds);
+    startRunComparison(workflowId, runIds);
     setCurrentView('runComparison');
   };
 
   const handleCloseRunComparison = () => {
     setCurrentView('runs');
-    setRunComparisonWorkflowId(null);
-    setRunComparisonRunIds([]);
+    clearRunComparison();
   };
 
   const handleCompareSession = (sessionId) => {
-    setConversationComparisonSessionId(sessionId);
-    setConversationComparisonRunVersion(selectedRunVersion);
+    startConversationComparison(sessionId, selectedRunVersion);
     setCurrentView('conversationComparison');
   };
 
   const handleCloseConversationComparison = () => {
     setCurrentView('details');
     setViewMode('conversation');
-    setConversationComparisonSessionId(null);
-    setConversationComparisonRunVersion(null);
+    clearConversationComparison();
   };
 
   const handleExpandContent = (content, title, runId, gtId) => {
