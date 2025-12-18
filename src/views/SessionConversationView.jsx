@@ -44,7 +44,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
 
   // Apply saved metric order
   const allMetricFields = useMemo(() => {
-    if (metricOrder.length === 0) return rawMetricFields;
+    if (!metricOrder || metricOrder.length === 0) return rawMetricFields;
 
     const orderedFields = [];
     const fieldsByKey = new Map(rawMetricFields.map(f => [f.key, f]));
@@ -58,7 +58,8 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
     });
     
     // Then add any new fields that weren't in saved order
-    fieldsByKey.forEach(field => orderedFields.push(field));
+    const remainingFields = Array.from(fieldsByKey.values());
+    remainingFields.forEach(field => orderedFields.push(field));
     
     return orderedFields;
   }, [rawMetricFields, metricOrder]);
@@ -66,7 +67,8 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
   // Handle metric reordering
   const handleReorderMetrics = (newFields) => {
     const newOrder = newFields.map(f => f.key);
-    setMetricOrder(newOrder);
+    // Force state update even if array contents are the same
+    setMetricOrder([...newOrder]);
   };
   
   // Handle highlighting and navigation to specific execution
@@ -433,6 +435,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                             execution={execution}
                             highlighted={highlightedExecId === execution.id}
                             visibleMetrics={visibleMetrics}
+                            metricOrder={metricOrder}
                           />
                         ))}
                       </div>
@@ -481,6 +484,7 @@ const SessionConversationView = ({ runVersion, executions, onBack, onToggleViewM
                             execution={execution}
                             highlighted={false}
                             visibleMetrics={visibleMetrics}
+                            metricOrder={metricOrder}
                           />
                         ))}
                       </div>

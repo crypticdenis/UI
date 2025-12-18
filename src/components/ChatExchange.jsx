@@ -19,7 +19,7 @@ const formatTimestamp = (timestamp) => {
  * ChatExchange Component
  * Displays a user-assistant conversation exchange with evaluation metrics
  */
-const ChatExchange = ({ execution, highlighted, visibleMetrics }) => {
+const ChatExchange = ({ execution, highlighted, visibleMetrics, metricOrder = [] }) => {
   const [showEvaluationDetails, setShowEvaluationDetails] = useState(false);
   
   // Extract and categorize metrics using utility function
@@ -36,6 +36,32 @@ const ChatExchange = ({ execution, highlighted, visibleMetrics }) => {
   const visiblePerformanceMetrics = Object.fromEntries(
     Object.entries(performanceMetrics).filter(([key]) => visibleMetrics.has(key))
   );
+  
+  // Order quality metrics according to metricOrder if provided
+  const orderedQualityMetrics = metricOrder.length > 0
+    ? metricOrder
+        .filter(key => {
+          const exists = visibleQualityMetrics[key] !== undefined;
+          if (!exists) {
+            console.log(`Metric key "${key}" from metricOrder not found in visibleQualityMetrics:`, Object.keys(visibleQualityMetrics));
+          }
+          return exists;
+        })
+        .map(key => [key, visibleQualityMetrics[key]])
+    : Object.entries(visibleQualityMetrics);
+  
+  console.log('ChatExchange Debug:');
+  console.log('- metricOrder:', metricOrder);
+  console.log('- qualityMetrics keys:', Object.keys(qualityMetrics));
+  console.log('- visibleQualityMetrics keys:', Object.keys(visibleQualityMetrics));
+  console.log('- orderedQualityMetrics:', orderedQualityMetrics.map(([k]) => k));
+  
+  // Order performance metrics according to metricOrder if provided
+  const orderedPerformanceMetrics = metricOrder.length > 0
+    ? metricOrder
+        .filter(key => visiblePerformanceMetrics[key] !== undefined)
+        .map(key => [key, visiblePerformanceMetrics[key]])
+    : Object.entries(visiblePerformanceMetrics);
   
   return (
     <>
@@ -129,7 +155,7 @@ const ChatExchange = ({ execution, highlighted, visibleMetrics }) => {
                         <div className="metrics-column">
                           <h4 className="metrics-column-title">QUALITY METRICS</h4>
                           <div className="quality-metrics-list">
-                            {Object.entries(visibleQualityMetrics).map(([name, metric]) => (
+                            {orderedQualityMetrics.map(([name, metric]) => (
                               <div key={name} className="quality-metric-item">
                                 <div className="metric-item-header">
                                   <span className="metric-item-name">{name}</span>
@@ -162,7 +188,7 @@ const ChatExchange = ({ execution, highlighted, visibleMetrics }) => {
                         <div className="metrics-column">
                           <h4 className="metrics-column-title">PERFORMANCE METRICS</h4>
                           <div className="performance-metrics-list">
-                            {Object.entries(visiblePerformanceMetrics).map(([name, metric]) => {
+                            {orderedPerformanceMetrics.map(([name, metric]) => {
                               const lowerName = name.toLowerCase();
                               let displayValue = metric.value;
                               
