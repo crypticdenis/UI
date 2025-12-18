@@ -4,7 +4,6 @@ import RunCard from '../components/RunCard';
 import PerformanceTrendsChart from '../components/PerformanceTrendsChart';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
-import '../styles/RunsOverview.css';
 
 const RunsOverview = ({ runs, onViewRunDetails, breadcrumbs, loading = false }) => {
   const [sortConfig, setSortConfig] = useState({ key: 'startTs', direction: 'descending' });

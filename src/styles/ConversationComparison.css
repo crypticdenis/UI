@@ -1,6 +1,3 @@
-/* Import unified variables */
-@import './App.css';
-
 /* Conversation Comparison View */
 .conversation-comparison-view {
   display: flex;
@@ -289,12 +286,6 @@
 }
 
 /* Message styles (reuse from SessionConversationView) */
-.chat-message {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
 .user-message {
   align-items: flex-end;
 }
@@ -372,28 +363,6 @@
 .score-delta-indicator.negative {
   background: var(--error-alpha);
   color: var(--error-color);
-}
-
-.message-bubble {
-  max-width: 75%;
-  padding: 14px 18px;
-  border-radius: 16px;
-  position: relative;
-  box-shadow: 0 2px 8px var(--bg-overlay);
-}
-
-.user-message .message-bubble {
-  background: var(--bg-card);
-  color: white;
-  border-radius: 16px 16px 4px 16px;
-  border: 1px solid var(--text-muted);
-}
-
-.assistant-message .message-bubble {
-  background: var(--bg-dark);
-  color: var(--text-primary);
-  border-radius: 16px 16px 16px 4px;
-  border: 1.5px solid var(--primary-alpha);
 }
 
 .message-content {

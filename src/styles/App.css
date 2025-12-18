@@ -18,10 +18,13 @@
   --primary-color: #60a5fa;
   --primary-hover: #3b82f6;
   --primary-alpha: rgba(96, 165, 250, 0.2);
+  --primary-medium: rgba(96, 165, 250, 0.5);
+  --primary-light: rgba(96, 165, 250, 0.1);
 
   /* Accent Orange */
   --accent-color: #ff900c;
   --accent-alpha: rgba(255, 144, 12, 0.2);
+  --accent-medium: rgba(255, 144, 12, 0.5);
 
   /* Error Red */
   --error-color: #ef4444;
