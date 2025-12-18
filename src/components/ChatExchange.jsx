@@ -40,21 +40,9 @@ const ChatExchange = ({ execution, highlighted, visibleMetrics, metricOrder = []
   // Order quality metrics according to metricOrder if provided
   const orderedQualityMetrics = metricOrder.length > 0
     ? metricOrder
-        .filter(key => {
-          const exists = visibleQualityMetrics[key] !== undefined;
-          if (!exists) {
-            console.log(`Metric key "${key}" from metricOrder not found in visibleQualityMetrics:`, Object.keys(visibleQualityMetrics));
-          }
-          return exists;
-        })
+        .filter(key => visibleQualityMetrics[key] !== undefined)
         .map(key => [key, visibleQualityMetrics[key]])
     : Object.entries(visibleQualityMetrics);
-  
-  console.log('ChatExchange Debug:');
-  console.log('- metricOrder:', metricOrder);
-  console.log('- qualityMetrics keys:', Object.keys(qualityMetrics));
-  console.log('- visibleQualityMetrics keys:', Object.keys(visibleQualityMetrics));
-  console.log('- orderedQualityMetrics:', orderedQualityMetrics.map(([k]) => k));
   
   // Order performance metrics according to metricOrder if provided
   const orderedPerformanceMetrics = metricOrder.length > 0
