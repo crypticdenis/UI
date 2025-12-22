@@ -45,7 +45,7 @@ const RunCard = ({
   
   // Memoize data objects to prevent unnecessary re-renders
   const runData = useMemo(() => run || {}, [run]);
-  const executionsData = useMemo(() => questions || run?.runs || [], [questions, run]);
+  const executionsData = useMemo(() => questions || run?.runs || run?.questions || [], [questions, run]);
 
   // State for collapsible metrics (used in header mode and card mode) - default to collapsed for better UX
   const [showAllMetrics, setShowAllMetrics] = useState(false);
@@ -661,16 +661,16 @@ const RunCard = ({
             <div className="metrics-section-title">Quality Metrics</div>
             <div className="metrics-grid">
               {calculatedScoreFields.map(field => {
-                const numericValue = runData[`avg_${field.key}`];
-                const formattedValue = runData[`avg_${field.key}_formatted`];
-                const displayValue = formattedValue || (numericValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-');
+                const metricValue = calculatedMetrics[`avg_${field.key}`];
+                const numericValue = parseFloat(metricValue);
+                const displayValue = metricValue != null && !isNaN(numericValue) ? numericValue.toFixed(2) : '-';
                 
                 return (
                   <div key={field.key} className="metric-detail-item">
                     <div className="metric-detail-label">{field.label.toUpperCase()}</div>
                     <div
                       className="metric-detail-value"
-                      style={{ backgroundColor: numericValue != null && !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
+                      style={{ backgroundColor: !isNaN(numericValue) ? getScoreColor(numericValue) : '#334155' }}
                     >
                       {displayValue}
                     </div>

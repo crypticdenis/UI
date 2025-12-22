@@ -11,6 +11,9 @@ import { useTableState } from '../hooks/useTableState';
 import '../styles/RunDetails.css';
 
 const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode, loading = false }) => {
+  // Fallback: if questions prop is empty but run has the data, use run.runs or run.questions
+  const effectiveQuestions = questions && questions.length > 0 ? questions : (run?.runs || run?.questions || []);
+  
   const { sortConfig, handleSort } = useTableState({
     defaultSortKey: 'id',
     defaultSortDirection: 'ascending',
@@ -32,12 +35,12 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
 
   // Calculate score fields from questions
   const scoreFields = useMemo(() => {
-    return getUniqueScoreFields(questions || []);
-  }, [questions]);
+    return getUniqueScoreFields(effectiveQuestions || []);
+  }, [effectiveQuestions]);
 
   // Extract metric fields and get toggle functions
   const { allMetricFields: _metricFields, toggleMetricVisibility: toggleColumnVisibility } = useMetricFields(
-    questions,
+    effectiveQuestions,
     visibleColumns,
     setVisibleColumns
   );
@@ -116,12 +119,12 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
 
   // Extract ALL fields dynamically from the data
   const allFields = useMemo(() => {
-    if (!questions || questions.length === 0) return [];
+    if (!effectiveQuestions || effectiveQuestions.length === 0) return [];
     
     const fieldMap = new Map();
     const skipFields = new Set(['id', 'runId', 'workflowId', 'parentExecutionId', 'creationTs', 'subExecutions', 'sessionId']);
     
-    questions.forEach(q => {
+    effectiveQuestions.forEach(q => {
       Object.keys(q).forEach(key => {
         if (skipFields.has(key)) return; // Skip internal fields
         
@@ -180,7 +183,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
     }
     
     return fields;
-  }, [questions, columnOrder]);
+  }, [effectiveQuestions, columnOrder]);
 
   // Initialize visible columns on first render if empty
   useEffect(() => {
@@ -193,9 +196,9 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
 
   // Filter questions
   const filteredQuestions = useMemo(() => {
-    if (!questions) return [];
+    if (!effectiveQuestions) return [];
     
-    return questions.filter(q => {
+    return effectiveQuestions.filter(q => {
       if (!searchInput) return true;
       const search = searchInput.toLowerCase();
       return (
@@ -205,7 +208,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
         (q.groundtruth || '').toLowerCase().includes(search)
       );
     });
-  }, [questions, searchInput]);
+  }, [effectiveQuestions, searchInput]);
 
   // Get visible fields based on user preferences
   const visibleFields = useMemo(() => {
@@ -309,6 +312,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
         <RunCard
           mode="card"
           run={run}
+          questions={effectiveQuestions}
           scoreFields={scoreFields}
           maxMetrics={3}
           showAvgScore={true}
