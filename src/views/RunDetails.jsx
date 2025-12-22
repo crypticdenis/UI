@@ -12,7 +12,9 @@ import '../styles/RunDetails.css';
 
 const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onNavigateToSubExecution, autoExpandExecutionId, onToggleViewMode, _viewMode, loading = false }) => {
   // Fallback: if questions prop is empty but run has the data, use run.runs or run.questions
-  const effectiveQuestions = questions && questions.length > 0 ? questions : (run?.runs || run?.questions || []);
+  const effectiveQuestions = useMemo(() => {
+    return questions && questions.length > 0 ? questions : (run?.runs || run?.questions || []);
+  }, [questions, run]);
   
   const { sortConfig, handleSort } = useTableState({
     defaultSortKey: 'id',
