@@ -36,7 +36,7 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
   }, [questions]);
 
   // Extract metric fields and get toggle functions
-  const { allMetricFields: _metricFields, toggleMetricVisibility: toggleColumnVisibility, toggleAllMetrics: toggleAllColumns } = useMetricFields(
+  const { allMetricFields: _metricFields, toggleMetricVisibility: toggleColumnVisibility } = useMetricFields(
     questions,
     visibleColumns,
     setVisibleColumns
@@ -252,6 +252,16 @@ const RunDetails = ({ runVersion, questions, run, onBack, onCompareQuestion, onN
   const handleReorderColumns = (newFields) => {
     const newOrder = newFields.map(f => f.key);
     setColumnOrder(newOrder);
+  };
+
+  const toggleAllColumns = () => {
+    if (visibleColumns.size === allFields.length) {
+      // Deselect all - but keep at least one column visible
+      setVisibleColumns(new Set([allFields[0]?.key]));
+    } else {
+      // Select all
+      setVisibleColumns(new Set(allFields.map(f => f.key)));
+    }
   };
 
   const getCellValue = (question, field) => {
